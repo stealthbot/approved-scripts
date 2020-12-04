@@ -1,0 +1,458 @@
+'System Information
+'WARNING! The /systemraw command provided by this script provides access to potentially sensitive information.
+' It is advised that you do not allow other people to use it.
+
+
+Script("Name") = "SystemInfo"
+Script("Author") = "Pyro"
+Script("Major") = 2
+Script("Minor") = 0
+
+Const INFO_COMMAND = "systeminfo"
+Const INFO_DEVICE = "device"
+
+Const INFO_RAW_COMMAND = "systemraw"
+Const INFO_RAW_CLASS = "wmi_class"
+Const INFO_RAW_ITEM = "item"
+Const INFO_RAW_PROP = "prop"
+
+Const WMI_OBJECT_URI = "winmgmts:\\localhost\root\cimv2"
+
+Private dicLookup
+
+
+Sub Event_Load()
+    Call InitCommands
+    Call GetSystemInfo
+End Sub
+
+Sub Event_Command(Command)
+    Select Case LCase(Command.Name)
+        Case INFO_COMMAND:
+            If Len(Command.Argument(INFO_DEVICE)) > 0 Then
+                Select Case LCase(Command.Argument(INFO_DEVICE))
+                    Case "cpu":
+                        Command.Respond StringFormat("This system is powered by an {0}. It is an {1} processor with {2} cores and {3} logical processors " & _
+                            "running at a clock speed of {4} MHz.", dicLookup.Item("CPU0_Name"), GetProcArch(dicLookup.Item("CPU0_Architecture")), _
+                            dicLookup.Item("CPU0_CoreCount"), dicLookup.Item("CPU0_LogicalProcessors"), dicLookup.Item("CPU0_Speed"))
+                    Case "gpu":
+                        Command.Respond StringFormat("This system's primary graphics adapter is an {0} running at a resolution of {1}x{2} @ {3} Hz with {4} colors.", _
+                            dicLookup.Item("GPU0_Description"), dicLookup.Item("GPU0_HorizontalResolution"), dicLookup.item("GPU0_VerticalResolution"), _
+                            dicLookup.Item("GPU0_RefreshRate"), GetMagnitude(dicLookup.Item("GPU0_NumberOfColors")))
+                End Select
+            Else
+                Command.Respond StringFormat("This system is running {0}, powered by an {1}, {2} of RAM, and an {3} GPU.", _
+                    dicLookup.Item("OS_Caption"), dicLookup.Item("CPU0_Name"), GetRAM(dicLookup.Item("TotalVisibleMemory")), _
+                    dicLookup.Item("GPU0_Description"))
+            End If
+        Case INFO_RAW_COMMAND:
+            If Command.IsValid Then
+                className = Command.Argument(INFO_RAW_CLASS)
+                
+                Set objWMI = GetObject(WMI_OBJECT_URI)
+                Set instances = objWMI.InstancesOf(className)
+                
+                If (Len(Command.Argument(INFO_RAW_ITEM)) = 0) Then
+                    If (instances.Count = 0) Then
+                        Command.Respond "There were no instances of " & className & " returned."
+                    Else
+                        Command.Respond "There were " & instances.Count & " instances returned."
+                    End If
+                Else
+                    If (Len(Command.Argument(INFO_RAW_PROP)) = 0) Then
+                        Command.Respond "You must specify a property to return."
+                        Exit Sub
+                    End If
+                    
+                    i = 0
+                    Set targetItem = Nothing
+                    targetIndex = CInt(Command.Argument(INFO_RAW_ITEM))
+                    For Each obj In instances
+                        If i = targetIndex Then
+                            Set targetItem = obj
+                            Exit For
+                        End If
+                    Next
+                    
+                    For Each obj In targetItem.Properties_
+                        If Match(obj.Name, Command.Argument(INFO_RAW_PROP), True) Then
+                            Command.Respond obj.Name & ": " & obj.Value
+                        End If
+                    Next
+                End If
+            Else
+                Command.Respond StringFormat("Invalid command. Correct syntax {0} <class> [index] [property]", Command.Name)
+            End If
+    End Select
+End Sub
+
+' Loads some key values into a dictionary for easier reference at a later time.
+'  NOTE: Not all of these values are used in the script.
+Function GetSystemInfo()
+    Set dicLookup = CreateObject("Scripting.Dictionary")
+    
+    Set objWMI = GetObject(WMI_OBJECT_URI)
+    
+    Set colOS = objWMI.InstancesOf("Win32_OperatingSystem")
+    For Each objOS In colOS
+        dicLookup.Add "OS_Build", objOS.BuildNumber
+        dicLookup.Add "OS_BuildType", objOS.BuildType
+        dicLookup.Add "OS_Type", GetProductType(objOS.ProductType)
+        dicLookup.Add "OS_Architecture", objOS.OSArchitecture
+        dicLookup.Add "OS_SKU", GetSKU(objOS.OperatingSystemSKU)
+        dicLookup.Add "OS_Caption", objOS.Caption
+        dicLookup.Add "OS_Version", objOS.Version
+        dicLookup.Add "IsDistributed", objOS.Distributed
+        dicLookup.Add "Manufacturer", objOS.Manufacturer
+        dicLookup.Add "SerialNumber", objOS.SerialNumber
+        
+        dicLookup.Add "FreePhysicalMemory", objOS.FreePhysicalMemory
+        dicLookup.Add "FreeVirtualMemory", objOS.FreeVirtualMemory
+        dicLookup.Add "TotalVirtualMemory", objOS.TotalVirtualMemorySize
+        dicLookup.Add "TotalVisibleMemory", objOS.TotalVisibleMemorySize
+        
+        dicLookup.Add "NumberOfProcesses", objOS.NumberOfProcesses
+        
+        dicLookup.Add "InstallDate", objOS.InstallDate
+        dicLookup.Add "LastBoot", objOS.LastBootUpTime
+        dicLookup.Add "LocalTime", objOS.LocalDateTime
+        dicLookup.Add "TimeZone", objOS.CurrentTimeZone
+        
+        Exit For
+    Next
+    
+    Set colMB = objWMI.InstancesOf("Win32_BaseBoard")
+    For Each objMB in colMB
+        dicLookup.Add "Motherboard_Manufacturer", objMB.Manufacturer
+        dicLookup.Add "Motherboard_Product", objMB.Product
+    
+        Exit For
+    Next
+    
+    Set colPR = objWMI.InstancesOf("Win32_Processor")
+    dicLookup.Add "CPU_Count", colPR.Count
+    i = 0
+    For Each objPR In colPR
+        dicLookup.Add "CPU" & i & "_Name", Replace(objPR.Name, Space(4), Space(1))
+        dicLookup.Add "CPU" & i & "_Speed", objPR.CurrentClockSpeed
+        dicLookup.Add "CPU" & i & "_Architecture", objPR.Architecture
+        dicLookup.Add "CPU" & i & "_Manufacturer", objPR.Manufacturer
+        dicLookup.Add "CPU" & i & "_CoreCount", objPR.NumberOfCores
+        dicLookup.Add "CPU" & i & "_LogicalProcessors", objPR.NumberOfLogicalProcessors
+        
+        i = i + 1
+    Next
+    
+    Set colVD = objWMI.InstancesOf("Win32_VideoController")
+    dicLookup.Add "GPU_Count", colVD.Count
+    i = 0
+    For Each objVC in colVD
+        dicLookup.Add "GPU" & i & "_Description", objVC.Description
+        dicLookup.Add "GPU" & i & "_DriverVersion", objVC.DriverVersion
+        dicLookup.Add "GPU" & i & "_DriverDate", objVC.DriverDate
+        dicLookup.Add "GPU" & i & "_HorizontalResolution", objVC.CurrentHorizontalResolution
+        dicLookup.Add "GPU" & i & "_VerticalResolution", objVC.CurrentVerticalResolution
+        dicLookup.Add "GPU" & i & "_RefreshRate", objVC.CurrentRefreshRate
+        dicLookup.Add "GPU" & i & "_NumberOfColors", objVC.CurrentNumberOfColors
+        dicLookup.Add "GPU" & i & "_VideoMode", objVC.VideoModeDescription
+        
+        i = i + 1
+    Next
+    
+    Set colVOL = objWMI.InstancesOf("Win32_Volume")
+    dicLookup.Add "VOL_Count", colVOL.Count
+    i = 0
+    For Each objV in colVOL
+        dicLookup.Add "VOL" & i & "_BlockSize", objV.BlockSize
+        dicLookup.Add "VOL" & i & "_BootVolume", objV.BootVolume
+        dicLookup.Add "VOL" & i & "_Capacity", objV.Capacity
+        dicLookup.Add "VOL" & i & "_Compressed", objV.Compressed
+        dicLookup.Add "VOL" & i & "_DriveType", objV.DriveType
+        dicLookup.Add "VOL" & i & "_FileSystem", objV.FileSystem
+        dicLookup.Add "VOL" & i & "_FreeSpace", objV.FreeSpace
+        dicLookup.Add "VOL" & i & "_Name", objV.Name
+        dicLookup.Add "VOL" & i & "_DriveLetter", objV.DriveLetter
+        
+        i = i + 1
+    Next
+End Function
+
+' Saves a bunch of data to disk in the 'sysinfo' folder of your bot profile.
+Sub RunTest()
+    Set objWMI = GetObject(WMI_OBJECT_URI)
+    
+    Call SaveInfo(objWMI.InstancesOf("Win32_OperatingSystem"), "sysinfo\OS.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_BaseBoard"), "sysinfo\MOBO.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_Battery"), "sysinfo\BATT.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_VideoController"), "sysinfo\VIDEO.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_Processor"), "sysinfo\CPU.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_Fan"), "sysinfo\FAN.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_ComputerSystem"), "sysinfo\system.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_MemoryArray"), "sysinfo\memory.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_MemoryDevice"), "sysinfo\memdev.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_NetworkAdapter"), "sysinfo\network.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_PhysicalMedia"), "sysinfo\storage.txt")
+    Call SaveInfo(objWMI.InstancesOf("Win32_Volume"), "sysinfo\volumes.txt")
+End Sub
+
+' Creates the command documentation
+Sub InitCommands()
+    Dim objCmd, objParam
+    If OpenCommand(INFO_COMMAND) Is Nothing Then
+        Set objCmd = CreateCommand(INFO_COMMAND)
+        With objCmd
+            .RequiredRank = 40
+            .RequiredFlags = "G"
+            .Description = "Gets information about the host system."
+            .Aliases.Add "sysinfo"
+            
+            Set objParam = .NewParameter(INFO_DEVICE, True, "word")
+            objParam.Description = "The type of system device to get information about."
+            .Parameters.Add objParam
+            
+            .Save
+        End With
+        Set objCmd = Nothing
+    End If
+    
+    If OpenCommand(INFO_RAW_COMMAND) Is Nothing Then
+        Set objCmd = CreateCommand(INFO_RAW_COMMAND)
+        With objCmd
+            .RequiredRank = -1
+            .Description = "Provides raw access to WMI values."
+            
+            Set objParam = .NewParameter(INFO_RAW_CLASS, False, "word")
+            objParam.Description = "The Win32 class to retreive information about."
+            .Parameters.Add objParam
+            
+            Set objParam = .NewParameter(INFO_RAW_ITEM, True, "numeric")
+            objParam.Description = "The 0-based index of the instance to retreive information about."
+            .Parameters.Add objParam
+            
+            Set objParam = .NewParameter(INFO_RAW_PROP, True, "word")
+            objParam.Description = "The name of the property whos value should be returned."
+            .Parameters.Add objParam
+            
+            .Save
+        End With
+        Set objCmd = Nothing
+    End If
+End Sub
+
+' Saves a collection of WMI class instances to a file
+Sub SaveInfo(Instances, outputFile)
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set file = fso.CreateTextFile(outputFile, True)
+    
+    On Error Resume Next
+    For Each inst In Instances
+        For Each p In inst.Properties_
+            If Not (p.Value Is Nothing) Then
+                file.WriteLine p.Name & ": " & p.Value
+            End If
+        Next
+        
+        file.WriteLine
+        file.WriteLine
+    Next
+    
+    file.Close
+    Set file = Nothing
+    Set fso = Nothing
+End Sub
+
+' Returns a nicely formatted version of disk capacity
+Function GetDiskCapacity(iCAP)
+    If Not IsNumeric(iCAP) Then
+        GetDiskCapacity = "0 bytes"
+        Exit Function
+    End If
+    
+    iCAP = CDbl(iCAP)
+    
+    sizes = Array( _
+        Array(1000000000000, "TiB"), _
+        Array(1000000000, "GiB"), _
+        Array(1000000, "MiB"), _
+        Array(1000, "KiB"), _
+        Array(0, "bytes"))
+        
+    For Each size In sizes
+        If iCAP > size(0) Then
+            GetDiskCapacity = Round(iCAP / size(0)) & Space(1) & size(1)
+            Exit Function
+        End If
+    Next
+End Function
+
+' Returns a nicely formatted version of a large number (no precision)
+Function GetMagnitude(iNum)
+    If Not IsNumeric(iNum) Then
+        GetMagnitude = iNum
+        Exit Function
+    End If
+    
+    iNum = CDbl(iNum)
+    
+    sizes = Array( _
+        Array(1000000000000, "trillion"), _
+        Array(1000000000, "billion"), _
+        Array(1000000, "million"), _
+        Array(1000, "thousand"))
+        
+    For Each size In sizes
+        If iNum > size(0) Then
+            GetMagnitude = Round(iNum / size(0)) & Space(1) & size(1)
+            Exit Function
+        End If
+    Next
+End Function
+
+' Returns a nicely formatted version of RAM sizes
+Function GetRAM(iRAM)
+    If Not IsNumeric(iRAM) Then
+        GetRAM = "0 bytes"
+        Exit Function
+    End If
+    
+    iRAM = CDbl(iRAM)
+    
+    sizes = Array( _
+        Array(1024000000, "TB"), _
+        Array(1024000, "GB"), _
+        Array(1024, "MB"), _
+        Array(0, "KB"))
+        
+    For Each size In sizes
+        If iRAM > size(0) Then
+            GetRAM = Round(iRAM / size(0)) & Space(1) & size(1)
+            Exit Function
+        End If
+    Next
+End Function
+
+' Returns a friendly version of the Win32_OperatingSystem.ProductType property.
+Function GetProductType(iPT)
+    Set dicProductType = CreateObject("Scripting.Dictionary")
+	dicProductType.Add 1, "Workstation"
+	dicProductType.Add 2, "Domain Controller"
+	dicProductType.Add 3, "Standalone Server"
+    
+    If dicProductType.Exists(iPT) Then
+        GetProductType = dicProductType.Item(iPT)
+    Else
+        GetProductType = "Unknown: " & iPT
+    End If
+End Function
+
+' Returns a friendly version of the Win32_Processor.Architecture property.
+Function GetProcArch(iPA)
+    Set dicProcArch = CreateObject("Scripting.Dictionary")
+	dicProcArch.Add 0, "x86"
+	dicProcArch.Add 1, "MIPS"
+	dicProcArch.Add 2, "Alpha"
+	dicProcArch.Add 3, "PowerPC"
+	dicProcArch.Add 6, "Intel Itanium"
+	dicProcArch.Add 9, "x64"
+    
+    If dicProcArch.Exists(iPA) Then
+        GetProcArch = dicProcArch.Item(iPA)
+    Else
+        GetProcArch = "Unknown: " & iPA
+    End If
+End Function
+
+' Returns a friendly version of the Win32_OperatingSystem.OperatingSystemSKU property.
+Function GetSKU(iSKU)
+    Set dicSKU = CreateObject("Scripting.Dictionary")
+    dicSKU.Add 0, "Undefined"
+    dicSKU.Add 1, "Ultimate"
+	dicSKU.Add 2, "Home Basic"
+	dicSKU.Add 3, "Home Premium"
+	dicSKU.Add 4, "Enterprise"
+	dicSKU.Add 5, "Home Basic N"
+	dicSKU.Add 6, "Business"
+	dicSKU.Add 7, "Standard Server"
+	dicSKU.Add 8, "Datacenter Server"
+	dicSKU.Add 9, "Small Business Server"
+	dicSKU.Add 10, "Enterprise Server"
+	dicSKU.Add 11, "Starter"
+	dicSKU.Add 12, "Datacenter Server Core"
+	dicSKU.Add 13, "Standard Server Core"
+	dicSKU.Add 14, "Enterprise Server Core"
+	dicSKU.Add 15, "Enterprise Server IA64"
+	dicSKU.Add 16, "Business N"
+	dicSKU.Add 17, "Web Server"
+	dicSKU.Add 18, "Cluster Server"
+	dicSKU.Add 19, "Home Server"
+	dicSKU.Add 20, "Storage Express Server"
+	dicSKU.Add 21, "Storage Standard Server"
+	dicSKU.Add 22, "Storage Workground Server"
+	dicSKU.Add 23, "Storage Enterprise Server"
+	dicSKU.Add 24, "Server For Small Business"
+	dicSKU.Add 25, "Small Business Server Premium"
+	dicSKU.Add 26, "Home Premium N"
+	dicSKU.Add 27, "Enterprise N"
+	dicSKU.Add 28, "Ultimate N"
+	dicSKU.Add 29, "Web Server (core)"
+	dicSKU.Add 30, "Windows Essential Business Server Management Server"
+	dicSKU.Add 31, "Windows Essential Business Server Security Server"
+	dicSKU.Add 32, "Windows Essential Business Server Messaging Server"
+	dicSKU.Add 33, "Server Foundation"
+	dicSKU.Add 34, "Windows Home Server 2011"
+	dicSKU.Add 35, "Windows Server 2008 without Hyper-V for Windows Essential Server Solutions"
+	dicSKU.Add 36, "Server Standard without Hyper-V"
+	dicSKU.Add 37, "Server Datacenter without Hyper-V (full)"
+	dicSKU.Add 38, "Server Enterprise without Hyper-V (full)"
+	dicSKU.Add 39, "Server Datacenter without Hyper-V (core)"
+	dicSKU.Add 40, "Server Standard without Hyper-V (core)"
+	dicSKU.Add 41, "Server Enterprise without Hyper-V (core)"
+	dicSKU.Add 42, "Microsoft Hyper-V Server"
+	dicSKU.Add 43, "Storage Server Express (core)"
+	dicSKU.Add 44, "Storage Server Standard (core)"
+	dicSKU.Add 45, "Storage Server Workgroup (core)"
+	dicSKU.Add 46, "Storage Server Enterprise (core)"
+	dicSKU.Add 47, "Starter N"
+	dicSKU.Add 48, "Professional"
+	dicSKU.Add 49, "Professional N"
+	dicSKU.Add 50, "Windows Small Business Server 2011 Essentials"
+	dicSKU.Add 51, "Server For SB Solutions"
+	dicSKU.Add 52, "Server Solutions Premium"
+	dicSKU.Add 53, "Server Solutions Premium (core)"
+	dicSKU.Add 54, "Server For SB Solutions EM"
+	dicSKU.Add 55, "Server For SB Solutions EM"
+	dicSKU.Add 56, "Windows MultiPoint Server"
+	dicSKU.Add 59, "Windows Essential Server Solution Management"
+	dicSKU.Add 60, "Windows Essential Server Solution Additional"
+	dicSKU.Add 61, "Windows Essential Server Solution Management SVC"
+	dicSKU.Add 62, "Windows Essential Server Solution Additional SVC"
+	dicSKU.Add 63, "Small Business Server Premium (core)"
+	dicSKU.Add 64, "Server Hyper Core V"
+	dicSKU.Add 66, "Starter E"
+	dicSKU.Add 67, "Home Basic E"
+	dicSKU.Add 68, "Home Premium E"
+	dicSKU.Add 69, "Professional E"
+	dicSKU.Add 70, "Enterprise E"
+	dicSKU.Add 71, "Ultimate E"
+	dicSKU.Add 72, "Server Enterprise (evaluation installation)"
+	dicSKU.Add 76, "Windows MultiPoint Server Standard (full installation)"
+	dicSKU.Add 77, "Windows MultiPoint Server Premium (full installation)"
+	dicSKU.Add 79, "Server Standard (evaluation installation)"
+	dicSKU.Add 80, "Server Datacenter (evaluation installation)"
+	dicSKU.Add 84, "Enterprise N (evaluation installation)"
+	dicSKU.Add 95, "Storage Server Workgroup (evaluation installation)"
+	dicSKU.Add 96, "Storage Server Standard (evaluation installation)"
+	dicSKU.Add 98, "Windows 8 N"
+	dicSKU.Add 99, "Windows 8 China"
+	dicSKU.Add 100, "Windows 8 Single Language"
+	dicSKU.Add 101, "Windows 8"
+	dicSKU.Add 103, "Professional with Media Center"
+    
+    
+    If dicSKU.Exists(iSKU) Then
+        GetSKU = dicSKU.Item(iSKU)
+    Else
+        GetSKU = "Unknown: " & CStr(iSKU)
+    End If
+End Function
+

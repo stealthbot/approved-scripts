@@ -1,0 +1,247 @@
+Script("Name") = "PvPGN Enabler"
+Script("Author") = "Hdx"
+Script("Major") = 0
+Script("Minor") = 3
+Script("Revision") = 0
+Script("Description") = "Forces SB to use XSHA1 hashed passwords when logging into Battle.net, " & _
+                        "because PvPGN servers use outdated ones like that. " & _
+                        "Also forces SB to send your password in plain text when creating a WC3 account, " & _
+                        "because PvPGNs are insecure like that."
+                        
+'=====================================================
+'Change Log:
+'=====================================================
+' v0.3.0:
+'  Will now translate the Online Status field in WC3
+' clan member list, and clan update to something SB 
+' can handle. Therefore fixing Error #35600.
+' Note: This error has been fixed in StealthBot as of
+' build #449
+'
+' v0.2.0:
+'  Can now create Accounts on PvPGN servers
+' 
+' v0.1.0:
+'  Initial Creation, Can login to PvPGN servers using 
+' XSHA1 passwords.
+'=====================================================
+
+Const SID_AUTH_ACCOUNTCREATE     = &H52
+Const SID_AUTH_ACCOUNTLOGONPROOF = &H54
+Const SID_CLANMEMBERLIST         = &H7D
+Const SID_CLANMEMBERSTATUSCHANGE = &H7F
+Dim SwitchPackets
+
+Sub Event_Load()
+    SwitchPackets = True
+End Sub
+
+Sub Event_PacketSent(Protocol, ID, Length, Data)
+    If UCase(Protocol) = "BNCS" Then
+        Data = Mid(Data, 5) ' Strip The Header
+        Select Case ID
+            Case SID_AUTH_ACCOUNTCREATE:     Call SEND_SID_AUTH_ACCOUNTCREATE    (Data)
+            Case SID_AUTH_ACCOUNTLOGONPROOF: Call SEND_SID_AUTH_ACCOUNTLOGONPROOF(Data)
+        End Select
+    End If
+End Sub
+
+Sub Event_PacketReceived(Protocol, ID, Length, Data)
+    If UCase(Protocol) = "BNCS" Then
+        Data = Mid(Data, 5) ' Strip The Header
+        Select Case ID
+            Case SID_CLANMEMBERLIST:         Call RECV_SID_CLANMEMBERLIST        (Data)
+            Case SID_CLANMEMBERSTATUSCHANGE: Call RECV_SID_CLANMEMBERSTATUSCHANGE(Data)
+        End Select
+    End If
+End Sub
+
+'=======================================
+'SID_AUTH_ACCOUNTCREATE (0x52) C->S
+'=======================================
+' For Normal Battle.Net:
+' (BYTE[32]) Salt (s)
+' (BYTE[32]) Verifier (v)
+' (STRING)   Username
+'
+' For PvPGN:
+' (BYTE[32]) Salt (s)
+' (BYTE[32]) Plain Text Password
+' (STRING)   Username
+'=======================================
+Sub SEND_SID_AUTH_ACCOUNTCREATE(Data)
+    If (SwitchPackets = True) Then
+        
+        Dim pBuff
+        Dim Salt
+        Dim Username
+        
+        Set pBuff = SSC.DataBufferEx()
+        With pBuff
+            .Data = Data
+            Salt     = .GetRaw(32)
+                       .GetRaw(32)
+            Username = .GetString()
+            
+            .Clear
+            
+            .InsertNonNTString Salt
+            .InsertNonNTString Left(BotVars.Password & String(32, Chr(0)), 32)  'Note: This does not modify the password's casing, 
+                                                                                'I do not know if PvPGN does that. I need someone 
+                                                                                'to confirm/deny that it does.
+            .InsertNTString    CStr(Username)
+            
+            VetoThisMessage 'Don't Send Verifier
+            SwitchPackets = False
+            
+            AddChat vbYellow, "[PPGN] Switching password verifier to plain text password"
+            .SendPacket SID_AUTH_ACCOUNTCREATE
+            
+            SwitchPackets = True
+        End With
+        Set pBuff = Nothing
+    End If
+End Sub
+
+'=======================================
+'SID_AUTH_ACCOUNTLOGONPROOF (0x54) C->S
+'=======================================
+' For Normal Battle.Net:
+' (BYTE[20]) Client Password Proof (M1)
+'
+' For PvPGN:
+' (BYTE[20]) XSHA1 Password Hash
+'=======================================
+Sub SEND_SID_AUTH_ACCOUNTLOGONPROOF(Data)
+    If (SwitchPackets = True) Then
+        
+        Dim pBuff
+        Dim passHash
+        
+        passHash = SSC.XSHA1(BotVars.Password) 'Note: This does not modify the password's casing, 
+                                               'I do not know if PvPGN does that. I need someone 
+                                               'to confirm/deny that it does.
+        If Len(passHash) = 20 Then
+            VetoThisMessage 'Don't Send M1
+            SwitchPackets = False
+            
+            AddChat vbYellow, "[PPGN] Switching password proof to XSHA1 Hash"
+            
+            Set pBuff = SSC.DataBufferEx()
+            pBuff.InsertNonNTString CStr(passHash)
+            pBuff.SendPacket SID_AUTH_ACCOUNTLOGONPROOF
+            Set pBuff = Nothing
+            
+            SwitchPackets = True
+        Else
+            AddChat vbYellow, "[PPGN] Could not XSHA1 Hash your password, proceeding with SRP login"
+        End If
+    End If
+End Sub
+
+'============================================
+'SID_CLANMEMBERLIST (0x7D) S->C
+'============================================
+' (DWORD) Cookie
+' (BYTE) Number of Members
+' For each member:
+'  (STRING) Username 
+'  (BYTE) Rank 
+'  (BYTE) Online Status 
+'  (STRING) Location
+'============================================
+' On normal Battle.net the 'Online Status' 
+'byte is always either 1 or 0, yes/no.
+'SB does some bad math with this. which beaks 
+'if that field is anything but 1/0.
+'This bug has been fixed in the latest SVN
+'Build 449+, but for now I can script the fix.
+'============================================
+
+Sub RECV_SID_CLANMEMBERLIST(Data)
+    If (SwitchPackets = True) Then
+        Dim inBuff
+        Dim outBuff
+        Dim count
+        Dim x
+        Dim status
+        
+        Set inBuff = SSC.DataBufferEx()
+        Set outBuff = SSC.DataBufferEx()
+        
+        inBuff.Data = Data
+        VetoThisMessage
+        With outBuff
+            'Insert Dummy BNCS Header
+            .InsertByte &HFF
+            .InsertBYTE SID_CLANMEMBERLIST
+            .InsertWord 0
+            
+            .InsertDWORD inBuff.GetDWORD
+            count      = inBuff.GetByte
+            .InsertByte  count
+            
+            For x = 1 to Count
+                .InsertNTString inBuff.GetString
+                .InsertByte     inBuff.GetByte
+                
+                status = inBuff.GetByte
+                If (status = 0) Then
+                    .InsertByte 0
+                Else
+                    .InsertByte 1
+                End If
+                .InsertNTString inBuff.GetString
+            Next
+            
+            SwitchPackets = False
+            SSC.ForceBNCSPacketParse .Data
+            SwitchPackets = True
+        End With
+    End If
+End Sub
+
+
+'============================================
+'SID_CLANMEMBERLIST (0x7D) S->C
+'============================================
+' (STRING) Username
+' (BYTE) Rank
+' (BYTE) Status
+' (STRING) Location
+'============================================
+' SB does some bad math with the 'Status' field
+'This bug has been fixed in the latest SVN
+'Build 449+, but for now I can script the fix.
+'============================================
+Sub RECV_SID_CLANMEMBERSTATUSCHANGE(Data)
+    If (SwitchPackets = True) Then
+        Dim inBuff
+        Dim outBuff
+        
+        Set inBuff = SSC.DataBufferEx()
+        Set outBuff = SSC.DataBufferEx()
+        
+        inBuff.Data = Data
+        VetoThisMessage
+        With outBuff
+            'Insert Dummy BNCS Header
+            .InsertByte &HFF
+            .InsertBYTE SID_CLANMEMBERSTATUSCHANGE
+            .InsertWord 0
+            
+            .InsertNTString inBuff.GetString
+            .InsertByte     inBuff.GetByte
+            If (inBuff.GetByte = 0) Then
+                .InsertByte 0
+            Else
+                .InsertByte 1
+            End If
+            .InsertNTString inBuff.GetString
+            
+            SwitchPackets = False
+            SSC.ForceBNCSPacketParse .Data
+            SwitchPackets = True
+        End With
+    End If
+End Sub

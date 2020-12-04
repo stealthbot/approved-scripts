@@ -1,0 +1,291 @@
+Script("Name") = "DL Speed"
+Script("Author") = "The-Black-Ninja"
+Script("Major") = 1
+Script("Minor") = 2
+Script("Revision") = 0
+
+
+'// Change Log
+'//
+'//  :: v1.0 - v1.1 ::
+'//   ->  Added command to display download speed as a text - Thanks 7thAce
+
+Private downSpeed, upSpeed, speedCheckData, netAdapters
+
+
+Sub Event_Load()
+
+   Call CreateCmds()
+   Call CreateObj("Form", "DLForm")
+   Call CreateObj("LongTimer", "FormUpdate")
+   FormUpdate.Interval = 1
+   FormUpdate.Enabled = False
+   
+   Call CreateObj("LongTimer", "SpeedCheck")
+   SpeedCheck.Interval = 1
+   SpeedCheck.Enabled = False
+   
+   Set netAdapters = CreateObject("Scripting.Dictionary")
+   netAdapters.CompareMode = 1
+End Sub
+
+
+Sub DLForm_UnLoad(cancel)
+
+   FormUpdate.Enabled = False
+   AddChat vbYellow, "Closing internet speed monitor UI..."
+End Sub
+
+
+Sub FormUpdate_Timer()
+
+   With DLForm.GetObjByName("BytesRecieved")
+      .Text = GetBytesRecieved
+   End With
+   
+   With DLForm.GetObjByName("BytesSent")
+      .Text = GetBytesSent
+   End With   
+   
+   With DLForm.GetObjByName("DownSpeed")
+      .Text = FormatNumber((DLForm.GetObjByName("BytesRecieved").Text - downSpeed)*0.0009765625, 2)
+   End With      
+   
+   With DLForm.GetObjByName("UpSpeed")
+      .Text = FormatNumber((DLForm.GetObjByName("BytesSent").Text - upSpeed)*0.0009765625, 2)
+   End With      
+   
+   upSpeed = DLForm.GetObjByName("BytesSent").Text
+   downSpeed = DLForm.GetObjByName("BytesRecieved").Text
+End Sub
+
+Sub SpeedCheck_Timer()
+
+   SpeedCheck.Enabled = False
+   tDown = Left(speedCheckData, InStr(speedCheckData, "|")-1)
+   tUp = Mid(speedCheckData, InStr(speedCheckData, "|")+1)
+   tTemp = tUp
+   tUp = Left(tUp, InStr(tUp, "|")-1)
+   tUser = Mid(tTemp, InStr(tTemp, "|")+1)
+   tSource = Mid(tUser, Len(tUser), 1)
+   tUser = Left(tUser, Instr(tUser, "|")-1)
+   
+   Select Case tSource
+      Case 4: AddChat 10079232, "Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 3: AddQ "/w " & tUser & " Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 2: AddQ "/me Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 1: AddQ "Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+   End Select      
+End Sub
+
+
+Sub Event_Command(Command)
+
+   Select Case LCase(Command.Name)
+      Case "speedui":  Call speeduiCMD(Command)
+      Case "speedinfo":Call speedinfoCMD(Command)
+   End Select
+End Sub
+
+
+Private Sub speeduiCMD(Command)
+         
+   If Command.Username <> BotVars.Username Then Exit Sub
+   Call HomeScreen()
+   downSpeed = GetBytesRecieved
+   upSpeed = GetBytesSent
+   FormUpdate.Enabled = True
+   
+   Command.Respond "Launching internet speed monitor UI..."
+End Sub
+
+
+Private Sub speedinfoCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+   speedCheckData = GetBytesRecieved & "|" & GetBytesSent & "|" & Command.Username & "|" & Command.Source
+   SpeedCheck.Enabled = True
+End Sub
+
+
+Private Sub HomeScreen()
+         
+   Call DLForm.CreateObj("Label", "TotalSentRecieved_Label")
+   With DLForm.GetObjByName("TotalSentRecieved_Label")
+      .Top = 100
+      .Left = 400
+      .Height = 300
+      .Width = 3000
+      .FontSize = 10
+      .FontUnderline = True
+      .Caption = "Bytes Sent / Recieved per second"
+      .Visible = True
+   End With     
+      
+   Call DLForm.CreateObj("Label", "BytesRecieved_Label")
+   With DLForm.GetObjByName("BytesRecieved_Label")
+      .Top = 400
+      .Left = 400
+      .Height = 200
+      .Width = 3000
+      .FontSize = 8
+      .FontUnderline = False
+      .Caption = "Total Bytes Recieved / second:"
+      .Visible = True
+   End With      
+   
+   Call DLForm.CreateObj("TextBox", "BytesRecieved")
+   With DLForm.GetObjByName("BytesRecieved")
+      .Top = 650
+      .Left = 400
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = 0
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "BytesSent_Label")
+   With DLForm.GetObjByName("BytesSent_Label")
+      .Top = 1000
+      .Left = 400
+      .Height = 200
+      .FontSize = 8
+      .FontUnderline = False      
+      .Width = 3000
+      .Caption = "Total Bytes Sent / second:"
+      .Visible = True
+   End With       
+   
+   Call DLForm.CreateObj("TextBox", "BytesSent")
+   With DLForm.GetObjByName("BytesSent")
+      .Top = 1250
+      .Left = 400
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = 0
+      .Visible = True
+   End With   
+   
+   Call DLForm.CreateObj("Label", "UpDownSpeed_Label")
+   With DLForm.GetObjByName("UpDownSpeed_Label")
+      .Top = 100
+      .Left = 3500
+      .Height = 300
+      .Width = 3500
+      .FontSize = 10
+      .FontUnderline = True
+      .Caption = "Upload / Download speed per second"
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "DownSpeed_Label")
+   With DLForm.GetObjByName("DownSpeed_Label")
+      .Top = 400
+      .Left = 3500
+      .Height = 200
+      .Width = 3000
+      .FontSize = 8
+      .FontUnderline = False
+      .Caption = "Download speed (KB/s):"
+      .Visible = True
+   End With      
+   
+   Call DLForm.CreateObj("TextBox", "DownSpeed")
+   With DLForm.GetObjByName("DownSpeed")
+      .Top = 650
+      .Left = 3500
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = downSpeed
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "UpSpeed_Label")
+   With DLForm.GetObjByName("UpSpeed_Label")
+      .Top = 1000
+      .Left = 3500
+      .Height = 200
+      .FontSize = 8
+      .FontUnderline = False      
+      .Width = 3000
+      .Caption = "Upload speed (KB/s):"
+      .Visible = True
+   End With       
+   
+   Call DLForm.CreateObj("TextBox", "UpSpeed")
+   With DLForm.GetObjByName("UpSpeed")
+      .Top = 1250
+      .Left = 3500
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296
+      .Text = upSpeed
+      .Visible = True
+   End With
+    
+   With DLForm
+      .Height = 2500
+      .Width = 7000
+      .Caption = "Internet Speed Monitor Lite by The-Black-Ninja"
+      .Show
+   End With       
+End Sub
+
+
+Private Sub CreateCmds()
+
+   Set cmd = OpenCommand("speedui")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("speedui")
+      With cmd
+         .Description = "Displays the speed monitor UI that shows realtime upload and download speeds (bot console only)"
+         .RequiredRank = -1
+         .Save
+      End With
+   End If
+   
+   Set cmd = OpenCommand("speedinfo")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("speedinfo")
+      With cmd
+         .Description = "Displays the current download and upload speed as text (not real time)"
+         .RequiredRank = 200
+         .Save
+      End With
+   End If   
+
+   Set cmd = Nothing
+End Sub
+
+
+Private Function GetBytesRecieved
+
+   Set WMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")   
+   Set perfRaw = WMIService.ExecQuery("SELECT BytesReceivedPersec FROM Win32_PerfRawData_Tcpip_NetworkInterface", "WQL", &H10 + &H20)  
+   
+   For Each Item in perfRaw
+      GetBytesRecieved = item.BytesReceivedPersec
+      Exit For
+   Next
+   
+   Set WMIService = Nothing
+   Set perfRaw = Nothing   
+End Function
+
+
+Private Function GetBytesSent
+
+   Set WMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")   
+   Set perfRaw = WMIService.ExecQuery("SELECT BytesSentPersec FROM Win32_PerfRawData_Tcpip_NetworkInterface", "WQL", &H10 + &H20)  
+   
+   For Each Item in perfRaw
+      GetBytesSent = item.BytesSentPersec   
+      Exit For
+   Next
+   
+   Set WMIService = Nothing
+   Set perfRaw = Nothing
+End Function

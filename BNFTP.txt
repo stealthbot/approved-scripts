@@ -1,0 +1,357 @@
+#include "\lib\Hdx\Constants.txt"
+
+Option Explicit
+Script("Name") = "BNFTP Downloader"
+Script("Author") = "Hdx"
+Script("Major") = 0
+Script("Minor") = 0
+Script("Revision") = 20090517
+
+Const DownloadDirectory = "Downloaded Files\"
+
+Private wsBNFTP
+Private Server
+Private Port
+Private Version
+Private Platform
+Private Product
+Private BannerID
+Private BannerExt
+Private FileName
+Private PersistantPublicOutput
+Private IgnoreWarnings
+
+Private FileSize
+Private FileData
+Private FileParts
+Private FilePosition
+Private DownloadComplete
+Private SocketBuffer
+
+Sub Event_Load()
+  CreateObj "Winsock", "wsBNFTP"
+End Sub
+
+Sub Event_PressedEnter(Text)
+  Dim PublicOutput
+  Dim sCommand
+  
+  If (Left(Text, 1) = "/") Then
+    If (Mid(Text, 2, 1) = "/") Then
+	  PublicOutput = True
+      Text = Mid(Text, 3)
+    Else
+      PublicOutput = False
+      Text = Mid(Text, 2)
+    End If
+	
+	sCommand = Split(Text, Space(1))(0)
+	If (ProcessCommand(sCommand, Mid(Text, Len(sCommand) + 2), PublicOutput)) Then Call VetoThisMessage()
+  End If
+End Sub
+
+Function ProcessCommand(sCommand, sArguments, PublicOutput)
+  Dim sTemp
+  Dim x
+  
+  ProcessCommand = False
+  
+  If (LCase(sCommand) = "bnftp") Then
+    ProcessCommand = True
+	PersistantPublicOutput = PublicOutput
+	
+	Server    = BotVars.Server
+	Port      = 6112
+	Platform  = PLATFORM_INTEL
+	Product   = GetProduct(BotVars.Product)
+	BannerID  = 0
+	BannerExt = 0
+	FileName  = vbNullString
+	IgnoreWarnings = False
+	
+	sTemp = Split(sArguments, Space(1))
+	
+	For x = 0 to UBound(sTemp)
+	  Call ProcessArgument(sTemp(x), x)
+	Next
+	
+	'AddChat vbYellow, "Server:    " & Server & ":" & Port
+	'AddChat vbYellow, "Platform:  " & Right("00000000" & Hex(Platform),  8)
+	'AddChat vbYellow, "Product:   " & Right("00000000" & Hex(Product),   8)
+	'AddChat vbYellow, "BannerID:  " & Right("00000000" & Hex(BannerID),  8)
+	'AddChat vbYellow, "BannerExt: " & Right("00000000" & Hex(BannerExt), 8)
+	'AddChat vbYellow, "Filename:  " & FileName
+	
+	If(PublicOutput) Then
+	  AddQ "Attempting to download " & FileName & " from " & Server & ":" & Port
+	Else
+	  AddChat vbYellow, "[BNFTP] Attempting to download " & FileName & " from " & Server & ":" & Port
+	End If
+	
+	wsBNFTP.Close
+	wsBNFTP.Connect Server, Port
+	DownloadComplete = False
+  End If
+End Function
+
+Sub ProcessArgument(sArgument, index)
+  Dim x
+  If (index = 0) Then
+    FileName = sArgument
+    Exit Sub
+  End If
+  
+  If ((InStr(1, sArgument, ":", vbTextCompare) > 0) Or _
+      (InStr(1, sArgument, ".battle.net", vbTextCompare) > 0) Or _
+	  RegExMatch(sArgument, "\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b", True)) Then
+    x = InStr(CStr(sArgument), ":")
+    If (x > 0) Then
+	  Port = GetInteger(Mid(CStr(sArgument), x + 1))
+	  If(Port = 0) Then Port = 6112
+	  sArgument = Left(CStr(sArgument), x - 1)
+	End If
+	Server = sArgument
+	Exit Sub
+  End If
+  
+  x = GetPlatform(sArgument)
+  If (x > 0) Then
+    Platform = x
+	Exit Sub
+  End If
+  
+  x = GetProduct(sArgument)
+  If (x > 0) Then
+    Product = x
+	Exit Sub
+  End If  
+  
+  If(LCase(sArgument) = "ignore-size") Then IgnoreWarnings = True
+End Sub
+
+Function GetInteger(sData)
+  On Error Resume Next
+  GetInteger = 0
+  If(IsNumeric(sData)) Then GetInteger = Abs(Int(sData))
+  If(GetInteger > 65535) Then GetInteger = 0
+End Function
+
+Function RegExMatch(sData, sPattern, bIgnoreCase)
+  Dim oRegEx, oMatches, m
+  Set oRegEx = New RegExp
+  RegExMatch = False
+  With oRegEx
+    .Global = False
+	.IgnoreCase = bIgnoreCase
+	.Pattern = sPattern
+	Set oMatches = .Execute(sData)
+	For Each m in oMatches
+	  RegExMatch = True
+	Next
+  End With
+  Set oMatches = Nothing
+  Set oRegEx = Nothing
+End Function
+
+Function GetPlatform(sData)
+  GetPlatform = 0
+  
+  Select Case UCase(sData)
+    Case "IX86", "68XI": GetPlatform = PLATFORM_INTEL
+	Case "PMAC", "CAMP": GetPlatform = PLATFORM_POWERMAC
+	Case "XMAC", "CAMX": GetPlatform = PLATFORM_OSX
+  End Select
+  
+  If (InStr(1, sData, "osx", vbTextCompare)) Then
+	GetPlatform = PLATFORM_OSX
+  ElseIf (InStr(1, sData, "mac", vbTextCompare)) Then
+    If(InStr(1, sData, "10", vbTextCompare)) Then
+	  GetPlatform = PLATFORM_OSX
+    ElseIf(InStr(1, sData, "power", vbTextCompare)) Then
+	  GetPlatform = PLATFORM_POWERMAC
+	Else
+	  GetPlatform = PLATFORM_POWERMAC
+	End If
+  Else
+    If (InStr(1, sData, "intel", vbTextCompare)) Then
+	  GetPlatform = PLATFORM_INTEL
+	ElseIf(InStr(1, sData, "win", vbTextCompare)) Then
+	  GetPlatform = PLATFORM_INTEL
+	End If
+  End If
+End Function
+
+Function GetProduct(sData)
+  GetProduct = 0
+  Select Case UCase(sData)
+    Case "STAR", "RATS": GetProduct = PRODUCT_STARCRAFT
+    Case "SEXP", "PXES": GetProduct = PRODUCT_BROODWAR
+    Case "W2BN", "NB2W": GetProduct = PRODUCT_WAR2BNE 
+    Case "D2DV", "VD2D": GetProduct = PRODUCT_DIABLO2 
+    Case "D2XP", "PX2D": GetProduct = PRODUCT_LORDOFDESTRUCTION 
+    Case "JSTR", "RTSJ": GetProduct = PRODUCT_JAPANSTARCRAFT    
+    Case "WAR3", "3RAW": GetProduct = PRODUCT_WARCRAFT3         
+    Case "W3XP", "PX3W": GetProduct = PRODUCT_THEFROZENTHRONE  
+    Case "DRTL", "LTRD": GetProduct = PRODUCT_DIABLO           
+    Case "DSHR", "RHSD": GetProduct = PRODUCT_DIABLOSHAREWARE  
+    Case "SSHR", "RHSS": GetProduct = PRODUCT_STARCRAFTSHAREWARE
+  End Select
+End Function
+
+
+Sub wsBNFTP_Connect()
+  Dim pBuffer
+  Set pBuffer = DataBufferEx()
+  SocketBuffer = vbNullstring
+  FileSize = 0
+  FilePosition = 0
+  FileData = vbNullString
+  
+  With pBuffer
+    .InsertWORD 33 + Len(FileName)
+	.InsertWORD &H100
+	.InsertDWORD Platform
+	.InsertDWORD Product
+	.InsertDWORD BannerID
+	.InsertDWORD BannerExt
+	.InsertDWORD 0
+	.InsertDWORD 0
+	.InsertDWORD 0
+	.InsertNTString CStr(FileName)
+	wsBNFTP.SendData Chr(2)
+	wsBNFTP.SendData .Data
+  End With
+  Set pBuffer = Nothing
+End Sub
+
+Sub wsBNFTP_Close()
+  If(DownloadComplete = False) Then
+    If (PersistantPublicOutput = True) Then
+	  AddQ "Could not download " & FileName
+	Else
+	  AddChat vbRed, "[BNFTP] Could not download " & FileName
+	End If
+  End If
+End Sub
+
+Sub wsBNFTP_Error(Number, Description, Scode, Source, HelpFile, HelpContext, CancelDisplay)
+  If (PersistantPublicOutput = True) Then
+    AddQ "Could not download " & FileName & ", Socket error."
+  Else
+    AddChat vbRed, "[BNFTP] Could not download " & FileName & ", Socket Error #" & Number & ": " & Description
+  End If
+End Sub
+
+'(WORD)	 Header length - Does not include the length of the file.
+'(WORD)	 Unknown (probably padding)
+'(DWORD)	 Filesize
+'(DWORD)	 Banners ID*
+'(DWORD)	 Banners File Extension*
+'(FILETIME)	Remote Filetime
+'(STRING)	Filename
+'(VOID)	 File data
+
+
+Sub wsBNFTP_DataArrival(bytesTotal)
+  Dim sTemp
+  Dim pBuffer
+  Dim x
+  
+  sTemp = String(bytesTotal, Chr(0))
+  wsBNFTP.GetData sTemp, vbString
+  
+  If (FileSize = 0) Then
+    SocketBuffer = SocketBuffer & sTemp
+    Set pBuffer = DataBufferEx
+	With pBuffer
+	  .Data = SocketBuffer
+	  x = .GetWord()
+	  If(x >= Len(SocketBuffer)) Then
+        .GetWord()
+		FileSize = .GetDWORD()
+		If (FileSize > &H100000) Then
+		  If (FileSize > (&H100000 * 5)) then
+		    If(IgnoreWarnings) Then
+			  If (PersistantPublicOutput) Then
+			    AddQ "File size is extreamly large, Will most likly fail crash bot!"
+			  Else
+			    AddChat vbYellow, "[BNFTP] File size is extreamly large, Will most likly fail crash bot!"
+			  End If
+			Else
+			  If (PersistantPublicOutput) Then
+			    AddQ "File size is extreamly large, " & ConvertSize(FileSize) & ", Will likly crash bot if attempted to download."
+				AddQ "If you want to continue anyways, Re-send the command with 'ignore-size' as an argument."
+			  Else
+			    AddChat vbYellow, "[BNFTP] File size is extreamly large, " & ConvertSize(FileSize) & ", Will likly crash bot if attempted to download, If you want to continue anyways, Re-send the command with 'ignore-size' as an argument."
+			  End If
+			  wsBNFTP.Close
+			  Exit Sub
+			End If
+		  Else
+		    If (PersistantPublicOutput) Then
+			  AddQ "File size is large, may cause bot to freeze."
+			Else
+			  AddChat vbYellow, "[BNFTP] File size is large, may cause bot to freeze."
+			End If
+		  End If
+		End If
+		.GetDWORD()
+		.GetDWORD()
+		.GetFileTime()
+		FileName = .GetString()
+		SocketBuffer = Mid(SocketBuffer, x + 1)
+		If (PersistantPublicOutput) Then
+		  AddQ "Downloading " & ConvertSize(FileSize) & " as " & FileName
+		Else
+		  AddChat vbYellow, "[BNFTP] Downloading " & ConvertSize(FileSize) & " as " & FileName
+		End If
+	  End If
+	End With
+	Set pBuffer = Nothing
+	
+	If (FileSize > 0) And (Len(SocketBuffer) > 0) Then
+	  FileData = SocketBuffer
+	  FilePosition = Len(SocketBuffer)
+	  SocketBuffer = vbNullString
+	  'AddChat vbYellow, "[BNFTP] Downloading " & FormatPercent(FilePosition / FileSize, 2) & " (" & FilePosition & "/" & FileSize & ")"
+	End If
+  Else
+	FileData = FileData & sTemp
+	FilePosition = FilePosition + Len(sTemp)
+	'AddChat vbYellow, "[BNFTP] Downloading " & FormatPercent(FilePosition / FileSize, 2) & " (" & FilePosition & "/" & FileSize & ")"
+	If (FilePosition = FileSize) Then
+	  Call SaveFile()
+	  If (PersistantPublicOutput) Then
+	    AddQ FileName & " was downloaded successfully"
+	  Else
+	    AddChat vbGreen, "[BNFTP] File download complete"
+	  End If
+	  DownloadComplete = True
+	  wsBNFTP.Close
+	End If
+  End If
+End Sub
+
+Sub SaveFile()
+  Dim fso 
+  Dim file
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FolderExists(DownloadDirectory) Then fso.CreateFolder DownloadDirectory
+  Set file = fso.OpenTextFile(BotPath() & DownloadDirectory & FileName, 2, True)
+  file.Write FileData
+  file.close
+  Set file = Nothing
+  Set fso = Nothing
+End Sub
+
+Function ConvertSize(value)
+  If (value >= &H400) Then
+    If (value >= &H100000) Then
+	  ConvertSize = FormatNumber(value / &H100000, 2) & " MBs"
+	Else
+	  ConvertSize = FormatNumber(value / &H400, 2) & " KBs"
+	End If
+  Else
+    ConvertSize = value & " Bytes"
+  End If
+End Function

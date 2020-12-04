@@ -1,0 +1,287 @@
+Option Explicit
+
+Script("Name")     = "AntiFlood"
+Script("Author")   = "AwaKening"
+Script("Major")    = 1
+Script("Minor")    = 0
+Script("Revision") = 8
+Script("Filename") = "antiflood.txt"
+Script("Commands") = "letmein:resetflood:antiflood"
+Script("Description") = "Locks the channel to nonclan members when a flood is detected:"&_
+                        "Users may whisper the bot (letmein) for a short access window"
+
+Private userCount	'// Integer - Tracks userjoins per minute
+Private Locked		'// Boolean - Is the channel in lockout
+Private tempUser	'// String - Holds username of whispered command (letmein)
+
+'*********
+' CHANGES
+'*********
+
+' 1.0.8 updated 01/12/2013
+'    - /dnd can now be used as your letmein setting to block whispers all together
+' 1.0.7 updated 03/17/2009
+'    - New Setting "LetMeIn" to allow command change
+' 1.0.6 updated 02/06/2009
+'    - ChatDelay set to 0 on Load
+'    - Save call to create a timer by utilizing MOTD Event
+'    - Added setting SameRealm
+' 1.0.5 updated 01/02/2009
+'    - Whispers from users of other realms are now ignored
+'    - Added a setting to require letmein users to be safelisted or have >0 access
+' 1.0.4 updated 12/27/2009
+'    - Added command to manually trigger flood
+'    - Added /scq before /clan private
+' 1.0.3 updated 12/01/2009
+'    - Removed product limitation for letmein command
+'    - Safelisted users now won't add to the flood counter
+'    - Removed /scq and made all /clan commands priority 1
+'    - Changed the cycle timer to round down on 1/2 instead of up
+' 1.0.2 udpated 11/28/2009
+'    - Changed the Cycle timer
+'    - Added IsOnline check in the cycle timer
+' 1.0.1 updated 11/22/2009
+'    - Will not kick out clan members now when the bot is not part of a clan
+'    - Safelisted members will not be kicked out during lockout
+'    - Fixed an addq argument error in Sweep Channel
+
+'*********
+' EVENTS
+'*********
+
+Sub Event_Load()
+	BotVars.ChatDelay = 0
+
+	Call CreateSettings()
+	Call CreateCommands()
+
+	Call CreateObj("LongTimer", "Temp")
+	Temp.Enabled = False
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+	If NOT Locked Then Exit Sub
+	If GetPositionbyName(Username)>0 Then Exit Sub
+	If InStr(Username, "@")>0 Then Exit Sub
+
+	If Message = GetSettingsEntry("LetMeIn") Then
+		If AFSetting("SafeLetmein") Then
+			If NOT(IsSafeListed(Username) OR GetDBEntry(Username).Rank>0) Then Exit Sub
+		End If
+
+		tempUser = Username
+		Addq "/w " &Username& " Channel open for " &AFSetting("override")& " seconds", 2
+		Addq "/clan public", 1
+		Temp.Interval = AFSetting("override")
+		Temp.Enabled = True
+	End If
+End Sub
+
+Sub Event_Userjoins(Username, Flags, Message, Ping, Product, Level, OriginalStatString, Banned)
+	'// Am I a channel operator?
+	If botFlags <> 2 Then Exit Sub
+
+	'// Are we checking for users of the same realm as bot
+	If NOT(AFSetting("SameRealm")) Then
+
+		'// Is the user from the same realm
+		If InStr(Username, "@") = 0 Then Exit Sub
+	End If
+
+	'// Is the entering user a part of this clan?
+	If LCase(GetInternalDataByUsername(Username, 0)) = Split(LCase(myChannel))(1) Then Exit Sub
+
+	'// Is the user safelisted
+	If IsSafelisted(Username) Then Exit Sub
+
+	If Locked Then
+		If Username = tempUser Then
+			Call Temp_Timer()
+		Else
+			AddQ "/kick " &Username& " Channel Locked by Antiflood"
+		End If
+		Exit Sub
+	End If
+
+	userCount = userCount+1
+
+	If userCount > AFSetting("userLimit") Then
+		Call LockChannel()
+	End If
+End Sub
+
+Sub Event_Command(Command)
+	Select Case LCase(Command.Name)
+	Case "resetflood", "floodreset"
+		userCount = 0
+		Locked = False
+		AddQ "/clan public", 1
+
+		If AFSetting("LetMeIn") = "/dnd" Then
+			Command myusername, "/dnd", True
+		End If
+
+		Command.Respond "Channel unlocked and flood timer reset"
+	Case "flood", "antiflood"
+		Call LockChannel()
+	End Select
+End Sub
+
+
+'*********
+' TIMERS
+'*********
+
+Sub Temp_Timer()
+	Temp.Enabled = False
+	If userCount > AFSetting("userLimit") Then
+		AddQ "/clan private", 1
+	End If
+End Sub
+
+'// Saves resources by not creating a timer :)
+'// Fires every 30 seconds
+Sub Event_ClanMOTD(Message)
+	Dim limit
+
+	limit = AFSetting("userLimit")
+
+	userCount = userCount - cInt(limit/2)
+	If userCount < 0 Then userCount = 0
+
+	If Locked AND userCount <= limit Then
+		If IsOnline Then
+			userCount = 0
+			Locked = False
+			AddQ "/clan public", 1
+
+			If AFSetting("LetMeIn") = "/dnd" Then
+				Command myusername, "/dnd", True
+			End If
+		End If
+	End If
+End Sub
+
+
+'**********
+' FUNCTIONS
+'**********
+
+Private Sub LockChannel()
+	Locked = True
+	Command myusername, "/scq", True
+	AddQ "/clan private", 1
+	userCount = AFSetting("CloseTime") * AFSetting("userLimit")
+	If AFSetting("Sweep") Then
+		Call SweepChannel()
+	End If
+	AddQ "ANTIFLOOD:  Channel locked down for " &AFSetting("CloseTime")& " Minutes."
+	If LCase(AFSetting("LetMeIn")) = "/dnd" Then
+		Command myusername, "/dnd", True
+		AddQ "Whispers are blocked"
+	Else
+		AddQ "Nonclan users may whisper a password for a short access window."
+	End If
+End Sub
+
+Private Sub SweepChannel()
+	Dim user, i
+	For i=1 to GetInternalUserCount()
+		user = GetNameByPosition(i)
+		If InStr(user, "@")>0 Then
+			If NOT IsSafelisted(user) Then
+				AddQ "/kick " &user& " Anti-Flood"
+			End If
+		End If
+	Next
+End Sub
+
+Private Function AFSetting(Setting)
+	Dim entry
+	entry = GetSettingsEntry(Setting)
+
+	If IsNumeric(entry) Then
+		AFSetting = cInt(entry)
+	Else
+		Select Case UCase(entry)
+			Case "NO", "N", "FALSE", "F": AFSetting = False
+			Case "YES", "Y", "TRUE", "T": AFSetting = True
+			Case Else: AFSetting = entry
+		End Select
+	End If
+End Function
+
+Private Sub CreateCommands()
+	If NOT(OpenCommand("antiflood") Is Nothing) Then Exit Sub
+
+	Dim Command
+
+	Set Command = CreateCommand("antiflood")
+	With Command
+		.Aliases.Add "flood"
+		.RequiredRank = 90
+		.Description = "Manually trigger the antiflood protection"
+		.Save
+	End With
+	AddChat 9118312, "ANTIFLOOD: Command (antiflood) successfully created."
+	Set Command = Nothing
+
+	If NOT(OpenCommand("resetflood") Is Nothing) Then Exit Sub
+
+	Set Command = CreateCommand("resetflood")
+	With Command
+		.Aliases.Add "floodreset"
+		.RequiredRank = 90
+		.Description = "Open the channel and reset the flood timer"
+		.Save
+	End With
+	Set Command = Nothing
+	AddChat 9118312, "ANTIFLOOD: Command (resetflood) successfully created."
+End Sub
+
+Private Sub CreateSettings()
+	Dim version, response
+
+	version = Script("Major")& "." &Script("Minor")& "." &Script("Revision")
+	If GetSettingsEntry("version") = version Then Exit Sub
+
+	WriteSettingsEntry "version", version
+	AddChat 15612594, "ANTIFLOOD UPDATED (" &version& "): Settings loaded from scripts.ini"
+	AddChat 13447834, "    Any changes made there will take effect immediately"
+
+	WriteSettingsEntry "LetMeIn (info)", "(Case Sensitive) whispered command to allow users a short" & _
+	" access window to enter the channel during a lockdown.  If you would like whispers blocked, then" & _
+	" use /dnd as your setting."
+
+	If LenB(GetSettingsEntry("LetMeIn"))>0 Then Exit Sub
+
+	WriteSettingsEntry "LetMeIn", "letmein"
+
+	If LenB(GetSettingsEntry("SameRealm"))>0 Then Exit Sub
+
+	WriteSettingsEntry "SameRealm (info)", "Count users of the same realm towards flood detection " & _
+	"(Clan members still excluded) Read the forums for more info"
+	WriteSettingsEntry "SameRealm", "Y"
+
+	If LenB(GetSettingsEntry("SafeLetmein"))>0 Then Exit Sub
+
+	WriteSettingsEntry "SafeLetmein (info)", "Require users to be safelisted or have access greater " & _
+	"than 0 to be able to enter using (letmein)"
+	WriteSettingsEntry "SafeLetmein", "N"
+
+	If LenB(GetSettingsEntry("CloseTime"))>0 Then Exit Sub
+
+	WriteSettingsEntry "CloseTime (info)", "Minutes to close channel when an attack is detected"
+	WriteSettingsEntry "CloseTime", 60
+
+	WriteSettingsEntry "override (info)", "Seconds to allow a user in on whisper when channel is locked"
+	WriteSettingsEntry "override", 6
+
+	WriteSettingsEntry "userLimit (info)", "Nonclan members and unsafelisted users per minute" &_
+	" allowed to join the channel"
+	WriteSettingsEntry "userLimit", 4
+
+	WriteSettingsEntry "Sweep (info)", "Sweep kick the channel of users containing @ when a" &_
+	" flood is detected"
+	WriteSettingsEntry "Sweep", "Y"
+End Sub

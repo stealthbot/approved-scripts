@@ -1,0 +1,370 @@
+Option Explicit
+
+Script("Name")     = "weather"
+Script("Author")   = "AwaKening"
+Script("Major")    = 2
+Script("Minor")    = 1
+Script("Revision") = 4
+Script("Filename") = "Weather.txt"
+Script("Commands") = "weather <zipcode> <scale optional>:zip <city, state>"
+Script("Description") = "Check weather/forecast for a USA or Canada (zipcode/postal code or city/state or province):"&_
+                        " If scale not specified, then it defaults to F for USA or C for Canada"
+
+' Written by AwaKening 04/16/2007
+
+' Version 2 CHANGELOGS:
+'
+' 2.1.4 updated 11/29/2011
+'     - Updated url_usa global
+'     - Now faster using only 1 request rather than 2
+'     - Now using xmlhttp rather than Inet (may update to use asyncronously later)
+' 2.1.3 updated 04/25/2010
+'     - Reparsed updated source code from accuweather.com
+' 2.1.2 updated 05/22/2010
+'     - Fixed another error with weather checks at night
+' 2.1.1 updated 05/17/2010
+'     - Fixed a bug when checking weather after 9pm (Nights)
+' 2.1.0 updated 03/22/2010
+'     - Reparsed accuweather.com due to updated site
+'     - Merged forecast and weather commands into the same command
+'     - Changed the weather/forecast response
+' 2.0.1 updated 01/26/2010
+'     - Added new function and sub calls to clean up code
+' 2.0.0 updated 01/18/2010
+'     - Converted to new script format
+'     - Call to create commands
+'     - Settings moved
+
+
+'********************'
+'* GLOBAL VARIABLES *'
+'********************'
+
+Private URL_usa		'// String - URL to search for USA current conditions & forecast
+Private URL_canadaF	'// String - URL to search for canadian forecast
+Private URL_canadaC	'// String - URL for canadian current condition
+Private URL_zip		'// String - URL to search for zipcodes
+Private lastrun		'// String - last run command
+Private objxmlhttp	'// Object - xmlhttp
+
+
+'**************'
+'* BOT EVENTS *'
+'**************'
+
+Sub Event_Load()
+	Call CreateCommands()
+	Call CreateSettings()
+
+	Set objxmlhttp = CreateObject("MSXML2.XMLHTTP.6.0")
+
+	lastrun     = DateAdd("s", -1*GetSettingsEntry("floodcontrol"), Now)
+	URL_usa     = "http://www.accuweather.com/forecast-current-conditions.asp?zipcode=%zip"
+	URL_canadaF = "http://www.accuweather.com/canada-forecast.asp?postalcode=%zip"
+	URL_canadaC = "http://www.accuweather.com/canada-current-conditions.asp?postalcode=%zip"
+	URL_zip     = "http://zipinfo.com/cgi-local/zipsrch.exe?zip="
+End Sub
+
+Sub Event_Command(Command)
+	If Command.Args="" Then Exit Sub
+	If isFlooded(Command.Username) Then Exit Sub
+
+	Dim output, line
+
+	With Command
+		Select Case UCase(.Name)
+		Case "WEATHER", "FORECAST"
+			output = GetWeather(.Args)
+		Case "ZIPCODE"
+			output = GetZipCode(.Args)
+		End Select
+
+		For Each line in Split(output, vbNewLine)
+			.Respond line
+		Next
+	End With
+End Sub
+
+
+'*************'
+'* FUNCTIONS *'
+'*************'
+
+Function isFlooded(Username)
+	'// Future update to check floods by individual user
+
+	If DateDiff("s",lastrun,Now)<cLng(GetSettingsEntry("floodcontrol")) Then
+		isFlooded = True
+	End If
+End Function
+
+Function GetWeather(ByVal Area)
+	Dim Content, i, j, scale, zip, specified, output
+	Dim Hi, Low, Cond, uv, clouds, humidity, Day, redirect
+
+	Call ParseArea(Area, zip, scale, specified)
+
+	Content  = Connect(Replace(URL_usa, "%zip", zip))
+
+	'// State not found
+	'// Check Canadian Provinces
+	If Instr(1, Content, "select a state", 1)>0 Then
+		GetWeather = GetCanada(Area, zip, scale, specified)
+		Exit Function
+	End If
+
+	Area = Split(Split(Content, "<title>")(1), "</title>")(0)
+	Area = Replace(Area, " current weather report", "", 1, -1, 1)
+
+	Hi = Split(Content, "=""temp"">")
+	' Starts at 1, then split "<"
+
+	Low = Split(Content, "Lo</span> ")
+	' Starts at 1, then split "&"
+
+	Cond = Split(Replace(Content, "&amp;", "&"), """cond"">")
+	' Starts at 1, then split at "</span>"
+
+	Day = Split(Content, "<a href=""#"">")
+	' Starts at 1, then split at "</a>"
+	If Left(Day(1),7)="Tonight" Then j=1
+
+	humidity = Split(Split(Content, "Humidity: <strong>")(1), "</strong>")(0)
+	uv       = Split(Split(Content, "UV Index: <strong>")(1), "</strong>")(0)
+	clouds   = Split(Split(Content, "Cloud Cover: <strong>")(1), "</strong>")(0)
+	clouds   = Replace(Replace(clouds, " ", ""), "&nbsp;", "")
+
+	Scale = Degrees(Scale)
+
+	i = UBound(Hi)
+
+	output = Area &" (Weather & Forecast):" & vbNewLine
+	output = output & Split(Cond(i), "<")(0)& " " &Split(Hi(i), "<")(0)
+	output = output & Scale & ", Humidity: " &humidity& ", UV Index: "
+	output = output & uv & ", Cloud Cover: " & clouds & vbNewLine
+
+	For i=1+j to 5
+		output = output & Split(Day(i), "</a>")(0) & ": " & _
+		Split(Cond(i), "</span>")(0) & " [High " &Split(Hi(i), "<")(0)&_
+		Scale & " | Low " &Split(Low(i-j), "&")(0)&Scale& "]"
+		output = output & vbNewLine
+	Next
+
+	lastrun = Now()
+
+	GetWeather = output
+End Function
+
+Function GetCanada(Area, zip, scale, specified)
+	Dim i, Content, output
+	Dim humidity, uv, clouds, Sun
+	Dim arrResults, wDay, WHi, WLo, temp
+
+	If NOT(specified) Then
+		Scale = "&metric=1"
+	Else
+		Scale = Replace(Scale, "?unit=c", "&metric=1")
+		Scale = Replace(Scale, "?unit=f", "&metric=0")
+	End If
+
+	Content = Connect(Replace(URL_canadaC, "%zip", zip) & scale)
+
+	If Instr(1, Content, "Lookup Canadian Cities", 1)>0 Then
+		GetCanada = "The Weather could not be located for: " & Area & vbNewLine
+		GetCanada = GetCanada & "Try using the correct zip/postal code for USA or Canada"
+		Exit Function
+	End If
+
+	Area = Split(Split(Content, "cityTitle"">")(1), "</a>")(0)
+
+	humidity = Split(Split(Split(Content, "Humidity</td>")(1), "</td>")(0), ">")(1)
+	humidity = Replace(humidity, "&nbsp;", "")
+
+	clouds = Split(Split(Split(Content, "Cloud Cover</td>")(1), "</td>")(0), ">")(1)
+	clouds = Replace(clouds, "&nbsp;", "")
+
+	uv = Split(Split(Content, "Currently: ")(1), "&nbsp;")(0)
+	uv = Replace(uv, "&nbsp;", "")
+
+	Sun = Split(Split(Content, "textsmallbold"">")(2), "</span>")(0)
+
+	temp = Split(Split(Content, "context"">")(1), "&deg")(0)
+
+	output = Area &" (Weather & Forecast):" & vbNewLine
+	output = output & Sun & " " & temp & Degrees(Scale)
+	output = output & ", Humidity: " &humidity& ", UV Index: "
+	output = output & uv & ", Cloud Cover: " & clouds & vbNewLine
+
+	Content = Connect(Replace(URL_canadaF, "%zip", zip) & scale & "&set=99")
+
+	arrResults = Split(Content, "detailLink"">")
+	Scale = Degrees(Scale)
+
+	For i=1 to 9
+		WDay = Split(arrResults(i), "</a>")(0)
+		i=i+1
+		Sun = Split(Split(arrResults(i), "fcstSmTextBox"">")(1), "<")(0)
+		WHi = Split(Split(arrResults(i),"High: ")(1)," &deg")(0)
+		WLo = Split(Split(arrResults(i),"Low: ")(1)," &deg")(0)
+
+		output = output & WDay & ": " & Sun & _
+		"  [High " & WHi & Scale & " | Low " & WLo & Scale & "]" &vbNewLine
+	Next
+
+	lastrun = Now()
+
+	GetCanada = output
+End Function
+
+Function GetZipCode(ByVal Area)
+	Dim i, content, arrResults, Results
+
+	Area = Replace(Area, ", ", "+")
+	Area = Replace(Area, ",", "+")
+	Area = Replace(Area, " ", "+")
+
+	content = Connect(URL_zip & Area)
+
+	If InStr(1, content, "no data for", 1)>0 Then
+		arrResults = Split(Content, "zipsrch.exe?zip=")
+
+		For i=1 to UBound(arrResults)
+			Results = Results & Split(Split(arrResults(i),">")(1),"<")(0)
+			If i<UBound(arrResults) Then
+				Results = Results & " // "
+			End If
+		Next
+
+		GetZipCode = "Could not locate " &Replace(Area,"+",", ")& _
+		", but found similar cities:  " &Results
+	Else
+		arrResults = Split(Content,"</tr><tr><td align=center>")
+
+		Area = Split(Split(Content, "Search Results for ")(1),"<")(0)
+		Area = Replace(Area, "  ", ", ")
+
+		For i=1 to UBound(arrResults)
+			Results = Results & Left(arrResults(i),5) & ", "
+		Next
+
+		Results = Left(Results, Len(Results)-2)
+		GetZipCode = "Related zipcodes for " & Area & ":  " &Results
+	End If
+End Function
+
+Sub ParseArea(ByVal Area, ByRef zip, ByRef scale, ByRef specified)
+	Dim i, arrArea, tmp
+
+	arrArea = Split(Area)
+	i = UBound(arrArea)
+	scale = "?unit=f"
+	specified = True
+
+	Select Case LCase(arrArea(i))
+	Case "c", "celcius", "celsius"
+		i=i-1
+		scale = "?unit=c"
+	Case "f", "fahrenheit"
+		i=i-1
+	Case Else
+		specified = False
+	End Select
+
+	If i=0 Then
+		zip = arrArea(0)
+		If Len(zip)=6 AND NOT(IsNumeric(zip)) Then
+			zip = Left(zip,3) & "%20" & Right(zip,3)
+		End If
+	Else
+		tmp = Split(Area, ",")
+		For i=0 to UBound(tmp)
+			tmp(i) = Trim(tmp(i))
+			tmp(i) = Replace(tmp(i), " ", "%20")
+		Next
+		For i=0 to UBound(tmp)
+			zip = zip & tmp(i)
+			If i<UBound(tmp) Then
+				zip = zip & ","
+			End If
+		Next
+	End If	
+End Sub
+
+Function Degrees(ByVal Scale)
+	Select Case Right(LCase(Scale),1)
+		Case "c", "1": Degrees = "°C"
+		Case Else    : Degrees = "°F"
+	End Select
+End Function
+
+Function Connect(Request)
+	With objxmlhttp
+		.Open "GET", Request, False
+		.Send
+		Connect = .ResponseText
+	End With
+End Function
+
+
+'********************'
+'* COMMAND/SETTINGS *'
+'********************'
+
+Sub CreateCommands()
+	If NOT(OpenCommand("weather")) Is Nothing Then Exit Sub
+
+	Dim cmd, Param
+
+	Set cmd = CreateCommand("weather")
+	With cmd
+		Set Param = .NewParameter("zipcode", False, "Numeric")
+		Param.Description = "Zipcode or city, state"
+		.Parameters.Add Param
+
+		.RequiredRank = 10
+		.Description = "Check the current weather for location"
+		.Save
+	End With
+
+	Set cmd = CreateCommand("forecast")
+	With cmd
+		Set Param = .NewParameter("zipcode", False, "Numeric")
+		Param.Description = "Zipcode or city, state"
+		.Parameters.Add Param
+
+		.RequiredRank = 10
+		.Description = "Check the 5 day forecast for location"
+		.Save
+	End With
+
+	Set cmd = CreateCommand("zipcode")
+	With cmd
+		Set Param = .NewParameter("city/state", False, "Location")
+		Param.Description = "city, state you are searching"
+		.Parameters.Add Param
+
+		.Aliases.Add "zip"
+		.RequiredRank = 10
+		.Description = "Search for zipcodes of a city, state"
+		.Save
+	End With
+
+	Set cmd   = Nothing
+	Set Param = Nothing
+End Sub
+
+Sub CreateSettings()
+	Dim version
+
+	version = Script("Major")&"."&Script("Minor")&"."&Script("Revision")
+
+	If GetSettingsEntry("version") = version Then Exit Sub
+
+	WriteSettingsEntry "version", version
+	AddChat color.Plum, "AwaKening's WEATHER Script has been updated to " &version
+
+	If LenB(GetSettingsEntry("floodcontrol"))>0 Then Exit Sub
+
+	WriteSettingsEntry "floodcontrol (info)", "Wait x number of seconds between requests to avoid flooding"
+	WriteSettingsEntry "floodcontrol", 10
+End Sub

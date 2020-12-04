@@ -1,0 +1,490 @@
+Script("Name") = "DL Speed"
+Script("Author") = "The-Black-Ninja"
+Script("Major") = 1
+Script("Minor") = 2
+Script("Revision") = 0
+
+
+'// Change Log
+'//
+'//  :: v1.0 - v1.1 ::
+'//   ->  Added command to display download speed as a text - Thanks 7thAce
+
+Private downSpeed, upSpeed, speedCheckData, netAdapters
+
+
+Sub Event_Load()
+
+   Call CreateCmds()
+   Call CreateObj("Form", "DLForm")
+   Call CreateObj("LongTimer", "FormUpdate")
+   FormUpdate.Interval = 1
+   FormUpdate.Enabled = False
+   
+   Call CreateObj("LongTimer", "AdapterUpdate")
+   AdapterUpdate.Interval = 15
+   AdapterUpdate.Enabled = False   
+   
+   Call CreateObj("LongTimer", "SpeedCheck")
+   SpeedCheck.Interval = 1
+   SpeedCheck.Enabled = False
+   
+   Set netAdapters = CreateObject("Scripting.Dictionary")
+   netAdapters.CompareMode = 1
+End Sub
+
+
+Sub DLForm_UnLoad(cancel)
+
+   FormUpdate.Enabled = False
+   AdapterUpdate.Enabled = False
+   AddChat vbYellow, "Closing internet speed monitor UI..."
+End Sub
+
+
+Sub FormUpdate_Timer()
+
+   With DLForm.GetObjByName("BytesRecieved")
+      .Text = GetBytesRecieved
+   End With
+   
+   With DLForm.GetObjByName("BytesSent")
+      .Text = GetBytesSent
+   End With   
+   
+   With DLForm.GetObjByName("DownSpeed")
+      .Text = FormatNumber((DLForm.GetObjByName("BytesRecieved").Text - downSpeed)*0.0009765625, 2)
+   End With      
+   
+   With DLForm.GetObjByName("UpSpeed")
+      .Text = FormatNumber((DLForm.GetObjByName("BytesSent").Text - upSpeed)*0.0009765625, 2)
+   End With      
+   
+   upSpeed = DLForm.GetObjByName("BytesSent").Text
+   downSpeed = DLForm.GetObjByName("BytesRecieved").Text   
+End Sub
+
+Sub SpeedCheck_Timer()
+
+   SpeedCheck.Enabled = False
+   tDown = Left(speedCheckData, InStr(speedCheckData, "|")-1)
+   tUp = Mid(speedCheckData, InStr(speedCheckData, "|")+1)
+   tTemp = tUp
+   tUp = Left(tUp, InStr(tUp, "|")-1)
+   tUser = Mid(tTemp, InStr(tTemp, "|")+1)
+   tSource = Mid(tUser, Len(tUser), 1)
+   tUser = Left(tUser, Instr(tUser, "|")-1)
+   
+   Select Case tSource
+      Case 4: AddChat 10079232, "Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 3: AddQ "/w " & tUser & " Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 2: AddQ "/me Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+      Case 1: AddQ "Download speed (KB/s): " & FormatNumber((GetBytesRecieved-tDown)*0.0009765625, 2) & ", Upload speed (KB/s): " & FormatNumber((GetBytesSent-tUp)*0.0009765625, 2)
+   End Select      
+End Sub
+
+Sub AdapterUpdate_Timer()
+
+   Call GetAdapterInfo()
+End Sub
+
+
+Sub Event_Command(Command)
+
+   Select Case LCase(Command.Name)
+      Case "speedui":  Call speeduiCMD(Command)
+      Case "speedinfo":Call speedinfoCMD(Command)
+   End Select
+End Sub
+
+
+Private Sub speeduiCMD(Command)
+         
+   If Command.Username <> BotVars.Username Then Exit Sub
+   Call HomeScreen()
+   downSpeed = GetBytesRecieved
+   upSpeed = GetBytesSent
+   FormUpdate.Enabled = True
+   AdapterUpdate.Enabled = True
+   
+   Command.Respond "Launching internet speed monitor UI..."
+End Sub
+
+
+Private Sub speedinfoCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+   speedCheckData = GetBytesRecieved & "|" & GetBytesSent & "|" & Command.Username & "|" & Command.Source
+   SpeedCheck.Enabled = True
+End Sub
+
+
+Private Sub HomeScreen()
+         
+   Call DLForm.CreateObj("Label", "TotalSentRecieved_Label")
+   With DLForm.GetObjByName("TotalSentRecieved_Label")
+      .Top = 100
+      .Left = 400
+      .Height = 300
+      .Width = 3000
+      .FontSize = 10
+      .FontUnderline = True
+      .Caption = "Bytes Sent / Recieved per second"
+      .Visible = True
+   End With     
+      
+   Call DLForm.CreateObj("Label", "BytesRecieved_Label")
+   With DLForm.GetObjByName("BytesRecieved_Label")
+      .Top = 400
+      .Left = 400
+      .Height = 200
+      .Width = 3000
+      .FontSize = 8
+      .FontUnderline = False
+      .Caption = "Total Bytes Recieved / second:"
+      .Visible = True
+   End With      
+   
+   Call DLForm.CreateObj("TextBox", "BytesRecieved")
+   With DLForm.GetObjByName("BytesRecieved")
+      .Top = 650
+      .Left = 400
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = 0
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "BytesSent_Label")
+   With DLForm.GetObjByName("BytesSent_Label")
+      .Top = 1000
+      .Left = 400
+      .Height = 200
+      .FontSize = 8
+      .FontUnderline = False      
+      .Width = 3000
+      .Caption = "Total Bytes Sent / second:"
+      .Visible = True
+   End With       
+   
+   Call DLForm.CreateObj("TextBox", "BytesSent")
+   With DLForm.GetObjByName("BytesSent")
+      .Top = 1250
+      .Left = 400
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = 0
+      .Visible = True
+   End With   
+   
+   Call DLForm.CreateObj("Label", "UpDownSpeed_Label")
+   With DLForm.GetObjByName("UpDownSpeed_Label")
+      .Top = 100
+      .Left = 3500
+      .Height = 300
+      .Width = 3500
+      .FontSize = 10
+      .FontUnderline = True
+      .Caption = "Upload / Download speed per second"
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "DownSpeed_Label")
+   With DLForm.GetObjByName("DownSpeed_Label")
+      .Top = 400
+      .Left = 3500
+      .Height = 200
+      .Width = 3000
+      .FontSize = 8
+      .FontUnderline = False
+      .Caption = "Download speed (KB/s):"
+      .Visible = True
+   End With      
+   
+   Call DLForm.CreateObj("TextBox", "DownSpeed")
+   With DLForm.GetObjByName("DownSpeed")
+      .Top = 650
+      .Left = 3500
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296      
+      .Text = downSpeed
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "UpSpeed_Label")
+   With DLForm.GetObjByName("UpSpeed_Label")
+      .Top = 1000
+      .Left = 3500
+      .Height = 200
+      .FontSize = 8
+      .FontUnderline = False      
+      .Width = 3000
+      .Caption = "Upload speed (KB/s):"
+      .Visible = True
+   End With       
+   
+   Call DLForm.CreateObj("TextBox", "UpSpeed")
+   With DLForm.GetObjByName("UpSpeed")
+      .Top = 1250
+      .Left = 3500
+      .Height = 300
+      .Width = 2000
+      .BackColor = 16759296
+      .Text = upSpeed
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "Network_Label")
+   With DLForm.GetObjByName("Network_Label")
+      .Top = 2000
+      .Left = 400
+      .Height = 300
+      .FontSize = 10
+      .FontUnderline = True      
+      .Width = 3000
+      .Caption = "Network Adapter Information"
+      .Visible = True
+   End With    
+   
+   Call DLForm.CreateObj("Label", "AdapterList_Label")
+   With DLForm.GetObjByName("AdapterList_Label")
+      .Top = 2400
+      .Left = 400
+      .Height = 300
+      .FontSize = 8
+      .FontUnderline = False
+      .Width = 3000
+      .Caption = "Adapter List:"
+      .Visible = True
+   End With
+   
+   Call DLForm.CreateObj("Label", "CurrentConnected_Label")
+   With DLForm.GetObjByName("CurrentConnected_Label")
+      .Top = 3650
+      .Left = 400
+      .Height = 300
+      .FontSize = 8
+      .FontUnderline = False
+      .Width = 3000
+      .Caption = "Current connected networks:"
+      .Visible = True
+   End With   
+   
+   Call DLForm.CreateObj("Label", "CurrentDisonnected_Label")
+   With DLForm.GetObjByName("CurrentDisonnected_Label")
+      .Top = 4850
+      .Left = 400
+      .Height = 300
+      .FontSize = 8
+      .FontUnderline = False
+      .Width = 3000
+      .Caption = "Current disconnected networks:"
+      .Visible = True
+   End With      
+    
+   Call DLForm.CreateObj("ListBox", "AdapterList")
+   With DLForm.GetObjByName("AdapterList")   
+      .Top = 2650
+      .Width = 7000
+      .Height = 1000
+      .Left = 400      
+      .Clear
+      .BackColor = 16759296
+      .Visible = True
+   End With   
+   
+   Call DLForm.CreateObj("ListBox", "CurrentConnectedList")
+   With DLForm.GetObjByName("CurrentConnectedList")   
+      .Top = 3900
+      .Width = 7000
+      .Height = 1000
+      .Left = 400      
+      .Clear
+      .BackColor = 10682112
+      .Visible = True
+   End With      
+   
+   Call DLForm.CreateObj("ListBox", "CurrentDisconnectedList")
+   With DLForm.GetObjByName("CurrentDisconnectedList")   
+      .Top = 5100
+      .Width = 7000
+      .Height = 1000
+      .Left = 400      
+      .Clear
+      .BackColor = 5731327
+      .Visible = True
+   End With       
+   
+   Call GetAdapterInfo()   
+   
+   With DLForm
+      .Height = 7000
+      .Width = 8000
+      .Caption = "Internet Speed Monitor by The-Black-Ninja"
+      .Show
+   End With       
+End Sub
+
+
+Private Sub GetAdapterInfo()
+      
+   GetConnectionState
+   
+   nName = netAdapters.Keys
+   nItem = netAdapters.Items
+   
+   With DLForm.GetObjByName("AdapterList")    
+      .Clear
+      For Each Item In nName
+         .AddItem Item
+      Next
+   End With
+   
+   With DLForm.GetObjByName("CurrentConnectedList")   
+      .Clear
+      For i=0 To UBound(nName)
+         If nItem(i)(2) = "green" Then
+            .AddItem nItem(i)(0) & " [" & nName(i) & "] - " & nItem(i)(1)
+         End If
+      Next
+   End With   
+   
+   Call DLForm.CreateObj("ListBox", "CurrentDisconnectedList")
+   With DLForm.GetObjByName("CurrentDisconnectedList")       
+      .Clear
+      For i=0 To UBound(nName)
+         If nItem(i)(2) <> "green" Then
+            .AddItem nItem(i)(0) & " [" & nName(i) & "] - " & nItem(i)(1)
+         End If
+      Next
+   End With      
+End Sub
+
+
+Private Sub CreateCmds()
+
+   Set cmd = OpenCommand("speedui")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("speedui")
+      With cmd
+         .Description = "Displays the speed monitor UI that shows realtime upload and download speeds (bot console only)"
+         .RequiredRank = -1
+         .Save
+      End With
+   End If
+   
+   Set cmd = OpenCommand("speedinfo")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("speedinfo")
+      With cmd
+         .Description = "Displays the current download and upload speed as text (not real time)"
+         .RequiredRank = 200
+         .Save
+      End With
+   End If   
+
+   Set cmd = Nothing
+End Sub
+
+
+Private Function GetBytesRecieved
+
+   Set WMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")   
+   Set perfRaw = WMIService.ExecQuery("SELECT BytesReceivedPersec FROM Win32_PerfRawData_Tcpip_NetworkInterface", "WQL", &H10 + &H20)  
+   
+   For Each Item in perfRaw
+      GetBytesRecieved = item.BytesReceivedPersec
+      Exit For
+   Next
+   
+   Set WMIService = Nothing
+   Set perfRaw = Nothing   
+End Function
+
+
+Private Function GetBytesSent
+
+   Set WMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")   
+   Set perfRaw = WMIService.ExecQuery("SELECT BytesSentPersec FROM Win32_PerfRawData_Tcpip_NetworkInterface", "WQL", &H10 + &H20)  
+   
+   For Each Item in perfRaw
+      GetBytesSent = item.BytesSentPersec   
+      Exit For
+   Next
+   
+   Set WMIService = Nothing
+   Set perfRaw = Nothing
+End Function
+
+Private Function GetConnectionState
+
+   netAdapters.RemoveAll
+
+   Set WMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")   
+   Set perfRaw = WMIService.ExecQuery("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")  
+   
+   For Each item In WMIService.InstancesOf("Win32_NetworkAdapter")
+      If LenB(item.NetConnectionStatus) > 0 Then
+         Select Case item.NetConnectionStatus
+            Case 0
+               status = "Disconnected"
+               colour = "red"
+            Case 1
+               status = "Connecting"
+               colour = "yellow"               
+            Case 2
+               status = "Connected"
+               colour = "green"               
+            Case 3
+               status = "Disconnecting"
+               colour = "yellow"               
+            Case 4
+               status = "Hardware not present"
+               colour = "red"               
+            Case 5
+               status = "Hardware disabled"
+               colour = "red"
+            Case 6
+               status = "Hardware malfunction"
+               colour = "red"               
+            Case 7
+               status = "Network cable unplugged"
+               colour = "red"               
+            Case 8
+               status = "Authenticating"
+               colour = "yellow"               
+            Case 9
+               status = "Authentication succeeded"
+               colour = "yellow"               
+            Case 10
+               status = "Authentication failed"
+               colour = "red"               
+            Case 11
+               status = "Invalid address"
+               colour = "red"               
+            Case 12
+               status = "Credentials Required"
+               colour = "red"               
+         End Select
+         
+         If netAdapters.Exists(item.Name) Then item.Name = item.Name & " #2"
+         netAdapters.Item(item.Name) = Array(item.netconnectionid, status, colour, item.Manufacturer, item.ServiceName, item.Caption)             
+      End If
+   Next   
+   
+   REM For Each item In perfRaw
+      REM If NOT IsNull(item.IPAddress) Then
+         REM For i = LBound(item.IPAddress) To UBound(item.IPAddress)
+            REM If LenB(item.IPAddress(i)) = 0 OR item.IPAddress(i) = "0.0.0.0" Then
+               REM "Description: " & item.Description & vbcrlf & "IP address: " & item.IPAddress(i) & " : " & item.Caption(i)
+            REM End if
+         REM Next
+      REM End If
+   REM Next
+
+   Set WMIService = Nothing
+   Set perfRaw = Nothing   
+End Function

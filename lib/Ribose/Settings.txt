@@ -1,0 +1,24 @@
+' gets a setting as a number or the default number if the set value is not a number or empty
+Function GetNumericSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    If IsNumeric(Value) Then
+        GetNumericSettingsEntry = CLng(Value)
+    Else
+        GetNumericSettingsEntry = CLng(DefaultValue)
+    End If
+End Function
+
+' gets a setting as a boolean or the default boolean if the set value is not a boolean or empty
+Function GetBooleanSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    Select Case LCase(Value)
+        Case "t", "true", "y", "yes"
+            GetBooleanSettingsEntry = True
+        Case "f", "false", "n", "no"
+            GetBooleanSettingsEntry = False
+        Case Else
+            GetBooleanSettingsEntry = DefaultValue
+    End Select
+End Function

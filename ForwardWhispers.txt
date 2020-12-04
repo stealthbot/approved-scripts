@@ -1,0 +1,55 @@
+' THESE SCRIPTS ARE FOR DEV RELEASE 38 ONLY, NOT TESTED AND NOT SUPPORTED FOR 2.6.
+' RIBOSE
+
+Option Explicit
+
+Script("Name") = "ForwardWhispers"
+Script("Author") = "Ribose"
+Script("Major") = 1
+Script("Minor") = 2
+Script("Revision") = 20090427
+
+Const FWD_OWNER = "%o"
+Const FWD_FRIEND = "%f"
+
+Sub Event_Load()
+    CreateObj "Menu", "mnuSetUser"
+    mnuSetUser.Caption = "Set Forward Whisper User"
+End Sub
+
+Sub mnuSetUser_Click()
+    Dim ForwardTo, InputMsg
+    InputMsg = _
+              "Set the user to forward all whispers to." & vbNewLine & _
+              "Use " & UCase(FWD_OWNER) & " to whisper the bot's current owner." & vbNewLine & _
+              "Use " & UCase(FWD_FRIEND) & " to whisper the bot's current friends." & vbNewLine & _
+              "Leave blank or hit Cancel to cancel."
+    ForwardTo = LCase(Trim(GetSettingsEntry("ForwardTo")))
+    If Len(ForwardTo) = 0 Then ForwardTo = FWD_OWNER
+    ForwardTo = InputBox(InputMsg, "Forward Whisper Script - StealthBot", ForwardTo)
+    If Len(Trim(ForwardTo)) = 0 Then ForwardTo = FWD_OWNER
+    If ForwardTo <> vbNullString Then WriteSettingsEntry "ForwardTo", ForwardTo
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+    ReceivedWhisper Username, Message
+End Sub
+
+Sub ReceivedWhisper(Username, Message)
+    Dim fwduser, fwdmsg
+    fwduser = LCase(Trim(GetSettingsEntry("ForwardTo")))
+    fwdmsg = "Whisper from " & Username & ": " & Message
+    If Len(fwduser) = 0 Then fwduser = FWD_OWNER
+    If fwduser = FWD_OWNER Then fwduser = BotVars.BotOwner
+    If fwduser = FWD_FRIEND Then
+        AddQ "/f m " & fwdmsg
+    Else
+        If fwduser <> LCase(Username) Then
+            If BotVars.Product = "VD2D" Or BotVars.Product = "PX2D" Then
+                AddQ "/w *" & fwduser & " " & fwdmsg
+            Else
+                AddQ "/w " & fwduser & " " & fwdmsg
+            End If
+        End If
+    End If
+End Sub

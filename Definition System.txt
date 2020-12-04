@@ -1,0 +1,85 @@
+Script("Name") = "Definitions"
+Script("Author") = "Tuck"
+Script("Major") = 1
+Script("Minor") = 0
+Script("Revision") = 0
+Script("Description") = "Define System From 2.6R3"
+
+Private dbPath
+
+Sub Event_Load()
+    dbPath = BotPath() & "definitions.ini"
+    If (OpenCommand("define") Is Nothing) Then
+        With CreateCommand("define")
+            .Aliases.Add "def"
+            .RequiredRank = 60
+            .Parameters.Add .NewParameter("Term", False, "String")
+            .Save
+        End With
+    End If
+    If (OpenCommand("newdef") Is Nothing) Then
+        With CreateCommand("newdef")
+            .RequiredRank = 60
+            .Parameters.Add .NewParameter("String", False, "String")
+            .Save
+        End With
+    End If
+    If (OpenCommand("deldef") Is Nothing) Then
+        With CreateCommand("deldef")
+            .RequiredRank = 60
+            .Parameters.Add .NewParameter("Term", False, "String")
+            .Save
+        End With
+    End If
+End Sub
+
+Sub Event_Command(Command)
+    If (Not Command.HasAccess Or Not Command.IsValid) Then Exit Sub
+    If (Command.IsLocal And Not IsOnline()) Then Command.Username = BotVars.Username
+    Select Case LCase(Command.Name)
+        Case "define" : Def Command
+        Case "newdef" : NewDef Command
+        Case "deldef" : DelDef Command
+    End Select
+End Sub
+
+Private Sub Def(Command)
+    Definition = GetConfigEntry("Def", Command.Argument("Term"), dbPath)
+    If Len(Definition) > 0 Then
+        Response = "[ " & Command.Argument("Term") & " ]: " & Definition
+    Else
+        Response = "No definition on file for [ " & Command.Argument("Term") & " ]."
+    End If
+    Command.Respond(Response)
+End Sub
+
+Private Sub NewDef(Command)
+    If InStr(Command.Argument("String"), "|") > 0 Then
+        Term = Split(Command.Argument("String"), "|")(0)
+        If Len(Term) > 0 Then
+            Definition = Split(Command.Argument("String"), "|")(1)
+            If Len(Definition) > 0 Then
+                WriteConfigEntry "Def", Term, Definition, dbPath
+                Response = "Added definition for [ " & Term & " ]."
+            Else
+                Response = "You need to specify a definition."
+            End If
+        Else
+            Response = "You need to specify a term."
+        End If
+    Else
+        Response = "Error: Please format your definitions correctly. (" & BotVars.Trigger & Command.Name & " Term|Definition)"
+    End If
+    Command.Respond(Response)
+End Sub
+
+Private Sub DelDef(Command)
+    Definition = GetConfigEntry("Def", Command.Argument("Term"), dbPath)
+    If Len(Definition) > 0 Then
+        WriteConfigEntry "Def", Command.Argument("Term"), VbNullString, dbPath
+        Response = "Deleted definition for [ " & Command.Argument("Term") & " ]."
+    Else
+        Response = "No definition for [ " & Command.Argument("Term") & " ]."
+    End If
+    Command.Respond(Response)
+End Sub

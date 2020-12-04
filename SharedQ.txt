@@ -1,0 +1,530 @@
+Option Explicit
+
+Script("Name")     = "SharedQ"
+Script("Author")   = "AwaKening"
+Script("Major")    = 2
+Script("Minor")    = 1
+Script("Revision") = 9
+Script("Commands") = ""
+Script("Description") = "Shares the bot's queue system between other bots to avoid flooding:"&_
+                        "This scripts needs to be loaded on every bot using the system"
+Script("FileName") = "SharedQ.txt"
+
+
+'***********************
+' IDEAS (Future Updates)
+'***********************
+'   - Merge messages split by stealth internally and resplit if the setting value is <223
+'   - Somehow 0 the internal queue delay when a message is removed (not currently possible)
+
+
+'*********
+' CHANGES
+'*********
+' v2.1.9 updated 11/23/2010
+'       - Bot will not share messages if the queue is empty and not delayed
+' v2.1.8 updated 11/22/2010
+'       - Fixed a bug with messages longer than 223 characters
+'       - Changed delay to prevent bot from grabbing messages too soon
+' v2.1.7 updated 07/15/2010
+'       - Fixed split messages when whispered or emoted
+' v2.1.6 updated 07/14/2010
+'       - Added setting to split up messages over a certain length
+' v2.1.5 updated 06/28/2010
+'       - Second attempt to fix same bot from grabbing all the messages (moved setdelay)
+' v2.1.4 updated 06/24/2010
+'       - Removed an extra delay that was left in the timer
+'       - Fixed an issue with bot grabbing too many messages
+' v2.1.3 updated 05/16/2010
+'       - setDelay moved to the top of MessageQueued Sub (to help with slow messages)
+'       - If bot is closed/reloaded with a queued message, it will now unlock the message for another bot
+' v2.1.2 updated 05/09/2010
+'       - Fixed illegal assignment errors
+' v2.1.1 updated 05/07/2010
+'       - Queued messages if bot is kicked offline will be reset in the queue file to be taken
+' v2.1.0 updated 05/06/2010
+'       - Created SharedQ Class and moved most private subs/functions
+'       - Added a line in the sharedq file to indicate if message is pending (should fix message order)
+' v2.0.8 updated 05/05/2010
+'       - Changed Skips to use equation: cInt(Len(Message)/100+1)
+'       - Changed the queue timer
+' v2.0.7 updated 11/28/2009
+'       - Added Event_ChannelJoin to eliminate the need to check channel in the timer
+'         (should help slightly with duplicate messages)
+'       - Changed the timer from 1000ms to 1500ms
+'       - Added /clan command to sharedq
+'       - Added check to see if bot is a channel op before it pulls a moderation command from the sharedq
+' v2.0.6 updated 11/15/2009
+'       - Fixed problem with queue backing up if no channel was specified in settings
+' v2.0.5 updated 11/14/2009
+'       - Added channel check before grabbing a message from the queue
+' v2.0.4 updated 11/10/2009
+'       - Added Queued variable to make the bot skip interval if message received
+'        (should help with the out of order messages until SB is updated with queue.credits)
+'       - Added ignore public output messages setting
+'       - Fixed occasional error message: Scripting runtime error '62' in SharedQ: (line 234; column 1)
+' v2.0.3 updated 10/23/2009
+'       - Added Setting to ignore whispered messages
+'       - Added Setting to ignore emoted messages
+'       - Added Setting to ignore whispered messages to specified users
+'       - Added Setting to share Moderation commands
+'       - Fixed cq and scq commands
+' v2.0.2 updated 10/22/2009
+'       - Added a setting for shared channel
+'       - Added a check for filesize before opening the queue file
+'       - Fixed queueFile Location
+' v2.0.0 updated 10/22/2009
+'       - Completely reworked the sharing method
+' v1.00 updated 09/14/2009
+'       - Converted to script format
+' v0.14 updated 08/09/2009
+'       - Attempt to fix lost messages by adding Event_MessageSent
+'       - sq_whispered has been changed to sq_ignored and assigned as Integer
+' v0.13 updated 03/31/2009
+'       - Added Const sq_padqueue setting to optionally ignore blank messages
+'       - padqueues are now ignored in message queued event
+'       - Added command followbot along with access setting
+'       - Added sq_HasAccess Function
+'       - Added a fix for lost messages when queue is backed up with whispers
+' v0.12 updated 03/30/2009
+'       - Followbot is now designated on channeljoin rather than on botload
+'       - Added some usercheck's to redesignate a followbot if necessary
+'       - Added a check for empty queue in messagequeued to check the Shared queue
+' v0.11 updated 03/28/2009
+'       - Added cq and scq functionality
+
+
+'*********
+' GLOBALS
+'*********
+
+Private Q       '// SharedQ Class
+Private Queued  '// Integer - Used to force the bot into skipping messages after 1 is sent
+
+
+'************
+' BOT EVENTS
+'************
+
+Sub Event_Load()
+	Set Q = New SharedQ_Class
+
+	Q.CheckFile
+	Call CreateSettings()
+
+	ObserveScript(SSC.InternalScript)
+
+	CreateObj "Timer", "Delay"
+	Delay.Interval = 1125
+	Delay.Enabled = False
+End Sub
+
+Sub Event_Command(Command)
+	Select Case LCase(Command.Name)
+		Case "cq", "scq": Q.EmptySharedQ
+	End Select
+End Sub
+
+Sub Event_MessageSent(MessageID, Message, Tag)
+	Q.setDelay Len(Message)
+
+	If Tag = Q.Tag Then Q.TakeMessage Message, "remove"
+End Sub
+
+Sub Event_MessageQueued(MessageID, Message, Tag)
+	Dim delayed: delayed = CBool(Queued)
+
+	Q.setDelay Len(Message)
+
+	If (Message = "") Then Exit Sub
+	If (Tag = Q.Tag)  Then Exit Sub
+	If NOT(Q.ShareMessage(Message)) Then Exit Sub
+
+	If Trim(Message) = "%%%%%blankqueuemessage%%%%%" Then
+		Queue.RemoveItemById MessageID
+	Else
+		Q.AddToSharedQ Message, MessageID, delayed
+	End If
+End Sub
+
+Sub Event_ChannelJoin(ChannelName, Flags)
+	Dim myChannel
+
+	mychannel = GetSettingsEntry("sqChannel")
+	If Len(myChannel)>0 Then
+		If LCase(mychannel) = LCase(ChannelName) Then
+			Delay.Enabled = True
+		Else
+			Delay.Enabled = False
+			Addchat color.Purple, "SharedQ Disabled in this channel"
+		End If
+	Else
+		Delay.Enabled = True
+	End If
+
+	If Delay.Enabled Then AddChat color.Purple, "SharedQ is Active in this channel"
+End Sub
+
+Sub Event_Close()
+	If Queue.Count>0 Then
+		Q.TakeMessage "", "replace"
+	End If
+End Sub
+
+
+'********
+' TIMERS
+'********
+
+Sub Delay_Timer()
+	If CBool(Queued) Then
+		Queued = Abs(Queued)-1
+		Exit Sub
+	End If
+
+	If Q.OffCountCheck() Then Exit Sub
+
+	Dim myMessage, myWait
+
+	If Q.MessageWaiting(myMessage) Then
+		AddQ Q.TakeMessage(myMessage, "take"), , Q.Tag
+		'Q.setDelay Len(myMessage)
+	End If
+End Sub
+
+
+'**********
+' SETTINGS
+'**********
+
+Private Sub CreateSettings()
+	Dim response, title, version
+
+	title = "AwaKening's SharedQ"
+	version = StringFormat("{0}.{1}.{2}", Script("Major"), Script("Minor"), Script("Revision"))
+
+	If version = GetSettingsEntry("version") Then Exit Sub
+
+	AddChat color.Plum, title & " Updated to " &version
+	WriteSettingsEntry "version", version
+
+	'// v2.1.6
+	If GetSettingsEntry("maxMessageLen") <> "" Then Exit Sub
+
+	WriteSettingsEntry "maxMessageLen (info)", "Messages over this length will be split" & _
+	".  (In most cases this shouldn't be changed)  Don't set higher than 223!"
+	WriteSettingsEntry "maxMessageLen", 223
+
+	If Len(GetSettingsEntry("sharePublic"))>0 Then Exit Sub
+
+	'// v2.0.4
+	WriteSettingsEntry "sharePublic (info)", "Y/N share public output messages"
+	WriteSettingsEntry "sharePublic", "Y"
+
+	'// v2.0.3
+	If Len(GetSettingsEntry("shareWhispers (info)")) > 0 Then Exit Sub
+
+	response = MsgBox("Would you like to share Whispers?", vbYesNo, title)
+
+	WriteSettingsEntry "shareWhispers (info)", "Y/N share whispered messages"
+	WriteSettingsEntry "shareWhispers", vbResponse(response)
+
+	response = MsgBox("Would you like to share Emotes?", vbYesNo, title)
+
+	WriteSettingsEntry "shareEmotes (info)", "Y/N share emoted messages"
+	WriteSettingsEntry "shareEmotes", vbResponse(response)
+
+	response = MsgBox("Would you like to share Moderation?"&vbcrlf&_
+	"(Other bots MUST be channel ops)", vbYesNo, title)
+
+	WriteSettingsEntry "shareMod (info)", "Y/N share Moderation commands"
+	WriteSettingsEntry "shareMod", vbResponse(response)
+
+	response = InputBox("List any users you whisper to that you don't want shared"&_
+	" (Seperate users with a space)"&vbcrlf&vbcrlf&"Leave Blank if none", title, "")
+
+	WriteSettingsEntry "whisperUsers (info)", "Whispers to any of these users will not be shared"&_
+	" (Seperate users with a space)"
+	WriteSettingsEntry "whisperUsers", response
+
+	'// v2.0.2
+	If Len(GetSettingsEntry("sqChannel (info)")) > 0 Then Exit Sub
+
+	response = InputBox("Set a channel name here if you want to share your queue "&_
+	" only while in this channel"&vbcrlf&vbcrlf&"Leave blank to share everywhere", title, "")
+
+	WriteSettingsEntry "sqChannel (info)", "Set a channel name here if you want "&_
+	"to share your queue only while in this channel"
+	WriteSettingsEntry "sqChannel", response
+End Sub
+
+Private Function vbResponse(response)
+	If response = vbYes Then
+		vbResponse = "Y"
+	Else
+		vbResponse = "N"
+	End If
+End Function
+
+
+'***************
+' SHAREDQ CLASS
+'***************
+
+Class SharedQ_Class
+
+    Public FSO		'// FileSystemObject - Read and write to queue file
+    Public queueFile	'// String - Location of sharedq.txt
+    Public Tag		'// String - Queue Tags for messages
+
+    Private Sub Class_Initialize()
+	Set FSO   = CreateObject("Scripting.FileSystemObject")
+	queueFile = CreateObject("Wscript.Shell").ExpandEnvironmentStrings("%AppData%")&"\sharedq.txt"
+	Tag       = "SharedQ"
+    End Sub
+
+    Public Sub CheckFile()
+	If NOT(FSO.FileExists(queueFile)) Then FSO.CreateTextFile(queueFile)
+    End Sub
+
+    Public Sub setDelay(ByVal Length)
+	Length = cInt(Length/30)+1
+
+	If Length > Queued Then
+		Queued = Length
+	End If
+    End Sub
+
+    Public Function ShareMessage(ByVal Message)
+
+	'// Beta code Added 2.1.4 to not share when queue is empty
+	'// Testing shows it doesn't always get the first message in order (slightly slow)
+	'If Queue.Count=1 AND NOT(Queued) Then
+	'	If NOT(MessageWaiting(Message)) Then Exit Function
+	'End If
+	'// End beta code
+
+	Dim sqChannel: sqChannel = GetSettingsEntry("sqChannel")
+
+	If Len(sqChannel)>0 Then
+		If LCase(myChannel) <> LCase(sqChannel) Then Exit Function
+	End If
+
+	If Left(Message, 1) = "/" Then
+		If NOT(shareCommand(Message)) Then Exit Function
+	Else
+		If NOT(BooleanSetting("sharePublic")) Then Exit Function
+	End If
+
+	ShareMessage = True
+    End Function
+
+    Public Function ShareCommand(ByVal Message)
+	Dim msgArr, users, user
+
+	msgArr = Split(LCase(Message))
+
+	Select Case msgArr(0)
+	Case "/me", "/emote"
+		If NOT BooleanSetting("shareEmotes") Then Exit Function
+	Case "/w"
+		If NOT BooleanSetting("shareWhispers") Then Exit Function
+		If UBound(msgArr)=0 Then Exit Function
+
+		users = GetSettingsEntry("whisperUsers")
+		If Len(users)>0 Then
+			users = Replace(users, ",", "")
+			For Each user in Split(LCase(users))
+				 If msgArr(1) = user Then Exit Function
+			Next
+		End If
+	Case "/ban", "/unban", "/kick", "/clan"
+		If NOT BooleanSetting("shareMod") Then Exit Function		
+	Case Else
+		Exit Function
+	End Select
+
+	ShareCommand = True
+    End Function
+
+    Public Function BooleanSetting(Setting)
+	Select Case UCase(GetSettingsEntry(Setting))
+		Case "NO", "N", "FALSE", "0": BooleanSetting = False
+		Case Else: BooleanSetting = True
+	End Select
+    End Function
+
+    Public Function NumericSetting(Setting)
+	NumericSetting = cLng(GetSettingsEntry(Setting))
+    End Function
+
+    Public Function MessageWaiting(ByRef myMessage)
+	Dim f, line
+
+	Set f = FSO.OpenTextFile(queueFile, 1, True)
+
+	If NOT(f.AtEndOfStream) Then
+		line = Split(f.ReadLine, vbTab)
+		'// 0-message taken, 1-message
+
+		If UBound(line) <> 1 Then
+			Call EmptySharedQ()
+		ElseIf (line(0) = "0") Or (line(0) = myUsername) Then
+
+			Select Case Split(line(1))(0)
+			Case "/ban", "/unban", "/kick", "/clan"
+				If botFlags = 2 Then
+					myMessage = line(1)
+					MessageWaiting = True
+				End If
+			Case Else
+				myMessage = line(1)
+				MessageWaiting = True
+			End Select
+		End If
+	End If
+
+	f.Close
+	Set f = Nothing
+    End Function
+
+    Public Sub EmptySharedQ()
+	FSO.DeleteFile(queueFile)
+	FSO.CreateTextFile(queueFile)
+    End Sub
+
+    Public Function OffCountCheck()
+	If NOT(IsOnline) Or (Queue.Count>0) Then
+		OffCountCheck = True
+	End If
+
+	If Not(IsOnline) AND Queue.Count>0 Then
+		'// Remove send status from file
+		TakeMessage "", "replace"
+	End If
+    End Function
+
+    Public Sub AddToSharedQ(ByVal Message, MessageID, Delayed)
+	Dim f, i, myMessage
+	Dim status: status = "0"
+
+	Call SplitMessage(Message)
+
+	If UBound(Message)=0 And Not(Delayed) Then
+		If (Queue.Count=1) And (IsOnline) Then
+			If Not(MessageWaiting(myMessage)) Then
+				status = myUsername
+				Queue.ItemById(MessageID).Tag = Tag
+			End If
+		End If
+	End If
+
+	If (status = "0") Then
+		Queue.RemoveItemById MessageID
+	End If
+
+	Set f = FSO.OpenTextFile(queueFile, 8, True)
+	For i=0 to UBound(Message)
+		f.WriteLine StringFormat("{0}{1}{2}", status, vbTab, Message(i))
+	Next
+
+	f.Close
+	Set f = Nothing
+    End Sub
+
+    Private Sub SplitMessage(ByRef Message)
+
+	Dim StringSplit  ' hold the original message
+	Dim SplitLength  ' the maximum length of our messages
+	Dim lineCount    ' stores line number
+	Dim pos          ' stores position of delimiter
+	Dim strTmp       ' stores working copy of StringSplit
+	Dim prefix       ' string to add before each split message
+    
+	SplitLength = NumericSetting("maxMessageLen")
+
+	'// Stealth will split the message if it's >223
+	'// before it's even sent to event_messagequeued
+	If (Len(Message) <= SplitLength) Or (SplitLength >= 223) Then
+		Message = Array(Message)
+		Exit Sub
+	End If
+
+	Select Case LCase(Split(Message)(0))
+	Case "/w", "/msg"
+		prefix  = StringFormat("/w {0} ", Split(Message)(1))
+		Message = Split(Message, " ", 3)(2)
+	Case "/me", "/emote"
+		prefix  = "/me "
+		Message = Split(Message, " ", 2)(1)
+	End Select
+
+	SplitLength = SplitLength - (Len("[more]") + Len(prefix))
+	StringSplit = CStr(Message)
+	Message     = Array("")
+
+	Do While (StringSplit <> vbNullString)
+		ReDim Preserve Message(lineCount)
+        
+		strTmp = StringSplit
+
+		If (Len(strTmp) <= SplitLength + Len("[more]")) Then
+			Message(lineCount) = prefix & strTmp
+			Exit Do
+		Else
+			pos = InStrRev(strTmp, " ", SplitLength, vbTextCompare)
+           
+			If (pos>0) Then
+				strTmp = Left(strTmp, pos)
+			Else
+				strTmp = Left(strTmp, SplitLength)
+			End If
+            
+			Message(lineCount) = StringFormat("{0}{1}[more]", prefix, strTmp)
+		End If
+        
+		StringSplit = Mid(StringSplit, Len(strTmp) + 1)
+		lineCount = lineCount + 1
+	Loop
+
+    End Sub
+
+    Public Function TakeMessage(myMessage, Change)
+	Dim f, msgs, i, line
+
+	Set f = FSO.OpenTextFile(queueFile, 1, True)
+
+	If f.AtEndOfStream Then
+		f.Close
+		Set f=Nothing
+		Exit Function
+	End If
+
+	msgs = Split(f.ReadAll, vbCrLf)
+	f.Close
+
+	Set f = FSO.OpenTextFile(queueFile, 2, True)
+
+	For i=0 To UBound(msgs)
+		If Len(msgs(i))>1 Then
+
+			line = Split(msgs(i), vbTAb)
+			If line(1) = myMessage OR line(0) = myUsername Then
+				If Change = "take" Then
+					f.WriteLine StringFormat("{0}{1}{2}", myUsername, vbTab, myMessage)
+				ElseIf Change = "replace" Then
+					f.WriteLine StringFormat("0{0}{1}", vbTab, line(1))
+				End If
+
+				TakeMessage = myMessage
+			Else
+				f.WriteLine msgs(i)
+			End If
+		End If
+	Next
+
+	f.Close
+	Set f = Nothing
+    End Function
+
+End Class

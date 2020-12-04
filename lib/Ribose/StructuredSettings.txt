@@ -1,0 +1,187 @@
+' Library for a Structured Settings system
+
+Function Setting(DefaultValue)
+    Setting = Array(vbNullString, vbString, DefaultValue)
+End Function
+
+Function BooleanSetting(DefaultValue)
+    BooleanSetting = Array(False, vbBoolean, ValidateSettingValue(Nothing, Array(False, vbBoolean, False), DefaultValue))
+End Function
+
+Function IntegerSetting(DefaultValue, MinValue, MaxValue)
+    MinValue = ValidateSettingValue(Nothing, Array(0, vbInteger, &H80000000), MinValue)
+    MaxValue = ValidateSettingValue(Nothing, Array(0, vbInteger, &H7FFFFFFF), MaxValue)
+    DefaultValue = ValidateSettingValue(Nothing, Array(0, vbInteger, MinValue, MinValue, MaxValue), DefaultValue)
+    IntegerSetting = Array(0, vbInteger, DefaultValue, MinValue, MaxValue)
+End Function
+
+Sub LoadSettings(Settings)
+    Dim Key, Value, Arr
+    For Each Key in Settings.Keys()
+        Value = GetSettingsEntry(Key)
+        Arr = Settings.Item(Key)
+        Arr(0) = ValidateSettingValue(Nothing, Settings.Item(Key), Value)
+        Settings.Item(Key) = Arr
+    Next
+End Sub
+
+Sub SaveSettings(Settings)
+    Dim Key
+    For Each Key in Settings.Keys()
+        Call WriteSettingsEntry(Key, CStr(Settings.Item(Key)(0)))
+    Next
+End Sub
+
+Function GetSetting(Settings, SettingName)
+    GetSetting = Settings.Item(SettingName)(0)
+End Function
+
+Function SettingExists(Settings, SettingName)
+    SettingExists = Settings.Exists(SettingName)
+End Function
+
+Function FindSettingThatStartsWith(Settings, Search)
+    Dim Key, KeyFound
+    FindSettingThatStartsWith = Search
+    KeyFound = vbNullString
+    For Each Key In Settings.Keys()
+        If StrComp(Left(Key, Len(Search)), Search, vbTextCompare) = 0 Then
+            If Len(KeyFound) > 0 Then Exit Function ' multiple choices
+            KeyFound = Key
+        End If
+    Next
+    If Len(KeyFound) > 0 Then
+        FindSettingThatStartsWith = KeyFound
+    End If
+End Function
+
+Function ListSettings(Settings)
+    Dim Key
+    ListSettings = vbNullString
+    For Each Key In Settings.Keys()
+        ListSettings = ListSettings & Key & ", "
+    Next
+    If Len(ListSettings) > 0 Then ListSettings = Left(ListSettings, Len(ListSettings) - 2)
+End Function
+
+Function SetSetting(Settings, SettingName, Value)
+    Dim Arr
+    If SettingExists(Settings, SettingName) Then
+        Arr = Settings.Item(SettingName)
+        Arr(0) = ValidateSettingValue(Settings, SettingName, Value)
+        Settings.Item(SettingName) = Arr
+    End If
+End Function
+
+Function ValidateSettingValue(Settings, SettingName, StringValue)
+    Dim SettingStruct, Value, DefaultValue, MinValue, MaxValue
+    If Settings Is Nothing Then
+        SettingStruct = SettingName
+    Else
+        If Not SettingExists(Settings, SettingName) Then Exit Function
+        SettingStruct = Settings.Item(SettingName)
+    End If
+    DefaultValue = SettingStruct(2)
+    Select Case SettingStruct(1)
+        Case vbBoolean
+            Select Case LCase(Trim(StringValue))
+                Case "true", "t", "yes", "y", "on", "1"
+                    ValidateSettingValue = True
+                Case "false", "f", "no", "n", "off", "0"
+                    ValidateSettingValue = False
+                Case Else
+                    ValidateSettingValue = DefaultValue
+            End Select
+            'addchat vbred, SettingName & " set " & ValidateSettingValue
+        Case vbInteger
+            StringValue = Trim(StringValue)
+            MinValue = &H80000000
+            MaxValue = &H7FFFFFFF
+            If UBound(SettingStruct) > 2 Then MinValue = SettingStruct(3)
+            If UBound(SettingStruct) > 3 Then MaxValue = SettingStruct(4)
+            If Len(StringValue) > 0 And IsNumeric(StringValue) Then
+                Value = CLng(StringValue)
+                If Value >= MinValue And Value <= MaxValue Then
+                    ValidateSettingValue = Value
+                Else
+                    ValidateSettingValue = DefaultValue
+                End If
+            Else
+                ValidateSettingValue = DefaultValue
+            End If
+        Case Else
+            If Len(StringValue) > 0 Then
+                ValidateSettingValue = StringValue
+            Else
+                ValidateSettingValue = DefaultValue
+            End If
+    End Select
+End Function
+
+Function IsValidSettingValue(Settings, SettingName, StringValue)
+    Dim SettingStruct, Value, DefaultValue, MinValue, MaxValue
+    If Settings Is Nothing Then
+        SettingStruct = SettingName
+    Else
+        If Not SettingExists(Settings, SettingName) Then Exit Function
+        SettingStruct = Settings.Item(SettingName)
+    End If
+    DefaultValue = SettingStruct(2)
+    Select Case SettingStruct(1)
+        Case vbBoolean
+            Select Case LCase(Trim(StringValue))
+                Case "true", "t", "yes", "y", "on", "1", "false", "f", "no", "n", "off", "0"
+                    IsValidSettingValue = True
+                Case Else
+                    IsValidSettingValue = False
+            End Select
+        Case vbInteger
+            StringValue = Trim(StringValue)
+            MinValue = &H80000000
+            MaxValue = &H7FFFFFFF
+            If UBound(SettingStruct) > 2 Then MinValue = SettingStruct(3)
+            If UBound(SettingStruct) > 3 Then MaxValue = SettingStruct(4)
+            If Len(StringValue) > 0 And IsNumeric(StringValue) Then
+                Value = CLng(StringValue)
+                If Value >= MinValue And Value <= MaxValue Then
+                    IsValidSettingValue = True
+                Else
+                    IsValidSettingValue = False
+                End If
+            Else
+                IsValidSettingValue = False
+            End If
+        Case Else
+            If Len(StringValue) > 0 Then
+                IsValidSettingValue = True
+            Else
+                IsValidSettingValue = False
+            End If
+    End Select
+End Function
+
+Function GetValidSettingString(Settings, SettingName)
+    Dim SettingStruct, Value, DefaultValue, MinValue, MaxValue
+    If Settings Is Nothing Then
+        SettingStruct = SettingName
+    Else
+        If Not SettingExists(Settings, SettingName) Then Exit Function
+        SettingStruct = Settings.Item(SettingName)
+    End If
+    SettingStruct = Settings.Item(SettingName)
+    DefaultValue = SettingStruct(2)
+    Select Case SettingStruct(1)
+        Case vbBoolean
+            GetValidSettingString = "Valid: True or False. Default: " & CBool(DefaultValue)
+        Case vbInteger
+            GetValidSettingString = "Valid: Integer. Default: " & CLng(DefaultValue)
+            MinValue = &H80000000
+            MaxValue = &H7FFFFFFF
+            If UBound(SettingStruct) > 2 Then GetValidSettingString = GetValidSettingString & " Minimum: " & SettingStruct(3)
+            If UBound(SettingStruct) > 3 Then GetValidSettingString = GetValidSettingString & " Maximum: " & SettingStruct(4)
+        Case Else
+            GetValidSettingString = "Valid: Any string. Default: " & CStr(DefaultValue)
+    End Select
+End Function
+
+

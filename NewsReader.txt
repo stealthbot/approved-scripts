@@ -1,0 +1,388 @@
+#include "\lib\Ribose\Common.txt"
+#include "\lib\Ribose\BncsConstants.txt"
+#include "\lib\Ribose\Settings.txt"
+
+Option Explicit
+
+' script information
+Script("Name") = "NewsReader"
+Script("Author") = "Ribose"
+Script("Major") = 1
+Script("Minor") = 3
+Script("Revision") = 0
+
+Private News, NewsRequested, FormVisible, SaveFormDimensions, Product
+
+' script events
+' - load
+Sub Event_Load()
+    Dim Motd
+
+    ' create menu item
+    CreateObj "Menu", "mnuNews"
+    mnuNews.Caption = "Show Battle.net News"
+    
+    ' create form
+    CreateObj "Form", "NewsForm"
+    
+    ' variables
+    Set News = CreateObject("Scripting.Dictionary")
+    NewsRequested = False
+    FormVisible = False
+    SaveFormDimensions = True
+    If BotVars.Product = "3RAW" Or BotVars.Product = "PX3W" Then
+        Product = "WARCRAFT3"
+    ElseIf BotVars.Product = "VD2D" Or BotVars.Product = "PX2D" Then
+        Product = "DIABLO2"
+    Else
+        Product = "OTHER"
+    End If
+    
+    ' populate news dictionary
+    RetrieveNewsItems
+    If IsOnline() Then
+        If Not NewsRequested Then
+            If NewsForm.Caption = "Battle.net News" Then NewsForm.GetObjByName("rtbNews").Text = vbNullString
+            DisplayStoredItems
+            Motd = Replace(GetConfigEntry(Product, "Motd", GetWorkingDirectory() & "BnetNews.ini"), "\n", vbCrLf)
+            If Len(Motd) > 0 Then ShowNewsItem 0, Motd, True
+        End If
+    End If
+End Sub
+
+' - packet received
+Sub Event_PacketReceived(Protocol, ID, Length, Data)
+    If Protocol = "BNCS" Then
+        Select Case ID
+            Case SID_AUTH_INFO
+                NewsRequested = False
+                If BotVars.Product = "3RAW" Or BotVars.Product = "PX3W" Then
+                    Product = "WARCRAFT3"
+                ElseIf BotVars.Product = "VD2D" Or BotVars.Product = "PX2D" Then
+                    Product = "DIABLO2"
+                Else
+                    Product = StrReverse(BotVars.Product)
+                End If
+            Case SID_ENTERCHAT
+                If Not NewsRequested Then
+                    NewsRequested = True
+                    If NewsForm.Caption = "Battle.net News" Then NewsForm.GetObjByName("rtbNews").Text = vbNullString
+                    DisplayStoredItems
+                    RequestNews
+                End If
+            Case SID_NEWS_INFO
+                HandleNews Mid(Data, 5)
+        End Select
+    End If
+End Sub
+
+' object events
+' - mnuNews clicked
+Sub mnuNews_Click()
+    ToggleNewsForm
+End Sub
+
+' - NewsForm resized
+Sub NewsForm_Resize()
+    Dim Width, Height
+    With NewsForm
+        Width = .ScaleWidth
+        Height = .ScaleHeight
+        
+        With .GetObjByName("rtbNews")
+            .Width = Width
+            If Height > 300 Then .Height = Height - 300
+        End With
+        
+        With .GetObjByName("btnClose")
+            .Top = Height - 300
+            .Width = Width
+        End With
+        
+        If SaveFormDimensions Then
+            WriteSettingsEntry "FormWidth", .Width
+            WriteSettingsEntry "FormHeight", .Height
+        End If
+    End With
+End Sub
+
+' - NewsForm hidden or unloaded
+Sub NewsForm_Unload(Cancel)
+    FormHidden
+End Sub
+
+' - NewsForm form events
+' - - btnClose clicked
+Sub NewsForm_btnClose_Click()
+    HideNewsForm
+End Sub
+
+' custom functions
+' - show form
+Sub ShowNewsForm()
+    CheckAndLoadNewsForm
+    NewsForm.Show
+    FormVisible = True
+    mnuNews.Caption = "Hide Battle.net News"
+End Sub
+
+' - loads the form if it is not loaded
+Sub CheckAndLoadNewsForm()
+    With NewsForm
+        If .Caption <> "Battle.net News" Then
+            LoadNewsForm
+        End If
+    End With
+End Sub
+
+' - loads the form
+Sub LoadNewsForm()
+    With NewsForm
+        With .CreateObj("RichTextBox", "rtbNews")
+            .BackColor = &H000000
+            .Font = "Verdana"
+            .Locked = True
+            .TabIndex = 0
+            .Text = vbNullString
+            
+            .Left = 0
+            .Top = 0
+        End With
+        
+        With .CreateObj("Button", "btnClose")
+            .Cancel = True
+            .Caption = "Close"
+            .TabIndex = 1
+            
+            .Left = 0
+            .Height = 300
+        End With
+        
+        SaveFormDimensions = False
+        .Width = GetNumericSettingsEntry("FormWidth", 8000)
+        .Height = GetNumericSettingsEntry("FormHeight", 5000)
+        SaveFormDimensions = True
+        
+        .Caption = "Battle.net News"
+    End With
+End Sub
+
+' - hide form
+Sub HideNewsForm()
+    NewsForm.Hide
+    FormHidden
+End Sub
+
+' - show form if not visible; hide form if visible
+Sub ToggleNewsForm()
+    If FormVisible Then
+        HideNewsForm
+    Else
+        ShowNewsForm
+    End If
+End Sub
+
+' - form is hidden
+Sub FormHidden()
+    FormVisible = False
+    mnuNews.Caption = "Show Battle.net News"
+End Sub
+
+' - store news item
+Sub StoreNewsItem(ByVal ItemStamp, ByVal ItemText)
+    Dim Count, LastNews, EndLoop, I, Num, Eli
+    Count = GetConfigEntry(Product, "Count", GetWorkingDirectory() & "BnetNews.ini")
+    If IsNumeric(Count) Then
+        Count = CInt(Count) + 1
+    Else
+        Count = 1
+    End If
+    WriteConfigEntry Product, "Count", Count, GetWorkingDirectory() & "BnetNews.ini"
+    
+    WriteConfigEntry Product, "News" & Count & "Stamp", ItemStamp, GetWorkingDirectory() & "BnetNews.ini"
+    If Len(ItemText) > 200 Then
+        EndLoop = Len(ItemText) \ 200
+        For I = 0 To EndLoop
+            If I = 0 Then
+                Num = vbNullString
+                Eli = Chr(133)
+            ElseIf I = EndLoop Then
+                Num = CStr(I + 1)
+                Eli = vbNullString
+            Else
+                Num = CStr(I + 1)
+                Eli = Chr(133)
+            End If
+            WriteConfigEntry Product, "News" & Count & "Text" & Num, Mid(ItemText, (200 * I) + 1, 200) & Eli, GetWorkingDirectory() & "BnetNews.ini"
+        Next
+    Else
+        WriteConfigEntry Product, "News" & Count & "Text", ItemText, GetWorkingDirectory() & "BnetNews.ini"
+    End If
+    
+    LastNews = GetConfigEntry(Product, "LastNews", GetWorkingDirectory() & "BnetNews.ini")
+    If IsNumeric(LastNews) Then
+        LastNews = Clng(LastNews)
+    Else
+        LastNews = 0
+    End If
+    If LastNews < ItemStamp Then WriteConfigEntry Product, "LastNews", ItemStamp, GetWorkingDirectory() & "BnetNews.ini"
+End Sub
+
+' - gets the news stored in file
+Sub RetrieveNewsItems()
+    Dim Count, I, ItemStamp, ItemText, J
+    Count = GetConfigEntry(Product, "Count", GetWorkingDirectory() & "BnetNews.ini")
+    If IsNumeric(Count) Then
+        If Count > 0 Then
+            For I = 1 To Count
+                ItemStamp = GetConfigEntry(Product, "News" & I & "Stamp", GetWorkingDirectory() & "BnetNews.ini")
+                ItemText = GetConfigEntry(Product, "News" & I & "Text", GetWorkingDirectory() & "BnetNews.ini")
+                J = 1
+                Do While Right(ItemText, 1) = Chr(133)
+                    J = J + 1
+                    ItemText = Left(ItemText, Len(ItemText) - Len(Chr(133)))
+                    ItemText = ItemText & GetConfigEntry(Product, "News" & I & "Text" & J, GetWorkingDirectory() & "BnetNews.ini")
+                Loop
+                
+                If IsNumeric(ItemStamp) And Len(ItemText) > 0 Then
+                    News(ItemStamp) = ItemText
+                End If
+            Next
+        End If
+    End If
+End Sub
+
+' - displays the news stored in file
+Sub DisplayStoredItems()
+    Dim ItemStamp, ItemText
+    For Each ItemStamp In News.Keys()
+        ItemText = News(ItemStamp)
+        ShowNewsItem ItemStamp, ItemText, True
+    Next
+End Sub
+
+' - prints a news item -- this is a custom AddChat-like method
+Sub PrintNewsItem(Header, Body, UnixTimestamp, IsNew)
+    Dim ItemStart
+    With NewsForm.GetObjByName("rtbNews")
+        If UnixTimestamp > 0 Then
+            ItemStart = FindLocationBefore(UnixTimestamp)
+        Else
+            ItemStart = Len(.Text)
+        End If
+        
+        .SelStart = ItemStart
+        .SelLength = 0
+        .SelBold = True
+        .SelColor = vbWhite
+        .SelIndent = 0
+        .SelHangingIndent = 200
+        .SelText = vbCrLf & Header
+        
+        If IsNew Then
+            .SelColor = vbRed
+            .SelText = " [NEW]"
+        End If
+        
+        .SelColor = 0
+        .SelText = " TS=" & UnixTimestamp & vbCrLf
+        
+        .SelBold = False
+        .SelColor = 57599
+        .SelIndent = 200
+        .SelHangingIndent = 0
+        .SelText = Replace(Replace(Body, vbLf, vbCrLf), vbCr & vbCrLf, vbCrLf)
+        If UnixTimestamp <> 0 Then .SelText = vbCrLf
+        
+        .SelStart = Len(.Text)
+    End With
+End Sub
+
+' - returns the location where a news item should be added to the form based on its UNIX timestamp
+Function FindLocationBefore(UnixTimestamp)
+    Dim Pos, TSStart, TSEnd, TSLen, TS
+    With NewsForm.GetObjByName("rtbNews")
+        Pos = 1
+        Do
+            Pos = InStr(Pos + 1, .Text, " TS=")
+            If Pos > 0 Then
+                TSStart = Pos + 4
+                TSEnd = InStr(Pos + 1, .Text, vbCrLf)
+                TSLen = TSEnd - TSStart
+                TS = Mid(.Text, TSStart, TSLen)
+                If IsNumeric(TS) Then
+                    TS = CLng(TS)
+                    If Clng(UnixTimestamp) < TS Then
+                        FindLocationBefore = InStrRev(.Text, vbCrLf, Pos - 30)
+                        If FindLocationBefore > 0 Then FindLocationBefore = FindLocationBefore - 1
+                        Exit Function
+                    End If
+                End If
+            End If
+        Loop Until Pos = 0
+        FindLocationBefore = Len(.Text)
+    End With
+End Function
+
+' - request SID_NEWS_INFO
+Sub RequestNews()
+    Dim LastNews, Packet
+    LastNews = GetConfigEntry(Product, "LastNews", GetWorkingDirectory() & "BnetNews.ini")
+    If IsNumeric(LastNews) Then
+        LastNews = CLng(LastNews)
+    Else
+        LastNews = 0
+    End If
+    
+    Set Packet = DataBufferEx()
+    With Packet
+        .InsertDWORD LastNews       ' (DWORD) Last news timestamp
+        .SendPacket SID_NEWS_INFO
+        .Clear
+    End With
+    Set Packet = Nothing
+End Sub
+
+' - parse SID_NEWS_INFO
+Sub HandleNews(Data)
+    Dim Packet, Count, LastLogon, Oldest, Newest, I, ItemStamp, ItemText
+    Set Packet = DataBufferEx()
+    With Packet
+        .Data = Data
+        Count = .GetBYTE()          ' (BYTE) Number of entries
+        LastLogon = .GetDWORD()     ' (DWORD) Last logon timestamp
+        Oldest = .GetDWORD()        ' (DWORD) Oldest news timestamp
+        Newest = .GetDWORD()        ' (DWORD) Newest news timestamp
+        For I = 1 To Count
+            ItemStamp = .GetDWORD() ' (DWORD) News item timestamp
+            ItemText = .GetString() ' (STRING) News item text
+            
+            ItemText = Replace(ItemText, "‚Äô", "'")
+            ItemText = Replace(ItemText, "‚Äú", "ì")
+            ItemText = Replace(ItemText, "‚Äù", "î")
+            News(ItemStamp) = ItemText
+            ShowNewsItem ItemStamp, ItemText, False
+        Next
+    End With
+    Set Packet = Nothing
+End Sub
+
+' - shows an item in the news form
+Sub ShowNewsItem(ItemStamp, ItemText, Exists)
+    CheckAndLoadNewsForm
+    
+    If ItemStamp = 0 Then
+        PrintNewsItem "Message of the Day", ItemText, 0, False
+        If Not Exists Then
+            WriteConfigEntry Product, "Motd", Replace(ItemText, vbLf, "\n"), GetWorkingDirectory() & "BnetNews.ini"
+            If GetBooleanSettingsEntry("ShowNewsOnConnect", False) Then ShowNewsForm
+        End If
+    Else
+        PrintNewsItem GetDateString(UtcTimeToLocalTime(DateAdd("s", ItemStamp, #1/1/1970#))), ItemText, ItemStamp, Not Exists
+        If Not Exists Then
+            StoreNewsItem ItemStamp, ItemText
+            If GetBooleanSettingsEntry("ShowNewsOnNewItem", True) Then ShowNewsForm
+        End If
+    End If
+End Sub
+

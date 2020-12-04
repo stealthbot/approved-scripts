@@ -1,0 +1,289 @@
+Option Explicit
+
+Script("Name")     = "css"
+Script("Author")   = "AwaKening"
+Script("Major")    = 1
+Script("Minor")    = 1
+Script("Revision") = 20100705
+Script("Description") = "Punish users for x number of seconds for spamming commands too quickly"&_
+                     ":This script disables your bots IP Banning"
+Script("Filename") = "css.txt"
+
+' FUTURE UPDATES
+'    (COMPLETE) Add different punishments
+'    - Add warnings with different punishments
+'    - Add option to check for any spam (non command biased)
+ 
+' *******************************************************
+' *	 Written by AwaKening 07/23/2007		*
+' *							*
+' * - NOTE: This script Disables IP Banning		*
+' *							*
+' * 1.0.1 updated 11/24/2007 by AwaKening		*
+' *	- Added access level Exceptions			*
+' *	- Now checks whispered commands to bot		*
+' *	- Fixed some bugs in the code			*
+' * 1.0.2 updated 03/10/2008				*
+' *	- Reversed sensitivity to make more sense	*
+' *	- Removed one of the timers			*
+' * 1.0.3 updated 03/26/2008				*
+' *	- Fixed a minor bug with unsquelch display	*
+' * 1.0.4 updated 08/26/2008				*
+' *	- Added userjoins sub to unsquelch users that	*
+' *	  may have been offline when unsquelched	*
+' *	- Added userinchannel sub to unsquelch users	*
+' *	  if reloadsettings is clicked while users are	*
+' *	  squelched still				*
+' *	- Timer now disabled when list is clear		*
+' *	- Script will now automatically disable IP	*
+' *	  Banning in config.ini				*
+' * 1.0.5 updated 10/15/2008				*
+' *	- Added flag exemptions	to access		*
+' * 1.0.6 updated 05/26/2009				*
+' *	- Added multiple command detection within one	*
+' *	  message					*
+' *	- New setting to /scq when bot is spammed	*
+' * 1.1.0 updated 09/18/2009				*
+' *	- Converted to sb 2.7 script format		*
+' *	- Added a setting to check for a command or	*
+' *	  just the trigger				*
+' *	- Other minor coding changes			*
+' * 1.1.20090922					*
+' *	- Added observescript and use Event_Command	*
+' * 1.1.20091011					*
+' *	- Fixed a typo with Dsp output setting		*
+' * 1.1.20100705					*
+' *	- Added compatibility for boolean settings	*
+' * 	- Added option for different punishments	*
+' *							*
+' *******************************************************
+
+Private squelched	'// Dictionary Object of squelched users
+
+Sub Event_Load()
+	Dim tmp, i, s
+
+	Call CreateSettings()
+
+	Set squelched = CreateObject("Scripting.Dictionary")
+	squelched.CompareMode = 1
+
+	'// Periodic timer to unsquelch users that have been ignored
+	'// Dictionary Item starts at 0 and goes in the negatives to track the time
+	CreateObj "longtimer", "unsquelch"
+	unsquelch.Interval = 4
+	unsquelch.Enabled  = True
+
+	'// Disable IP Banning in Bot config
+	If UCase(SSC.GetConfigEntry("Other", "IPBans", "config.ini")) = "Y" Then
+		SSC.WriteConfigEntry "Other", "IPBans", "N", "config.ini"
+		Call ReloadSettings(1)
+	End If
+
+	'// Check for internal command usage
+	ObserveScript(vbNullString)
+
+	'// Check for scripted command usage
+	For Each s in Scripts()
+		ObserveScript(s.Script("Name"))
+	Next
+End Sub
+
+Sub Event_UserJoins(Username, Flags, Message, Ping, Product, Level, OriginalStatString, Banned)
+	'// In case the user logged off while they were unignored, this will clear them
+	Event_UserInChannel Username, Flags, Message, Ping, Product, ""
+End Sub
+
+Sub Event_UserInChannel(Username, Flags, Message, Ping, Product, StatUpdate)
+	'// In case Reload Settings was run while users were ignored
+	If Int(Flags) = 32 Then
+		If NOT(squelched.Exists(Username)) Then
+			Command BotVars.Username, "/unignore " & Username, True
+		End If
+	End If
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+	If NOT(BoolSetting("commandOnly")) Then
+		UsageCheck Username, Message
+	End If
+End Sub
+
+Sub Event_UserTalk(Username, Flags, Message, Ping)
+	If NOT(BoolSetting("commandOnly")) Then
+		UsageCheck Username, Message
+	End If
+End Sub
+
+Sub Event_Command(Command)
+	If BoolSetting("commandOnly") Then
+		If Command.HasAccess Then
+			UsageCheck Command.Username, ""
+		End If
+	End If
+End Sub
+
+Private Sub CreateSettings()
+	Dim response, title, version
+
+	version = StringFormat("{0}.{1}.{2}", Script("Major"), Script("Minor"), Script("Revision"))
+	If GetSettingsEntry("version") = version Then Exit Sub
+
+	title = "AwaKening's CSS"
+
+	WriteSettingsEntry "version", version
+	AddChat 15612594, title &": Updated to " &version
+
+	If NOT(GetSettingsEntry("punishment")="") Then Exit Sub
+
+	WriteSettingsEntry "punishment", "squelch"
+	WriteSettingsEntry "punishment (info)", "Allowed Punishments: squelch, ban, timeban, kick"
+	WriteSettingsEntry "punishment (info2)", "Timebans will use the sqTime Setting number of seconds"
+
+	If NOT(GetSettingsEntry("sensitivity")="") Then Exit Sub
+
+	WriteSettingsEntry "sensitivity", 7
+	WriteSettingsEntry "sensitivity (info)", "1-10, 10 being most sensitive"
+
+	WriteSettingsEntry "sqTime", 120
+	WriteSettingsEntry "sqTime (info)", "How long to squelch/timeban abusers (seconds)"
+
+	WriteSettingsEntry "output", 1
+	WriteSettingsEntry "output (info)", "Only applies if punishment=squelch: 0=NoDisplay, 1=Talk, 2=Emote, 3=Whisper"
+
+	WriteSettingsEntry "immunity", 70
+	WriteSettingsEntry "immunity (info)", "Flag or Access level for immune users"
+
+	WriteSettingsEntry "doCQ", "NO"
+	WriteSettingsEntry "doCQ (info)", "Clear queue when abuse is detected"
+
+	WriteSettingsEntry "commandOnly", "NO"
+	WriteSettingsEntry "commandOnly (info)", "Will only punish users if" &_
+	" a valid command was used rather than just checking for the bot trigger"
+	WriteSettingsEntry "commandOnly (info2)", "True is not recommended if you're using old" &_
+	" plugins because they won't be detected"
+
+	AddChat 15612594, "CSS Settings loaded and stored in scripts\scripts.ini"
+	AddChat 9118312, "   Any changes made there will take effect immediately"
+End Sub
+
+Private Function BoolSetting(Entry)
+	Select Case UCase(GetSettingsEntry(Entry))
+		Case "N", "NO", "FALSE", "0"
+			BoolSetting = False
+		Case Else
+			BoolSetting = True
+	End Select
+End Function
+
+Private Sub UsageCheck(ByVal Username, ByVal Message)
+	Dim commands
+
+	If NOT(Message="") Then
+		If Message = BotVars.Trigger Then Exit Sub
+		If NOT(Left(Message,Len(BotVars.Trigger)) = BotVars.Trigger) Then Exit Sub
+
+		'// Check for multiple commands in 1 message
+		commands = UBound(Split(Message, "; "))
+	End If
+
+	If IsImmune(Username) Then Exit Sub
+
+	If squelched.Exists(Username) Then
+		commands = commands + squelched.Item(Username) + 2
+		If commands > (11 - Int(GetSettingsEntry("sensitivity"))) Then
+			Call TakeAction(Username)
+		Else
+			squelched.Item(Username) = commands
+		End If
+	Else
+		squelched.Add Username, 1+commands
+		If squelched.Count=1 Then unsquelch.Enabled = True
+
+		If (commands+1) > (11 - Int(GetSettingsEntry("sensitivity"))) Then
+			Call TakeAction(Username)
+		End If
+	End If
+End Sub
+
+Private Function IsImmune(Username)
+	Dim immunity
+	immunity = GetSettingsEntry("immunity")
+
+	If IsNumeric(immunity) Then
+		If GetDBEntry(Username).Rank > Int(immunity) Then IsImmune = True
+	Else
+		If InStr(1, GetDBEntry(Username).Flags, immunity, 1)>0 Then IsImmune = True
+	End If
+End Function
+
+Private Sub TakeAction(Username)
+	Dim punishment, msg
+
+	If BoolSetting("doCQ") Then
+		Command myUsername, "/scq", True
+	End If
+
+	'// Any case except for kick, we are going to squelch the user also (this way they can't abuse whispered commands)
+	'// For squelch and timeban, we will set the dictionary item to -1 so that the timer will unban/unsquelch them eventually
+	'// For regular bans, the user will never be unignored until they are manually unbanned by someone
+
+	Select Case UCase(Trim(GetSettingsEntry("punishment")))
+	Case "KICK"
+		punishement = "/kick "
+		msg = " Sending commands too quickly"
+	Case "BAN"
+		Command myUsername, "/ignore " &Username, True
+		punishment = "/ban "
+		msg = " Sending commands too quickly"
+	Case "TIMEBAN"
+		Command myUsername, "/ignore " &Username, True
+		punishment = "/ban "
+		msg = StringFormat(" Banned {0} Minutes for command overusage", Round(cInt(GetSettingsEntry("sqTime"))/60, 2))
+		squelched.Item(Username) = -1
+	Case Else  '// squelch, ignore, or anything else
+		punishment = "/ignore "
+		squelched.Item(Username) = -1
+
+		Dsp cInt(GetSettingsEntry("output")), StringFormat("Ignoring {0} for {1} minutes due to command overusage.", _
+		Username, Round(cInt(GetSettingsEntry("sqTime"))/60, 2)), Username, color.Orange
+	End Select
+
+	Command myUsername, StringFormat("{0}{1}{2}", punishment, Username, msg), True
+End Sub
+
+Sub unsquelch_Timer()
+	Dim user, i
+
+	For Each user in squelched.Keys
+		i = Int(squelched.Item(user))
+
+		'// Check the user to see if they are squelched (0 or below)
+		If i > 0 Then
+			i = i-1
+			If i < 1 Then
+				squelched.Remove(user)
+			Else
+				squelched.Item(user) = i
+			End If
+
+		'// i <= 0 (user is squelched)
+		Else
+			i=i-4
+			squelched.Item(user) = i
+			If i < (-1*cInt(GetSettingsEntry("sqTime"))) Then
+				If UCase(Trim(GetSettingsEntry("punishment"))) = "TIMEBAN" Then
+					Command myUsername, "/unban " & user, True
+				End If
+				Command myUsername, "/unignore " & user, True
+
+				Dsp cInt(GetSettingsEntry("output")), "Now accepting commands from " &user, user, vbCyan
+
+				squelched.Remove(user)
+			End If
+		End If
+	Next
+
+	'// Disable the Timer when not in use
+	If squelched.Count=0 Then unsquelch.Enabled = False
+End Sub

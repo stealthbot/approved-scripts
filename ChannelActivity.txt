@@ -1,0 +1,1158 @@
+Script("Name") = "Channel Activity"
+Script("Author") = "The-Black-Ninja"
+Script("Major") = 1
+Script("Minor") = 1
+Script("Revision") = 0
+Script("Description") = "Monitors channel activity."
+
+Private chanactConn   '// Our connection variable to the database
+Private DB_FP         '// Our database file location - defined in Event_Load
+Private chanactUsers  '// Stores users time in channel - in seconds
+Private chanactUpdate '// Boolean for missed update
+
+
+
+Public Sub Event_Load()
+
+   Call CreateCmds()
+
+  '// Our Database path
+   DB_FP = BotPath & "chanactChannel_Activity.mdb"
+
+  '// Our File System Object for detecting if the database exists or not
+   Set chanactFSO = CreateObject("Scripting.FileSystemObject")
+
+   Set chanactUsers = CreateObject("Scripting.Dictionary")
+   chanactUsers.CompareMode = vbTextCompare
+
+  '// If it doesn't exist...
+   If Not chanactFSO.FileExists(DB_FP) Then chanact_MakeDB
+
+   Call CreateObj("LongTimer", "ObserveScripts")
+   ObserveScripts.Interval = 10
+   ObserveScripts.Enabled = True
+
+  '// Our timers to check when to switch over to a new day, check the average channel volume, and find users' AFK time
+   Call CreateObj("LongTimer", "CheckTime")
+   CheckTime.Enabled = True
+   CheckTime.Interval = 1
+
+   Call CreateObj("LongTimer", "CheckAvg")
+   CheckAvg.Enabled = True
+   CheckAvg.Interval = 20
+
+   Call CreateObj("LongTimer", "CheckAfk")
+   CheckAfk.Enabled = True
+   CheckAfk.Interval = 10
+
+   chanactUpdate = False
+   If (LenB(GetSettingsEntry("script_end")) = 0) AND (DateDiff("d", GetSettingsEntry("script_end"), Date) => 1) Then
+      chanactUpdate = True
+      Call CheckTime_Timer()
+   End If
+   
+   Set chanactFSO = Nothing
+End Sub
+
+Public Sub Event_Close()
+
+  '// If you have to close the bot before it updates to a new day, save the date it closed on so it can update as soon as it boots back up again.
+   WriteSettingsEntry "script_end", Now
+End Sub
+
+Public Sub Event_Userjoins(Username, Flags, Message, Ping, Product, Level, OriginalStatString, Banned)
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+   chanactUsers.Item(Username) = Array(Now, 0)
+
+   Call CheckMaxUsers
+   Call WriteChannelJoinData(Username)
+End Sub
+
+Public Sub Event_Userleaves(Username, Flags)
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+   Call WriteChannelLeaveData(Username)
+End Sub
+
+Public Sub Event_Usertalk(Username, Flags, Message, Ping)
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+   Call WriteAFKTime(Username)
+
+   If Left(Message, Len(BotVars.Trigger)) = BotVars.Trigger Then
+      Call WriteInteractions(Username, Message, 1, True)
+   Else
+      If Ubound(Split(Message)) > 0 Then Call WriteInteractions(Username, Message, 1, False)
+   End If
+End Sub
+
+Public Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+   If Left(Message, Len(BotVars.Trigger)) = BotVars.Trigger Then
+      Call WriteInteractions(Username, Message, 3, True)
+   Else
+      If Ubound(Split(Message)) > 0 Then Call WriteInteractions(Username, Message, 3, False)
+   End If
+End Sub
+
+Public Sub Event_UserEmote(Username, Flags, Message)
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+   If Left(Message, Len(BotVars.Trigger)) = BotVars.Trigger Then
+      Call WriteInteractions(Username, Message, 2, True)
+   Else
+      If Ubound(Split(Message)) > 0 Then Call WriteInteractions(Username, Message, 2, False)
+   End If
+End Sub
+
+Public Sub Event_Command(Command)
+
+   Call LogCommands(Command.Name, Command.Username, Command.Source)
+
+   Select Case Lcase(Command.Name)
+      Case "ctmostever"      : Call mosteverCMD(Command)
+      Case "ctavgchan"       : Call avgchanCMD(Command)
+      Case "cthits"          : Call hitsCMD(Command)
+      Case "cttotaltime"     : Call totaltimeCMD(Command)
+      Case "ctlasttime"      : Call lasttimeCMD(Command)
+      Case "ctcurrenttime"   : Call currenttimeCMD(Command)
+      Case "ctrank"        : Call ctrankCMD(Command)
+      Case "ctactivity"      : Call activityCMD(Command)
+      Case "cttotalseen"     : Call lastseenCMD(Command)
+      Case "ctcheckinactive" : Call checkinactiveCMD(Command)
+      Case "ctchanstats"     : Call chanstatsCMD(Command)
+   End Select
+End Sub
+
+
+
+Public Sub ObserveScripts_Timer()
+
+   ObserveScript(SSC.InternalScript)
+   For Each a In Scripts()
+      If NOT (a.Script Is Nothing) Then Call ObserveScript(a.Script("Name"))
+   Next
+   ObserveScripts.Enabled = False
+   AddChat 10079232, "Channel Activity script is now observing all commands."
+End Sub
+
+Public Sub CheckAfk_Timer()
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+
+   For i = 1 To GetInternalUserCount
+      user = GetNameByPosition(i)
+      If (user <> BotVars.Username) Then
+         If chanactUsers.Exists(user) Then
+            If (chanactUsers.Item(user)(1) = 0) Then
+               afkTime = GetInternalDataByUsername(user, 7)
+               If (CInt(afkTime/60) >= CInt(GetSettingsEntry("Afk_Time"))) Then chanactUsers.Item(user) = Array(chanactUsers.Item(user)(0), Now)
+            End If
+         Else
+            afkTime = GetInternalDataByUsername(user, 7)
+            If (CInt(afkTime/60) >= CInt(GetSettingsEntry("Afk_Time"))) Then chanactUsers.Item(user) = Array(Now, Now)
+         End If
+      End If
+   Next
+End Sub
+
+'// Timer will check the channel for amount of users and perform the average calculation
+Public Sub CheckAvg_Timer()
+
+   If (LCase(myChannel) <> Lcase(GetSettingsEntry("Channel_Name"))) Then Exit Sub
+
+   Call chanact_Conn()
+
+  '// Check if a calculation was performed today...
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `averages` WHERE `date_taken` = '" & Date & "'")
+   If (rs.Fields(0) = 0) Then
+     '// Set the GetInternalUserCount function to a variable to save some processing time from always calling the function
+      temp = GetInternalUserCount
+     '// Insert an entry into the averages table for the current day with some default values
+      chanactConn.Execute("INSERT INTO `averages` (`reading`, `total_users`, `avg_users`, `date_taken`, `time_taken`, `total_messages`, `total_commands`, `inclan_seen`, `otherclan_seen`, `noclan_seen`) " & _
+                          "VALUES (" & 1 & ", " & temp & ", " & temp & ", '" & Date & "', '" & Time & "', '0', '0', '0', '0', '0')")
+   Else
+     '// Update the existing calculation with some updated values
+      chanactConn.Execute("UPDATE `averages` SET `reading` = `reading` +1, `total_users` = `total_users` + " & GetInternalUserCount & ", `date_taken` = '" & Date & "' WHERE `date_taken` = '" & Date & "'")
+     '// Re-access the same table so that we get the new values we need to perform the calculation
+      Set rs = chanactConn.Execute("SELECT `reading`, `total_users` FROM `averages` WHERE `date_taken` = '" & Date & "'")
+     '// Average = reading (times checked the channel) / total accumulation of users
+      avgUsers = CInt(Int(rs.Fields(1))/Int(rs.Fields(0)))
+     '// Update the avg_users column with the new average, along with the date and time performed
+      chanactConn.Execute("UPDATE `averages` SET `avg_users` = " & avgUsers & ", `date_taken` = '" & Date & "', `time_taken` = '" & Time & "' WHERE `date_taken` = '" & Date & "'")
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+'// Timer will check the current time in order to determine if it needs to switch to a new day
+Public Sub CheckTime_Timer()
+
+   sTime = FormatDateTime(Time, 4)
+  '// If the system time reaches the specified reset time then...
+   If (sTime = "00:00") OR (sTime = "24:00") Then
+      If (Int(DateDiff("s", GetSettingsEntry("last_reset"), Now)) < 86400) Then Exit Sub
+
+      temp = Date
+      sMonth = DatePart("m", temp) & "/"
+      sDay = DatePart("d", temp) & "/"
+      sYear = DatePart("yyyy", temp)
+
+      WriteSettingsEntry "last_reset", sMonth & sDay & sYear & " " & Time
+      chanactUpdate = False
+      AddChat 10079232, "Channel Activity script is resetting tables for new-day values."
+      Call chanact_Conn()
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `averages`")
+      lastReading = rs.Fields(0)
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `users`")
+      ubId = rs.Fields(0)
+      If (ubId <> 0) Then
+        '// Go through each user in the users table, resetting everything to an arbituary value so they won't count towards the hits today unless they enter the channel again
+         For i = 1 To ubId
+            Set rs = chanactConn.Execute("SELECT * FROM `users` WHERE `ID` = " & i)
+            If (rs.Fields(2) <> "0") Then chanactConn.Execute("UPDATE `users` SET `times_seen` = " & 0 & " WHERE `ID` = " & i)
+            If (rs.Fields(3) <> "0") Then chanactConn.Execute("UPDATE `users` SET `date_seen` = " & 0 & " WHERE `ID` = " & i)
+            If (rs.Fields(4) <> "0") Then chanactConn.Execute("UPDATE `users` SET `time_seen` = " & 0 & " WHERE `ID` = " & i)
+            If (rs.Fields(5) <> "0") Then
+               '// Add the total messages for that user to the total_messages column in the averages database
+               chanactConn.Execute("UPDATE `averages` SET `total_messages` = `total_messages` + " & rs.Fields(5) & " WHERE `ID` = " & lastReading)
+               chanactConn.Execute("UPDATE `users` SET `messages_sent` = " & 0 & " WHERE `ID` = " & i)
+            End If
+            Select Case rs.Fields(6)
+               Case "yes"
+                  chanactConn.Execute("UPDATE `averages` SET `inclan_seen` = `inclan_seen` + 1 WHERE `ID` = " & lastReading)
+                  chanactConn.Execute("UPDATE `users` SET `in_clan` = '0' WHERE `ID` = " & i)
+               Case "other"
+                  chanactConn.Execute("UPDATE `averages` SET `otherclan_seen` = `otherclan_seen` + 1 WHERE `ID` = " & lastReading)
+                  chanactConn.Execute("UPDATE `users` SET `in_clan` = '0' WHERE `ID` = " & i)
+               Case "none"
+                  chanactConn.Execute("UPDATE `averages` SET `noclan_seen` = `noclan_seen` + 1 WHERE `ID` = " & lastReading)
+                  chanactConn.Execute("UPDATE `users` SET `in_clan` = '0' WHERE `ID` = " & i)
+            End Select
+         Next
+      End If
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*), SUM(`times_used`) AS temp FROM `commands`")
+      If (rs.Fields(0) > 0) Then
+         chanactConn.Execute("UPDATE `averages` SET `total_commands` = `total_commands` + " & rs.Fields("temp") & " WHERE `ID` = " & lastReading)
+      End If
+
+     '// Remove all our uniques from the uniques database because A) they're already stored in the uses DB, B) they aren't unique to the day anymore
+      chanactConn.Execute("DELETE * FROM `users`")
+      chanactConn.Execute("DELETE * FROM `commands`")
+      chanactConn.Close
+      Call chanact_Conn()
+     '// Reset the counter in the users table so it starts back at 1 instead of continuing off the last deleted entry
+      chanactConn.Execute("ALTER TABLE `users` ALTER COLUMN `ID` AUTOINCREMENT")
+
+      If (lastReading => 7) Then
+         addchat vbGreen, lastReading
+         Set rs = chanactConn.Execute("SELECT AVG(`avg_users`) AS avgUsers, AVG(`total_messages`) AS avgMsgs, AVG(`total_commands`) AS avgCmds, AVG(`inclan_seen`) AS avgInClan, AVG(`otherclan_seen`) AS avgOtherClan, AVG(`noclan_seen`) AS avgNoClan FROM `averages`")
+         avgUsers = CInt(rs.Fields("avgUsers"))
+         avgCmds = CInt(rs.Fields("avgCmds"))
+         avgMsgs = CInt(rs.Fields("avgMsgs"))
+         avgInClan = CInt(rs.Fields("avgInClan"))
+         avgOtherClan = CInt(rs.Fields("avgOtherClan"))
+         avgNoClan = CInt(rs.Fields("avgNoClan"))
+         
+         Set rs = chanactConn.Execute("SELECT `date_taken` FROM `averages` WHERE `ID` = " & lastReading)
+         sDate = rs.Fields(0)         
+         
+         Set rs = chanactConn.Execute("SELECT AVG(`cmds_morn`) AS avgCmdMorn, AVG(`msgs_morn`) AS avgMsgsMorn, AVG(`cmds_aft`) AS avgCmdsAft, AVG(`msgs_aft`) AS avgMsgsAft, AVG(`cmds_evn`) AS avgCmdsEvn, AVG(`msgs_evn`) AS avgMsgsEvn, AVG(`cmds_night`) AS avgCmdsNight, AVG(`msgs_night`) AS avgMsgsNight FROM `interactions`")
+         avgCmdsMorn = CInt(rs.Fields("avgCmdMorn"))
+         avgMsgsMorn = CInt(rs.Fields("avgMsgsMorn"))
+         avgCmdsAft = CInt(rs.Fields("avgCmdsAft"))
+         avgMsgsAft = CInt(rs.Fields("avgMsgsAft"))
+         avgCmdsEvn = CInt(rs.Fields("avgCmdsEvn"))
+         avgMsgsEvn = CInt(rs.Fields("avgMsgsEvn"))
+         avgCmdsNight = CInt(rs.Fields("avgCmdsNight"))
+         avgMsgsNight = CInt(rs.Fields("avgMsgsNight"))
+         
+         chanactConn.Execute("DELETE * FROM `averages`")
+         chanactConn.Execute("ALTER TABLE `averages` ALTER COLUMN `ID` AUTOINCREMENT")
+         chanactConn.Execute("DELETE * FROM `interactions`")           
+         
+         Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `weekly_avgs` WHERE `week_ending` ='" & sDate & "'")
+         If (rs.Fields(0) = 0) Then
+            chanactConn.Execute("INSERT INTO `weekly_avgs` (`avg_users`, `avg_cmds`, `avg_msgs`, `avg_clanmem`, `avg_nonclan`, `avg_noclan`, `week_ending`) " & _
+                                "VALUES (" & avgUsers & ", " & avgCmds & ", " & avgMsgs & ", " & avgInClan & ", " & avgOtherClan & ", " & avgNoClan & ", '" & sDate & "')")
+            chanactConn.Execute("UPDATE `weekly_avgs` Set `cmds_morn`=" & avgCmdsMorn & ",`msgs_morn`=" & avgMsgsMorn & ",`cmds_aft`=" & avgCmdsAft & ",`msgs_aft`=" & avgMsgsAft & " WHERE `week_ending`='" & sDate & "'")
+            chanactConn.Execute("UPDATE `weekly_avgs` Set `cmds_evn`=" & avgCmdsEvn & ",`msgs_evn`=" & avgMsgsEvn & ",`cmds_night`=" & avgCmdsNight & ",`msgs_night`=" & avgMsgsNight & " WHERE `week_ending`='" & sDate & "'")
+
+         End If
+      End If
+      Set rs = Nothing
+      chanactConn.Close
+   End If
+End Sub
+
+
+
+Private Sub mosteverCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   mostEver = GetSettingsEntry("most_ever")
+
+   If (LenB(mostEver) > 0) Then
+      Command.Respond "The most users this channel held was " & Left(mostEver, InStr(mostEver, "-")-1) & " occuring on " & Mid(mostEver, InStr(mostEver, "-")+1) & "."
+   Else
+      Command.Respond "No record has been set yet."
+   End If
+End Sub
+
+Private Sub avgchanCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `averages`")
+   If (rs.Fields(0) = 0) Then
+      Command.Respond "Average user calculation has not yet been performed today."
+      Exit Sub
+   End If
+
+   Set rs = chanactConn.Execute("SELECT `avg_users`, `date_taken`, `time_taken` FROM `averages` WHERE `date_taken` = '" & Date & "'")
+   Command.Respond "On average, " & GetSettingsEntry("Clan_Name") & " holds " & rs.Fields(0) & " users. Last update: " & rs.Fields(1) & " " & rs.Fields (2)
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub hitsCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT DISTINCT COUNT(`name`), SUM(`times_seen`) FROM `users` WHERE `times_seen` > 0")
+   count = rs.Fields(1)
+   distinct = rs.Fields(0)
+   
+   Select Case count
+      Case 0:     text = text & "No users have joined today "
+      Case 1:     text = text & "Channel has recieved " & count & " hit "
+      Case Else:  text = text & "Channel has recieved " & count & " hits "
+   End Select
+   
+   Select Case distinct
+      Case 0:     text = text &  "(0 unique users)."
+      Case 1:     text = text &  "(" & distinct & " was unique)."
+      Case Else:  text = text &  "(" & distinct & " were uniques)."
+   End Select
+   
+   Command.Respond text
+   
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub totaltimeCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` ='" & user & "'")
+   If (rs.Fields(0) <> 0) Then
+      Set rs = chanactConn.Execute("SELECT `total_time_spent` FROM `user_stats` WHERE `name` ='" & user & "'")
+      temp = GetTimeSpent(rs.Fields(0), False)
+      Command.Respond User & " has spent " & temp & " in the channel."
+   Else
+      Command.Respond User & " is not on record yet."
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub lasttimeCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` ='" & user & "'")
+   If (rs.Fields(0) <> 0) Then
+      Set rs = chanactConn.Execute("SELECT `last_time_spent` FROM `user_stats` WHERE `name` ='" & user & "'")
+      temp = GetTimeSpent(rs.Fields(0), False)
+      Command.Respond user & "'s last time spent in channel session was: " & temp & "."
+   Else
+      Command.Respond user & " is not on record yet."
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub currenttimeCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   If GetInternalDataByUsername(User, 7) = -5 Then
+      Command.Respond user & " cannot be seen in the channel."
+   Else
+      If chanactUsers.Exists(User) Then
+         uTime = ABS(INT(DateDiff("s", chanactUsers.Item(User)(0), Now)))
+         temp = GetTimeSpent(uTime, False)
+         Command.Respond user & "'s current time in the channel is: " & temp & "."
+      Else
+         Command.Respond "Error encountered: " & user & " entered the channel when plugin was turned off or bot was reloading."
+      End If
+   End If
+End Sub
+
+Private Sub ctrankCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT `name`, `total_time_spent` FROM `user_stats` ORDER BY `total_time_spent` DESC")
+   If (rs.BOF OR rs.EOF) Then
+      Command.Respond "No users have been recorded."
+   Else
+      i = 0
+      Do Until rs.EOF OR i = 5
+         i=i+1
+         text = text & rs.Fields(0) & "(" & GetTimeSpent(rs.Fields(1), True) & "), "
+         rs.MoveNext
+      Loop
+      Command.Respond "Top 5: " & Left(text, Len(text)-2)
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub activityCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & user & "'")
+   If rs.Fields(0) <> 0 Then
+      Set rs = chanactConn.Execute("SELECT `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent` FROM `user_stats` WHERE `name` = '" & user & "'")
+      tTime_raw = rs.Fields(1)
+      afkTime_raw = rs.Fields(3)
+      tTime = GetTimeSpent(rs.Fields(1), True)
+      lTime = GetTimeSpent(rs.Fields(2), True)
+      afkTime = GetTimeSpent(rs.Fields(3), True)
+      msgSent = rs.Fields(4)
+      wordSent = rs.Fields(5)
+
+      If (tTime_raw > 0) AND (afkTime_raw > 0) Then
+         prcntAFK = CInt((afkTime_raw/tTime_raw)*100)
+      Else
+         prcntAFK = 0
+      End If
+
+      If (prcntAFK > 0) Then
+         If (prcntAFK >= CInt(GetSettingsEntry("Percent_AFK"))) Then
+            text = user & " has joined " & rs.Fields(0) & " times, has been " & afkTime & " AFK out of a total " & tTime & " (" & prcntAFK & "% AFK = Inactive). Last time spent: " & lTime & ". "
+         Else
+            text = user & " has joined " & rs.Fields(0) & " times, has been " & afkTime & " AFK out of a total " & tTime & " (" & prcntAFK & "% AFK = Active). Last time spent: " & lTime & ". "
+         End If
+      Else
+         text = user & " has joined " & rs.Fields(0) & " times, has been " & afkTime & " AFK out of a total " & tTime & ". Last time spent: " & lTime & ". "
+      End If
+
+      If (wordSent > 0) AND (msgSent > 0) Then
+         text = text & "Words typed: " & wordSent & ", Messages sent: " & msgSent & " (Avg. words/msg: " & CInt(wordSent/msgSent) & "). "
+      Else
+         text = text & "Words typed: " & wordSent & ", Messages sent: " & msgSent & ". "
+      End If
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*), SUM(`times_used`), SUM(`Whisper`), SUM(`Emote`), SUM(`Chat`) FROM `commands` WHERE `user_issuing` = '" & user & "'")
+      If (rs.Fields(0) <> 0) Then
+         cmdsUsed = "Cmds used: " & rs.Fields(0) & ", " & rs.Fields(1) & " uses (" & rs.Fields(2) & " whisp., " & rs.Fields(3) & " emote, " & rs.Fields(4) & " chat)"
+         Set rs = chanactConn.Execute("SELECT `times_used`, `cmd_name`, `Whisper`, `Emote`, `Chat` FROM `commands` ORDER BY `times_used` DESC")
+         favCommand = "Fav cmd: " & rs.Fields(1) & ": " & rs.Fields(0) & " uses (" & rs.Fields(2) & " whisp., " & rs.Fields(3) & " emote, " & rs.Fields(4) & " chat)"
+         text = text & cmdsUsed & ", " & favCommand
+      Else
+         text = text & "No commands have been used. "
+      End If
+
+      Command.Respond text
+   Else
+      Command.Respond "Not enough information on " & user & " to perform analysis."
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub lastseenCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & user & "'")
+   If rs.Fields(0) <> 0 Then
+      Set rs = chanactConn.Execute("SELECT `last_seen`, `last_time_spent`, `last_time_left` FROM `user_stats` WHERE `name` = '" & user & "'")
+      Command.Respond user & " was last seen on " & rs.Fields(0) & ", spending " & GetTimeSpent(rs.Fields(1), True) & " in the channel and leaving on " & rs.Fields(2)
+   Else
+      Command.Respond user & " has not been seen yet."
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub checkinactiveCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   If (LenB(Command.Args) = 0) Then
+      user = Command.Username
+   Else
+      user = Command.Args
+   End If
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & user & "'")
+   If (rs.Fields(0) <> 0) Then
+      Set rs = chanactConn.Execute("SELECT `times_seen`, `total_time_spent`, `total_afk_time`, `messages_sent`, `words_sent` FROM `user_stats` WHERE `name` = '" & user & "'")
+      timesSeen = rs.Fields(0)
+      totalTime = rs.Fields(1)
+      totAfkTime = rs.Fields(2)
+      msgSent = rs.Fields(3)
+      wordsSent = rs.Fields(4)
+      Set rs = chanactConn.Execute("SELECT COUNT(*), SUM(`times_used`) FROM `commands` WHERE `user_issuing` = '" & user & "'")
+      If (rs.Fields(0) <> 0) Then totalCmds = rs.Fields(1)
+
+      If (totalTime > 0) AND (totAfkTime > 0) Then prcntAFK = CInt((totAfkTime/totalTime)*100)
+      If (msgSent > 0 AND wordsSent > 0) Then wrdsPerMsg = CInt(wordsSent/msgSent)
+
+      text = "Activity analysis for " & user & ": Seen [" & timesSeen & " times] "
+      If (LenB(wrdsPerMsg) > 0) Then
+         text = text & "Msgs sent [" & msgSent & "] Words/msg [" & wrdsPerMsg & "] "
+         If (LenB(prcntAFK) > 0) Then
+            text = text & "Total time [" & GetTimeSpent(totalTime, True) & "] AFK time [" & GetTimeSpent(totAfkTime, True) & "] = " & prcntAFK & "% AFK."
+            If (LenB(totalCmds) > 0) Then
+               analysis = analysis & "Commands used [" & totalCmds & "], "
+
+               '// How chatty are they? percent of messages sent / total time - afktime in minutes
+               pcntTalk = CInt((msgSent/(totalTime/60))*100)
+               analysis = analysis & pcntTalk & "% talkative overall during total time in channel, "
+
+               '// How much do they love the bot? get percent difference between messages sent and the total commands used
+               loveBot = CInt(100 - ((msgSent - totalCmds)/msgSent)*100)
+               analysis = analysis & loveBot & "% of messages sent are commands."
+            Else
+               pcntTalk = CInt((msgSent/(totalTime/60))*100)
+               analysis = analysis & pcntTalk & "% talkative overall during total time in channel, no commands used yet."
+            End If
+         Else
+            analysis = "Could not perform complete analysis - " & user & " must achieve an AFK time and/or a total time value. Use: " & BotVars.Trigger & "activity " & user & " to view their progress."
+         End If
+      Else
+         analysis = "Could not perform complete analysis - " & user & " must type messages first. Use: " & BotVars.Trigger & "activity " & user & " to view their progress."
+      End If
+
+      Command.Respond text
+      Command.Respond "Command & Message analysis: " &  analysis
+   Else
+      Command.Respond user & " has not been recorded yet."
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub chanstatsCMD(Command)
+
+   If NOT Command.HasAccess Then Exit Sub
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `weekly_avgs`")
+   ubId = rs.Fields(0)
+   Select Case ubId
+      Case 0
+         Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `averages`")
+         Command.Respond "More entries required to perform weekly analysis. Please wait " & 7 - rs.Fields(0) & " more day(s)."
+      Case 1
+         Set rs = chanactConn.Execute("SELECT * FROM `weekly_avgs`")
+         text = text & "Avg.Volume: " & rs.Fields(1) & " (in-clan: " & rs.Fields(4) & ", non-clan: " & rs.Fields(5) & ", no clan: " & rs.Fields(6) & "), Avg.Interaction: " & rs.Fields(2) & " cmds, " & rs.Fields(3) & " msgs, "
+         text = text & "Daily interaction: Morning (" & rs.Fields(7) & " msgs, " & rs.Fields(8) & " cmds) Afternoon (" & rs.Fields(9) & " msgs, " & rs.Fields(10) & " cmds) Evening (" & rs.Fields(11) & " msgs, " & rs.Fields(12) & " cmds) Night (" & rs.Fields(13) & " msgs, " & rs.Fields(14) & " cmds), "
+
+         Command.Respond "Chan stats (week ending: " & rs.Fields(15) & ") " & Left(text, Len(text) -2) & "."
+      Case Else
+         Set rs = chanactConn.Execute("SELECT * FROM `weekly_avgs` WHERE `ID` = " & ubId)
+         text = text & "Avg.Volume: " & rs.Fields(1) & " (in-clan: " & rs.Fields(4) & ", non-clan: " & rs.Fields(5) & ", no clan: " & rs.Fields(6) & "), Avg.Interaction: " & rs.Fields(2) & " cmds, " & rs.Fields(3) & " msgs, "
+         text = text & "Daily interaction: Morning (" & rs.Fields(7) & " msgs, " & rs.Fields(8) & " cmds) Afternoon (" & rs.Fields(9) & " msgs, " & rs.Fields(10) & " cmds) Evening (" & rs.Fields(11) & " msgs, " & rs.Fields(12) & " cmds) Night (" & rs.Fields(13) & " msgs, " & rs.Fields(14) & " cmds), "
+
+         Command.Respond "Chan stats (week ending: " & rs.Fields(15) & ") " & Left(text, Len(text) -2) & "."
+   End Select
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+
+
+Private Sub WriteChannelLeaveData(Username)
+
+   If NOT chanactUsers.Exists(Username) Then Exit Sub
+
+   Call chanact_Conn()
+
+   timeSpent = chanactUsers.Item(Username)(0)
+   afkTime = chanactUsers.Item(Username)(1)
+
+   If (timeSpent = 0) Then
+      uTime = 0
+   Else
+      uTime = ABS(INT(DateDiff("s", timeSpent, Now)))
+   End If
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & Username & "'")
+   If rs.Fields(0) <> 0 Then
+      chanactConn.Execute("UPDATE `user_stats` SET `total_time_spent` = `total_time_spent` + " & uTime & ", `last_time_spent` = " & uTime & ", `last_time_left` = '" & Now & "' WHERE `name` = '" & Username & "'")
+   Else
+      chanactConn.Execute("INSERT INTO `user_stats` (`name`, `last_seen`, `last_time_left`, `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent`) " & _
+                          "VALUES ('" & Username & "', '" & Now & "', '" & Now & "', " & 0 & ", " & uTime & ", " & uTime & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+   End If
+
+   If (afkTime = 0) Then
+      uTime = 0
+   Else
+      uTime = ABS(INT(DateDiff("s", afkTime, Now)))
+   End If
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & Username & "'")
+   If rs.Fields(0) <> 0 Then
+      chanactConn.Execute("UPDATE `user_stats` SET `total_afk_time` = `total_afk_time` + " & uTime & " WHERE `name` = '" & Username & "'")
+   Else
+      chanactConn.Execute("INSERT INTO `user_stats` (`name`, `last_seen`, `last_time_left`, `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent`) " & _
+                          "VALUES ('" & Username & "', '" & Now & "', '" & Now & "', " & 0 & ", " & uTime & ", " & uTime & ", " & uTime & ", " & 0 & ", " & 0 & ")")
+   End If
+
+   chanactUsers.Remove Username
+   Set rs = Nothing
+End Sub
+
+Private Sub WriteChannelJoinData(Username)
+
+   cTag = Channel.GetUser(Username).Clan
+   Select Case Lcase(cTag)
+      Case Lcase(GetSettingsEntry("Clan_Tag")): inClan = "yes"
+      Case vbNullString:                        inClan = "none"
+      Case Else:                                inClan = "other"
+   End Select
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `users` WHERE `name` = '" & Username & "'")
+   If rs.Fields(0) <> 0 Then
+      chanactConn.Execute("UPDATE `users` SET `times_seen` = `times_seen` +1, `date_seen` = '" & Date & "', `time_seen` = '" & Time & "', `in_clan` = '" & inClan & "' WHERE `name` = '" & Username & "'")
+      chanactConn.Execute("UPDATE `user_stats` SET `times_seen` = `times_seen` +1, `last_seen` = '" & Now & "' WHERE `name` = '" & Username & "'")
+
+   Else
+      chanactConn.Execute("INSERT INTO `users` (`name`, `times_seen`, `date_seen`, `time_seen`, `in_clan`) VALUES ('" & Username & "', " & 1 & ", '" & Date & "', '" & Time & "', '" & inClan & "')")
+      chanactConn.Execute("INSERT INTO `user_stats` (`name`, `last_seen`, `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent`) " & _
+                          "VALUES ('" & Username & "', '" & Now & "', " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+   End If
+
+   chanactConn.Close
+   Set rs = Nothing
+End Sub
+
+Private Sub WriteInteractions(Username, Message, Origin, IsACommand)
+
+   If IsACommand Then
+      Call chanact_Conn()
+      temp = GetToD(Time)
+      Select Case temp
+         Case 1
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `cmds_morn` = `cmds_morn` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 2
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `cmds_aft` = `cmds_aft` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 3
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `cmds_evn` = `cmds_evn` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 4
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `cmds_night` = `cmds_night` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ", " & 0 & ")")
+            End If
+      End Select
+      chanactConn.Close
+      Set rs = Nothing
+   Else
+      If Origin = 3 Then
+         If (LenB(Clan.GetUser(Username).Name) = 0) Then
+            temp = "other"
+         Else
+            temp = "yes"
+         End If
+      Else
+         temp = Channel.GetUser(Username).Clan
+      End If
+
+      Select Case LCase(temp)
+         Case GetSettingsEntry("Clan_Tag"): cTag = "yes"
+         Case vbNullString                : cTag = "none"
+         Case Else                        : cTag = "other"
+      End Select
+
+      Call chanact_Conn()
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & Username & "'")
+      If rs.Fields(0) <> 0 Then
+         chanactConn.Execute("UPDATE `user_stats` SET `messages_sent` = `messages_sent`+1, `words_sent` = `words_sent`+" & UBound(Split(Message))+1 & " WHERE `name` = '" & Username & "'")
+      Else
+         chanactConn.Execute("INSERT INTO `user_stats` (`name`, `last_seen`, `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent`) " & _
+                             "VALUES ('" & Username & "', '" & Now & "', " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ", " & UBound(Split(Message))+1 & ")")
+      End If
+
+      Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `users` WHERE `name` = '" & Username & "'")
+      If rs.Fields(0) <> 0 Then
+         chanactConn.Execute("UPDATE `users` SET `messages_sent` = `messages_sent`+1, `in_clan` = '" & cTag & "' WHERE `name` = '" & Username & "'")
+      Else
+         chanactConn.Execute("INSERT INTO `users` (`name`, `times_seen`, `date_seen`, `time_seen`, `messages_sent`, `in_clan`) " & _
+                             "VALUES ('" & Username & "', " & 1 & ", '" & Date & "', '" & Time & "', " & 1 & ", '" & cTag & "')")
+      End If
+
+      temp = GetToD(Time)
+      Select Case temp
+         Case 1
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `msgs_morn` = `msgs_morn` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 2
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `msgs_aft` = `msgs_aft` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 3
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `msgs_evn` = `msgs_evn` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ", " & 0 & ", " & 0 & ")")
+            End If
+         Case 4
+            Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `interactions` WHERE `date_taken` = '" & Date & "'")
+            If rs.Fields(0) <> 0 Then
+               chanactConn.Execute("UPDATE `interactions` SET `msgs_night` = `msgs_night` +1 WHERE `date_taken` = '" & Date & "'")
+            Else
+               chanactConn.Execute("INSERT INTO `interactions` (`date_taken`, `cmds_morn`, `msgs_morn`, `cmds_aft`, `msgs_aft`, `cmds_evn`, `msgs_evn`, `cmds_night`, `msgs_night`) " & _
+                                   "VALUES ('" & Date & "', " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 0 & ", " & 1 & ")")
+            End If
+      End Select
+      chanactConn.Close
+      Set rs = Nothing
+   End If
+End Sub
+
+Private Sub LogCommands(name, user, source)
+
+   Call chanact_Conn()
+
+   Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `commands` WHERE `cmd_name` = '" & name & "'")
+   If rs.Fields(0) > 0 Then
+      Select Case source
+         Case 1: chanactConn.Execute("UPDATE `commands` SET `user_issuing` = '" & user & "', `times_used` = `times_used`+1, `Chat`=`Chat`+1 WHERE `cmd_name` = '" & name & "'")
+         Case 2: chanactConn.Execute("UPDATE `commands` SET `user_issuing` = '" & user & "', `times_used` = `times_used`+1, `Emote`=`Emote`+1 WHERE `cmd_name` = '" & name & "'")
+         Case 3: chanactConn.Execute("UPDATE `commands` SET `user_issuing` = '" & user & "', `times_used` = `times_used`+1, `Whisper`=`Whisper`+1 WHERE `cmd_name` = '" & name & "'")
+      End Select
+   Else
+      Select Case source
+         Case 1: chanactConn.Execute("INSERT INTO `commands` (`cmd_name`, `user_issuing`, `times_used`, `Whisper`, `Emote`, `Chat`) Values('" & name & "', '" & user & "', " & 1 & ", " & 0 & ", " & 0 & ", " & 1 & ")")
+         Case 2: chanactConn.Execute("INSERT INTO `commands` (`cmd_name`, `user_issuing`, `times_used`, `Whisper`, `Emote`, `Chat`) Values('" & name & "', '" & user & "', " & 1 & ", " & 0 & ", " & 1 & ", " & 0 & ")")
+         Case 3: chanactConn.Execute("INSERT INTO `commands` (`cmd_name`, `user_issuing`, `times_used`, `Whisper`, `Emote`, `Chat`) Values('" & name & "', '" & user & "', " & 1 & ", " & 1 & ", " & 0 & ", " & 0 & ")")
+      End Select
+   End If
+
+   Set rs = Nothing
+
+   chanactConn.Close
+End Sub
+
+Private Sub WriteAFKTime(Username)
+
+   If NOT chanactUsers.Exists(Username) Then Exit Sub
+   afkTime = chanactUsers.Item(Username)(1)
+   If afkTime <> 0 Then
+      Call chanact_Conn()
+      uTime = ABS(INT(DateDiff("s", afkTime, Now)))
+      Set rs = chanactConn.Execute("SELECT COUNT(*) FROM `user_stats` WHERE `name` = '" & Username & "'")
+      If rs.Fields(0) <> 0 Then
+         chanactConn.Execute("UPDATE `user_stats` SET `total_afk_time` = `total_afk_time` + " & uTime & " WHERE `name` = '" & Username & "'")
+      Else
+         chanactConn.Execute("INSERT INTO `user_stats` (`name`, `last_seen`, `times_seen`, `total_time_spent`, `last_time_spent`, `total_afk_time`, `messages_sent`, `words_sent`) " & _
+                             "VALUES ('" & Username & "', '" & Now & "', " & 1 & ", " & 0 & ", " & 0 & ", " & uTime & ", " & 0 & ", " & 0 & ")")
+      End If
+      Set rs = Nothing
+      chanactUsers.Item(Username) = Array(chanactUsers.Item(Username)(0), 0)
+   End If
+End Sub
+
+Private Sub CheckMaxUsers()
+
+   If (LenB(GetSettingsEntry("most_ever")) = 0) Then
+      WriteSettingsEntry "most_ever", GetInternalUserCount & "-" & Now
+   Else
+      oldStat = GetSettingsEntry("most_ever")
+      oldStat = Left(oldStat, InStr(oldStat, "-")-1)
+
+      If (GetInternalUserCount > Int(oldStat)) Then WriteSettingsEntry "most_ever", GetInternalUserCount & "-" & Now
+   End If
+End Sub
+
+'// Sub that creates the database
+Private Sub chanact_MakeDB()
+
+  '// Create a new ActiveX Data Objects Extensions (ADOX) catalog that's responsible for creating a new database
+   Set Catalog = CreateObject("ADOX.Catalog")
+  '// Use the Create method: set our jet database engine to 4.0 and subsequently, our engine type has to be 5 because 5 belongs to Jet4X, data source to our database file path
+   Catalog.Create "Provider=Microsoft.Jet.OLEDB.4.0;Jet OLEDB:Engine Type=5;Data Source=" & DB_FP
+
+  '// Connect to our database
+   chanact_Conn()
+
+  '// Create the database table "users"
+   chanactConn.Execute("CREATE TABLE `users` (`ID` COUNTER, `name` varchar(30) NOT NULL, `times_seen` INT, `date_seen` varchar(30), `time_seen` varchar(30), `messages_sent` INT, `in_clan` varchar(10))")
+  '// Create the database table "averages"
+   chanactConn.Execute("CREATE TABLE `averages` (`ID` COUNTER, `reading` INT, `total_users` INT, `avg_users` INT, `date_taken` varchar(30), `time_taken` varchar(30), `total_messages` INT, `total_commands` INT, `inclan_seen` INT, `otherclan_seen` INT, `noclan_seen` INT)")
+   chanactConn.Execute("CREATE TABLE `interactions` (`date_taken` varchar(30), `cmds_morn` INT, `msgs_morn` INT, `cmds_aft` INT, `msgs_aft` INT, `cmds_evn` INT, `msgs_evn` INT, `cmds_night` INT, `msgs_night` INT)")
+
+  '// Create the database table "user_stats", this holds permanent stats, unlike the "users" database that holds temporary stats
+   chanactConn.Execute("CREATE TABLE `user_stats` (`ID` COUNTER, `name` varchar(30), `last_seen` varchar(30), `last_time_left` varchar(30), `times_seen` INT, `total_time_spent` INT, `last_time_spent` INT, `total_afk_time` INT, `messages_sent` INT, `words_sent` INT)")
+   chanactConn.Execute("CREATE TABLE `commands` (`cmd_name` Text, `user_issuing` varchar(30), `times_used` INT, `Whisper` INT, `Emote` INT, `Chat` INT)")
+   chanactConn.Execute("CREATE TABLE `weekly_avgs` (`ID` COUNTER, `avg_users` INT, `avg_cmds` INT, `avg_msgs` INT, `avg_clanmem` INT, `avg_nonclan` INT, `avg_noclan` INT, `cmds_morn` INT, `msgs_morn` INT, `cmds_aft` INT, `msgs_aft` INT, `cmds_evn` INT, `msgs_evn` INT, `cmds_night` INT, `msgs_night` INT, `week_ending` varchar(30))")
+
+   chanactConn.Close
+End Sub
+
+'// Sub that connects to our database
+Private Sub chanact_Conn()
+
+  '// Open the connection using the ADODB connection object
+   Set chanactConn = CreateObject("ADODB.connection")
+  '// Create a modified ADO conection string; set our driver to a Microsoft Access one and our database qualifier to our database file path
+   connStringProperty = "Driver={Microsoft Access Driver (*.mdb)};Dbq=" & DB_FP
+  '// Use the ConnectionString method and set it to our connStringProperty
+   chanactConn.ConnectionString = connStringProperty
+  '// Use the Open method to establish our connection
+   chanactConn.Open
+End Sub
+
+Private Sub CreateCmds()
+
+   If (LenB(GetSettingsEntry("Channel_Name")) = 0) Then
+      WriteSettingsEntry "'// If your channel is a clan channel, the entry would be: clan xN", vbNullString
+      WriteSettingsEntry "'// If your channel is a regular channel, the entry would be: night elf tree of life", vbNullString
+      WriteSettingsEntry "Channel_Name", "Clan ABC"
+
+      WriteSettingsEntry "'// Your clan tag abbreviation. Leave as ""n/a"" if you do not have a clan.", vbNullString
+      WriteSettingsEntry "Clan_Tag", "n/a"
+
+      WriteSettingsEntry "'// Minutes before users are considered AFK.", vbNullString
+      WriteSettingsEntry "Afk_Time", 10
+
+      WriteSettingsEntry "'// If are X% total AFK time of their total time in the channel, they are deemed as inactive.", vbNullString
+      WriteSettingsEntry "'// Ie: If a user logs 90 minutes in the channel, but has a total AFK time of 67.5 minutes, that's 75% AFK. Is that enough to be considered inactive?", vbNullString
+      WriteSettingsEntry "Percent_AFK", 75
+
+      WriteSettingsEntry "last_reset", "12:00:00 AM " & Date
+   End If
+
+   Set cmd = OpenCommand("ctmostever")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctmostever")
+      With cmd
+         .Description = "View highest channel volume ever seen."
+         .RequiredRank = 200
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctavgchan")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctavgchan")
+      With cmd
+         .Description = "View average channel volume."
+         .RequiredRank = 200
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("cthits")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("cthits")
+      With cmd
+         .Description = "View total hits and unique channel hits for the day."
+         .RequiredRank = 200
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("cttotaltime")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("cttotaltime")
+      With cmd
+         .Description = "View total time spent in channel for a user. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctlasttime")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctlasttime")
+      With cmd
+         .Description = "View last time spent in channel for a user. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctcurrenttime")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctcurrenttime")
+      With cmd
+         .Description = "View current time spent in channel for a user. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctrank")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctrank")
+      With cmd
+         .Description = "View top 5 highest user times spent in channel."
+         .RequiredRank = 200
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctactivity")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctactivity")
+      With cmd
+         .Description = "View a user's activity. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("cttotalseen")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("cttotalseen")
+      With cmd
+         .Description = "View last seen time, time spent, and last left time spent in channel for a user. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctcheckinactive")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctcheckinactive")
+      With cmd
+         .Description = "View a user's inactivity. If user is omitted, user issuing command will be used."
+         .RequiredRank = 200
+         Set Parameter = .NewParameter("User", True, "Word")
+         With Parameter
+            .Description = "User that will be checked."
+         End With
+         .Parameters.Add Parameter
+         .Save
+      End With
+   End If
+
+   Set cmd = OpenCommand("ctchanstats")
+   If cmd Is Nothing Then
+      Set cmd = CreateCommand("ctchanstats")
+      With cmd
+         .Description = "Display channel activity for the current week."
+         .RequiredRank = 200
+         .Save
+      End With
+   End If
+
+   Set cmd = Nothing
+   Set Parameter = Nothing
+End Sub
+
+
+
+
+Private Function GetToD(sTime) '// 1=morning, 2=afternoon, 3=evening, 4=night
+
+   sTime = FormatDateTime(sTime, 4)
+
+   '// morning (5am to 11:59am)  | afternoon(12pm to 5:59pm)  | evening (6pm to 9:59pm)  | night (10pm to 4:59am)
+   '// Use 24h time
+   Select Case CInt(Left(sTime, InStr(sTime, ":")-1))
+      Case 0 :GetToD = 4
+      Case 1 :GetToD = 4
+      Case 2 :GetToD = 4
+      Case 3 :GetToD = 4
+      Case 4 :GetToD = 4
+      Case 5 :GetToD = 1
+      Case 6 :GetToD = 1
+      Case 7 :GetToD = 1
+      Case 8 :GetToD = 1
+      Case 9 :GetToD = 1
+      Case 10:GetToD = 1
+      Case 11:GetToD = 1
+      Case 12:GetToD = 2
+      Case 13:GetToD = 2
+      Case 14:GetToD = 2
+      Case 15:GetToD = 2
+      Case 16:GetToD = 2
+      Case 17:GetToD = 2
+      Case 18:GetToD = 3
+      Case 19:GetToD = 3
+      Case 20:GetToD = 3
+      Case 21:GetToD = 3
+      Case 22:GetToD = 4
+      Case 23:GetToD = 4
+      Case 24:GetToD = 4
+   End Select
+End Function
+
+Private Function GetTimeSpent(sTime, isShortForm)
+
+   If sTime = 0 Then
+      GetTimeSpent = "0 secs"
+      Exit Function
+   End If
+
+   years = Split(FormatNumber(sTime/60/60/24/365, 9), ".")(0)
+   'AddChat vbGreen, "Years: " & years
+
+   dayDeci = FormatNumber(sTime/60/60/24/365, 9) - Split(FormatNumber(sTime/60/60/24/365, 9), ".")(0)
+   'AddChat vbGreen, "Day Decimal: " & dayDeci
+
+   days = Int(dayDeci*365)
+   'AddChat vbGreen, "Days: " & days
+
+   hourDeci = FormatNumber(sTime/60/60/24, 9) - Split(FormatNumber(sTime/60/60/24, 9), ".")(0)
+   'AddChat vbGreen, "hour Decimal: " & hourDeci
+
+   hours = Int(hourDeci*24)
+   'AddChat vbGreen, "Hours: " & hours
+
+   minDeci = FormatNumber(sTime/60/60, 9) - Split(FormatNumber(sTime/60/60, 9), ".")(0)
+   'AddChat vbGreen, "Minute Decimal: " & minDeci
+
+   minutes = Int(minDeci*60)
+   'AddChat vbGreen, "Minutes: " & minutes
+
+   secDeci = FormatNumber(sTime/60, 9) - Split(FormatNumber(sTime/60, 9), ".")(0)
+   'AddChat vbGreen, "Seconds Deicmal: " & secDeci
+
+
+   seconds = Int(secDeci*60)
+   'AddChat vbGreen, "Seconds: " & seconds
+
+   If NOT isShortForm Then
+      GetTimeSpent = years & " Years, " & days & " Days, " & hours & " Hours, " & minutes & " Minutes, and " & seconds & " Seconds"
+   Else
+      If years <> 0 Then text = text & years & " yrs/"
+      If days <> 0 Then text = text & days & " days/"
+      If hours <> 0 Then text = text & hours & " hrs/"
+      If minutes <> 0 Then text = text & minutes & " mins/"
+      If seconds <> 0 Then text = text & seconds & " secs/"
+
+      GetTimeSpent = Left(text, Len(text) - 1)
+   End If
+End Function

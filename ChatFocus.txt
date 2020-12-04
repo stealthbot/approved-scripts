@@ -1,0 +1,819 @@
+'Commands:  Name        Description
+'   /focus username     Opens a conversation window on a user. (Focuses on the user.)
+'   /unfocus username   Closes an open conversation conversation window.
+'Commands in conversation windows:
+'   /w text, /msg text, Whispers the focued user with the text.
+'    /m text,
+'    /whisper text
+'   /em text, /me text, Emotes the text.
+'    /emote text
+'   /p text, /pre text, Sends the text with the text "<Username>: " prefixed in front of it.
+'    /prefix text
+'   /clr                Clears the text in the conversation window.
+'   /close              Closes the conversation window. ESC may also be used.
+'All other text beginning with / is passed internally through StealthBot's command processor
+'   and the response is sent to the user whom you focused.
+'If it is not parsed, it is then passed to Battle.net.
+'
+'Settings:  Name        Default         Description
+'   FocusWindowWidth    5000            The starting width of the conversation window.
+'   FocusWindowHeight   3000            The starting height of the conversation window.
+'   AlwaysPrefix        False           Prefix outgoing messages from chat window with
+'                                           "Username: ".
+'   AlwaysWhisper       False           Always send outgoing messages as whispers. Note that
+'                                           prefixes are not sent in whispers. When you whisper
+'                                           using this script, the messages will not be prefixed.
+'   AutoFocus           False           Automatically focuses to all users who join the channel or
+'                                           begin talking.
+'   SimplifyPrefix      True            Removes @Gateways, #Numbers, and D2 *s from outgoing
+'                                           message prefixes.
+'   FormCountMaximum    8               Does not allow focusing more than this number of forms.
+'                                           Disable by setting to 0.
+'   WhisperOnly         False           Enable this to bring back the original functionality of
+'                                           whisper windows which is to show only whispers and to
+'                                           appear upon whispers. If this setting is enabled,
+'                                           the AutoFocus setting is ignored.
+'   FocusTimeout        0               Number of seconds until the form automatically hides
+'                                           itself. Set to 0 to disable.
+'   FocusClear          True            Enable to clear the focus window when hidden. Disable to
+'                                           leave all previous text there until next script or bot
+'                                           unload.
+'   Logging             False           Logs chat focused windows to "Logs/ChatFocus.txt". This is
+'                                           not implemented in this version yet.
+'   IgnoreIf            Flag:B          Set this to not automatically focus on specific users. For
+'                                           more details see topic.
+
+Option Explicit
+
+Script("Name") = "ChatFocus"
+Script("Major") = 1
+Script("Minor") = 3
+Script("Revision") = 0
+Script("Author") = "Ribose"
+
+Private Forms, Tags, ActiveWaitFormName, ActiveWaitTagObject, Ready
+
+Sub Event_Load()
+    Ready = False
+    Set Forms = CreateObject("Scripting.Dictionary")
+    Forms.CompareMode = vbTextCompare
+    Set Tags = CreateObject("Scripting.Dictionary")
+    ActiveWaitFormName = vbNullString
+    Set ActiveWaitTagObject = Nothing
+    CreateObj "Timer", "FocusTimeoutTimer"
+    With FocusTimeoutTimer
+        .Interval = 1000
+        .Enabled = True
+    End With
+    Ready = True
+End Sub
+
+Sub Event_Close()
+    Ready = False
+    Set Forms = Nothing
+    Set Tags = Nothing
+    Set ActiveWaitTagObject = Nothing
+    FocusTimeoutTimer.Enabled = False
+End Sub
+
+Sub Event_PressedEnter(Text)
+    Dim Name, Line, SettingForm
+    If Not Ready Then Exit Sub
+    If LCase(Left(Text, 7)) = "/focus " Then
+        VetoThisMessage
+        
+        If Not IsOnline Then
+            AddChat vbRed, "You must be online to focus conversation to him/her."
+            Exit Sub
+        End If
+        
+        Name = Trim(Mid(Text, 8))
+        
+        If Channel.GetUserIndex(Name) > 0 Then Name = Channel.GetUser(Name).Name 'lame way to fix username casing :P
+        
+        If Channel.GetUserIndex(Name) > 0 Then
+            If Channel.GetUser(Name).IsSquelched Then
+                AddChat vbRed, "That user is squelched."
+                Exit Sub
+            End If
+        End If
+        
+        If LCase(Name) = LCase(BotVars.Username) Then
+            AddChat vbRed, "You cannot focus yourself."
+            Exit Sub
+        End If
+        
+        Focus Name
+    ElseIf LCase(Left(Text, 9)) = "/unfocus " Then
+        VetoThisMessage
+        
+        Name = Trim(Mid(Text, 10))
+        
+        If Not Forms.Exists(GetID(Name)) Then
+            AddChat vbRed, "That user is not focused."
+            Exit Sub
+        End If
+        
+        Unfocus Name
+    ElseIf LCase(Left(Text, 7)) = "/close " Then
+        VetoThisMessage
+        
+        Name = Trim(Mid(Text, 8))
+        
+        If Not Forms.Exists(GetID(Name)) Then
+            AddChat vbRed, "That user is not focused."
+            Exit Sub
+        End If
+        
+        Unfocus Name
+    End If
+End Sub
+
+Function CanFocus(Username)
+    CanFocus = True
+    If LCase(Username) = LCase(BotVars.Username) Or _
+       CheckIgnored(LCase(Username), GetDBEntry(Username), Channel.GetUser(Username), GetSettingsEntry("IgnoreIf")) Or _
+       Channel.GetUser(Username).IsSquelched Then _
+        CanFocus = False
+End Function
+
+Function CanFocus2(Username, Flags)
+    CanFocus2 = True
+    If LCase(Username) = LCase(BotVars.Username) Or _
+       CheckIgnored(LCase(Username), GetDBEntry(Username), Nothing, GetSettingsEntry("IgnoreIf")) Or _
+       (Flags And 32) Then _
+        CanFocus2 = False
+End Function
+
+Sub Event_MessageQueued(ID, Message, Tag)
+    Dim Prefix
+    If Not Ready Then Exit Sub
+    If Tags.Exists(Tag) Then
+        Prefix = Tags(Tag).Prefix
+        If Len(Prefix) > 0 And Left(Message, Len(Prefix)) <> Prefix Then
+            Queue.ItemByID(ID).Message = Prefix & Message
+        End If
+        Tags(Tag).MessageQueued Message, ID
+    End If
+End Sub
+
+Sub Event_MessageSent(ID, Message, Tag)
+    Dim TagObject, FormData
+    If Not Ready Then Exit Sub
+    If Tags.Exists(Tag) Then
+        Forms(GetID(Tags(Tag).Name)).Event_MessageSent Message, Tags(Tag)
+        Set Tags(Tag) = Nothing
+        Tags.Remove Tag
+    End If
+End Sub
+
+Sub Event_UserJoins(Username, Flags, Message, Ping, Product, Level, OriginalStatString, Banned)
+    Dim ID
+    If Not Ready Then Exit Sub
+    If GetBooleanSettingsEntry("WhisperOnly", False) Then Exit Sub
+    ID = GetID(Username)
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_UserJoins Message, Ping
+    ElseIf GetBooleanSettingsEntry("AutoFocus", False) And CanFocus(Username) Then
+        If Focus(Username) Then
+            Forms(ID).Event_UserJoins Message, Ping
+        End If
+    End If
+End Sub
+
+Sub Event_UserLeaves(Username, Flags)
+    Dim ID
+    If Not Ready Then Exit Sub
+    If GetBooleanSettingsEntry("WhisperOnly", False) Then Exit Sub
+    ID = GetID(Username)
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_UserLeaves
+    End If
+    If GetBooleanSettingsEntry("AutoFocus", False) Then
+        Unfocus Username
+    End If
+End Sub
+
+Sub Event_UserTalk(Username, Flags, Message, Ping)
+    Dim ID
+    If Not Ready Then Exit Sub
+    If GetBooleanSettingsEntry("WhisperOnly", False) Then Exit Sub
+    ID = GetID(Username)
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_UserTalk Channel.GetUser(Username).IsOperator, Message
+    ElseIf GetBooleanSettingsEntry("AutoFocus", False) And CanFocus(Username) Then
+        If Focus(Username) Then
+            Forms(ID).Event_UserTalk Channel.GetUser(Username).IsOperator, Message
+        End If
+    End If
+End Sub
+
+Sub Event_UserEmote(Username, Flags, Message)
+    Dim ID
+    If Not Ready Then Exit Sub
+    If GetBooleanSettingsEntry("WhisperOnly", False) Then Exit Sub
+    ID = GetID(Username)
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_UserEmote Message
+    ElseIf GetBooleanSettingsEntry("AutoFocus", False) And CanFocus(Username) Then
+        If Focus(Username) Then
+            Forms(ID).Event_UserEmote Message
+        End If
+    End If
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+    Dim ID
+    If Not Ready Then Exit Sub
+    ID = GetID(Username)
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_WhisperFromUser Message
+    ElseIf GetBooleanSettingsEntry("AutoFocus", False) And CanFocus2(Username, Flags) Then
+        If Focus(Username) Then
+            Forms(ID).Event_WhisperFromUser Message
+        End If
+    End If
+End Sub
+
+Sub Event_ServerInfo(Message)
+    Dim ID, Username
+    If Not Ready Then Exit Sub
+    If GetBooleanSettingsEntry("WhisperOnly", False) Then Exit Sub
+    If ActiveWaitFormName <> vbNullString Then
+        Forms(GetID(ActiveWaitFormName)).Event_AcceptedMessageSent Message
+        Exit Sub
+    End If
+    If Match(Message, "* is away (*)", True) Or _
+       Match(Message, "* is unavailable (*)", True) Or _
+       Match(Message, "* kicked you out of the channel!", True) Then
+        Username = Split(Message, " ")(0)
+        ID = GetID(Username)
+    ElseIf Match(Message, "* was kicked out of the channel by * (*).", True) Then
+        Username = Split(Message, " ")(8)
+        ID = GetID(Username)
+    ElseIf Match(Message, "* was kicked out of the channel by *.", True) Then
+        Username = Split(Message, " ")(8)
+        Username = Left(Username, Len(Username) - 1)
+        ID = GetID(Username)
+    ElseIf Match(Message, "* was banned by * (*).", True) Then
+        Username = Split(Message, " ")(4)
+        ID = GetID(Username)
+    ElseIf Match(Message, "* was banned by *.", True) Then
+        Username = Split(Message, " ")(4)
+        Username = Left(Username, Len(Username) - 1)
+        ID = GetID(Username)
+    End If
+    If Forms.Exists(ID) Then
+        Forms(ID).Event_ServerInfo Message
+    ElseIf GetBooleanSettingsEntry("AutoFocus", False) And CanFocus2(Username, 0) Then
+        If Focus(Username) Then
+            Forms(ID).Event_ServerInfo Message
+        End If
+    End If
+End Sub
+
+Sub Event_ServerError(Message)
+    If Not Ready Then Exit Sub
+    If ActiveWaitFormName <> vbNullString Then Forms(GetID(ActiveWaitFormName)).Event_DeniedMessageSent Message
+End Sub
+
+Sub Event_PacketReceived(Protocol, ID, Length, Data)
+    If Not Ready Then Exit Sub
+    If Len(ActiveWaitFormName) > 0 Then
+        If Protocol = "BNCS" And ID = &H0F Then
+            Dim EID
+            With DataBuffer
+                .Position = 0
+                .Data = Data
+                .GetDWORD()
+                EID = .GetDWORD()
+                If EID = &H0A Or EID = &H17 Then
+                    Forms(GetID(ActiveWaitFormName)).Event_ConfimedMessageSent
+                End If
+            End With
+        End If
+    End If
+End Sub
+
+Sub FocusTimeoutTimer_Timer()
+    Dim FormData
+    If Not Ready Then Exit Sub
+    For Each FormData In Forms.Items()
+        FormData.Tick
+    Next
+End Sub
+
+Function TagQueue(ID, Name, Message, PrependPrefix)
+    Dim Tag, Key
+    Set Tag = New clsQueueTag
+    Tag.Init ID, Name, Message, PrependPrefix
+    Key = "ChatFocus_" & GetID(GetID(Name) & CStr(Rnd()))
+    Tags.Add Key, Tag
+    TagQueue = Key
+End Function
+
+Sub CloneQueueTag(TagObject, ActualMessage, QID)
+    Dim Tag, Key
+    Set Tag = New clsQueueTag
+    Tag.Init TagObject.ID, TagObject.Name, ActualMessage, ""
+    Tag.MessageQueued ActualMessage, -1
+    Key = "ChatFocus_" & GetID(GetID(TagObject.Name) & CStr(Rnd()))
+    Tags.Add Key, Tag
+    Queue.ItemById(QID).Tag = Key
+End Sub
+
+Function Focus(Name)
+    Dim Maximum, Current, FormData
+    
+    Focus = False
+    
+    If Forms.Exists(GetID(Name)) Then
+        If Forms(GetID(Name)).IsVisible Then
+            AddChat vbRed, "That user is already focused."
+            Exit Function
+        End If
+    End If
+    
+    If CheckValidBnetUsername(Name) = 0 Then
+        AddChat vbRed, "That user cannot be focused."
+        Exit Function
+    End If
+    
+    Maximum = GetNumericSettingsEntry("FormCountMaximum", 8)
+    If Maximum > 0 Then
+        Current = 0
+        For Each FormData In Forms.Items()
+            If FormData.IsVisible Then
+                Current = Current + 1
+            End If
+        Next
+        If Current >= Maximum Then
+            AddChat vbRed, "The maximum amount of forms, " & Maximum & ", has been reached."
+            Exit Function
+        End If
+    End If
+    
+    Set Forms(GetID(Name)) = New clsFocusFormData
+    Forms(GetID(Name)).Init GetID(Name), Name
+    Focus = True
+End Function
+
+Sub Unfocus(Name)
+    If Not Forms.Exists(GetID(Name)) Then Exit Sub
+    
+    Forms(GetID(Name)).Close
+End Sub
+
+Function SimplifyPrefix(ByVal Prefix)
+    If GetBooleanSettingsEntry("SimplifyPrefix", True) And Len(Prefix) > 0 Then
+        Prefix = Split(Prefix, "@")(0)
+        Prefix = Split(Prefix, "#")(0)
+        If Left(Prefix, 1) = "*" Then Prefix = Mid(Prefix, 2)
+        SimplifyPrefix = Prefix
+    Else
+        SimplifyPrefix = Prefix
+    End If
+End Function
+
+Function CheckIgnored(Name, Entry, User, IgnoreIf)
+    Dim IgnoreIfChecks, IgnoreIfCheck, IgnoreIfPos, IgnoreIfType, IgnoreIfInfo
+    CheckIgnored = True
+    IgnoreIfChecks = Split(IgnoreIf, ";")
+    For Each IgnoreIfCheck In IgnoreIfChecks
+        IgnoreIfPos = InStr(IgnoreIfCheck, ":")
+        If IgnoreIfPos >= 0 Then
+            IgnoreIfType = LCase(Mid(IgnoreIfCheck, 1, InStr(IgnoreIfCheck, ":") - 1))
+            IgnoreIfInfo = Mid(IgnoreIfCheck, InStr(IgnoreIfCheck, ":") + 1)
+            
+            If Len(IgnoreIfInfo) > 0 Then
+                Select Case IgnoreIfType
+                    Case "flag"
+                        If Entry.HasAnyFlag(IgnoreIfInfo) Then Exit Function
+                    Case "rank"
+                        Dim RankChecks, RankCheck
+                        RankChecks = Split(IgnoreIfInfo, ",")
+                        For Each RankCheck In RankChecks
+                            If IsNumeric(Mid(RankCheck, 2)) Then
+                                If Left(RankCheck, 1) = "<" Then
+                                    If Entry.Rank < CInt(Mid(RankCheck, 2)) Then Exit Function
+                                ElseIf Left(RankCheck, 1) = ">" Then
+                                    If Entry.Rank > CInt(Mid(RankCheck, 2)) Then Exit Function
+                                ElseIf Match(RankCheck, "*<<*", True) Then
+                                    Dim Rank1, Rank2
+                                    Rank1 = Split(RankCheck, "<<")(0)
+                                    Rank2 = Split(RankCheck, "<<")(1)
+                                    If IsNumeric(Rank1) And IsNumeric(Rank2) Then
+                                        If Rank1 < Entry.Rank And Entry.Rank < Rank2 Then Exit Function
+                                    End If
+                                ElseIf Match(RankCheck, "*>>*", True) Then
+                                    Dim Rank3, Rank4
+                                    Rank3 = Split(RankCheck, ">>")(0)
+                                    Rank4 = Split(RankCheck, ">>")(1)
+                                    If IsNumeric(Rank3) And IsNumeric(Rank4) Then
+                                        If Rank3 > Entry.Rank And Entry.Rank > Rank4 Then Exit Function
+                                    End If
+                                End If
+                            End If
+                        Next
+                    Case "user"
+                        Dim UserChecks, UserCheck, Clan, Game
+                        If User Is Nothing Then
+                            Clan = ""
+                            Game = ""
+                        Else
+                            Clan = User.Clan
+                            Game = User.Product
+                        End If
+                        UserChecks = Split(IgnoreIfInfo, ",")
+                        For Each UserCheck In UserChecks
+                            If Match(Name, UserCheck, True) Or _
+                               Match(Clan, UserCheck, True) Or _
+                               Match(Game, UserCheck, True) Then Exit Function
+                        Next
+                End Select
+            End If
+        End If
+    Next
+    CheckIgnored = False
+End Function
+
+function CheckValidBnetUsername(ByVal Username) ' returns whether the bnet name is valid
+    Dim C, ValidChars, I
+    ValidChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@$^&()+=-_.;:'[]{}|"
+    CheckValidBnetUsername = False
+    Username = SimplifyPrefix(Username)
+    If Len(Username) < 1 Or Len(Username) > 15 Or InStr(Username, " ") > 0 Then Exit Function
+    
+    For I = 1 To Len(Username)
+        If InStr(ValidChars, UCase(Mid(Username, I, 1))) = 0 Then Exit Function
+    Next
+    
+    CheckValidBnetUsername = True
+End Function
+
+function GetID(Username) ' provides a unique STRING value that's always the same for a specific user.
+    GetID = Hex(CRC32(LCase(Username)))
+End Function
+
+Class clsQueueTag
+    Private ID_, Name_, Message_, State_, Prefix_
+    
+    Public Property Get ID()
+        ID = ID_
+    End Property
+    
+    Public Property Get Name()
+        Name = Name_
+    End Property
+    
+    Public Property Get Message()
+        Message = Message_
+    End Property
+    
+    Public Property Get Prefix()
+        Prefix = Prefix_
+    End Property
+    
+    Public Sub Init(ID, Name, Message, Prefix)
+        ID_ = ID
+        Name_ = Name
+        Message_ = Message
+        Prefix_ = Prefix
+        State_ = 0 ' to addq
+    End Sub
+    
+    Public Sub MessageQueued(Actual, QID)
+        If State_ = 0 Then
+            ' when messagequeued is fired, updates the message
+            '  according to [more] splits and any changes AddQ inflicts.
+            If Actual <> Prefix_ & Message_ Then Message_ = Actual
+            State_ = 1 ' in queue
+        Else
+            ' if this message is already queued, then the
+            '  rest of the messages need to go to different
+            '  dict entries and checked for re-prefixing
+            CloneQueueTag Me, Actual, QID
+        End If
+    End Sub
+End Class
+
+Class clsFocusFormData
+    Private UniqueID_, Name_, Duration, Form
+    
+    Public Property Get UniqueID()
+        UniqueID = UniqueID_
+    End Property
+    
+    Public Property Get Name()
+        Name = Name_
+    End Property
+    
+    Public Property Get IsVisible()
+        If Not Form Is Nothing Then
+            IsVisible = Form.Visible
+        Else
+            IsVisible = False
+        End If
+    End Property
+    
+    Public Sub Init(UniqueID, Name)
+        UniqueID_ = UniqueID
+        Name_ = Name
+        Duration = 0
+        Set Form = CreateObj("Form", "Focus_" & UniqueID)
+        If Form.Caption = Name & " - Conversation" Then
+            Form.Show
+        Else
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_Resize() : Forms(""" & UniqueID & """).Event_Resize : End " & " Sub"
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_KeyDown(KeyCode, Shift) : Forms(""" & UniqueID & """).Event_KeyDown KeyCode, Shift : End " & " Sub"
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_Chat_SelChange() : Forms(""" & UniqueID & """).Event_Chat_SelChange : End " & " Sub"
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_Chat_KeyDown(KeyCode, Shift) : Forms(""" & UniqueID & """).Event_Chat_KeyDown KeyCode, Shift : End " & " Sub"
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_Send_Change() : Forms(""" & UniqueID & """).Event_Send_Change : End " & " Sub"
+            ExecuteGlobal "Sub Focus_" & UniqueID & "_Send_KeyDown(KeyCode, Shift) : Forms(""" & UniqueID & """).Event_Send_KeyDown KeyCode, Shift : End " & " Sub"
+            With Form
+                With .CreateObj("RichTextBox", "Chat")
+                    .BackColor = &H000000
+                    .Font = "Tahoma"
+                    .Locked = True
+                    .TabIndex = 1
+                    .Text = vbNullString
+                    .Visible = True
+                End With
+                
+                With .CreateObj("TextBox", "Send")
+                    .BackColor = &H000000
+                    .Font = "Tahoma"
+                    .FontSize = 8
+                    .ForeColor = &HFFFFFF
+                    .TabIndex = 0
+                    .Text = vbNullString
+                    .Visible = True
+                End With
+                
+                .Caption = Name & " - Conversation"
+                .Width = GetNumericSettingsEntry("FocusWindowWidth", 5000)
+                .Height = GetNumericSettingsEntry("FocusWindowHeight", 3000)
+                .Show
+            End With
+        End If
+        
+        Form.AddChat "Chat", vbGreen, "Conversation with " & Name & " initialized."
+    End Sub
+    
+    Public Sub Event_Resize()
+        Duration = 0
+        Dim Width, Height
+        With Form
+            If .WindowState <> 0 Then Exit Sub
+            
+            Width = .ScaleWidth
+            Height = .ScaleHeight
+            
+            With .GetObjByName("Chat")
+                .Top = 0
+                .Left = 0
+                If Height > 300 Then .Height = Height - 300
+                .Width = Width
+            End With
+            
+            With .GetObjByName("Send")   
+                .Top = Height - 300
+                .Left = 0
+                .Height = 300
+                .Width = Width
+            End With
+        End With
+    End Sub
+    
+    Public Sub Event_KeyDown(KeyCode, Shift)
+        Duration = 0
+        If KeyCode = 27 Then Form.Hide
+    End Sub
+    
+    Public Sub Event_Send_Change()
+        Duration = 0
+        If InStr(Form.GetObjByName("Send").Text, vbCrLf) > 0 Then Send
+    End Sub
+    
+    Public Sub Event_Send_KeyDown(KeyCode, Shift)
+        Duration = 0
+        If KeyCode = 27 Then Form.Hide
+    End Sub
+    
+    Public Sub Event_Chat_SelChange()
+        Duration = 0
+        With Form.GetObjByName("Chat")
+            If Len(.SelText) > 0 Then CreateObject("HtmlFile").ParentWindow.ClipboardData.SetData "Text", .SelText
+        End With
+    End Sub
+    
+    Public Sub Event_Chat_KeyDown(KeyCode, Shift)
+        Duration = 0
+        If KeyCode = 27 Then
+            Form.Hide
+        Else
+            With Form.GetObjByName("Send")
+                Form.GetObjByName("Send").Text = .Text & Chr(KeyCode)
+                .SetFocus
+            End With
+        End If
+    End Sub
+    
+    Public Sub Event_MessageSent(Message, TagObject)
+        Select Case TagObject.ID
+            Case 1
+                Form.AddChat "Chat", 13408512, "<", vbCyan, BotVars.Username, 13408512, ">", vbWhite, " " & TagObject.Message
+            Case 2, 3
+                ActiveWaitFormName = Name_
+                Set ActiveWaitTagObject = TagObject
+        End Select
+    End Sub
+    
+    Public Sub Event_ConfimedMessageSent()
+        Select Case ActiveWaitTagObject.ID
+            Case 2
+                Form.AddChat "Chat", 13408512, "<", vbCyan, BotVars.Username, vbYellow, " " & ActiveWaitTagObject.Message, 13408512, ">"
+            Case 3
+                Form.AddChat "Chat", 10066329, "(Whisper) ", 13408512, "<", vbCyan, BotVars.Username, 13408512, ">", 10066329, " " & ActiveWaitTagObject.Message
+        End Select
+        ActiveWaitFormName = vbNullString
+        Set ActiveWaitTagObject = Nothing
+    End Sub
+    
+    Public Sub Event_DeniedMessageSent(Message)
+        Event_ServerError Message
+        ActiveWaitFormName = vbNullString
+        Set ActiveWaitTagObject = Nothing
+    End Sub
+    
+    Public Sub Event_AcceptedMessageSent(Message)
+        Event_ServerInfo Message
+    End Sub
+    
+    Public Sub Event_UserJoins(Message, Ping)
+        Form.AddChat "Chat", vbGreen, "-- ", vbYellow, Name_ & " [" & Ping & "ms]", vbGreen, " has joined the channel using " & Message
+    End Sub
+    
+    Public Sub Event_UserLeaves()
+        Form.AddChat "Chat", vbGreen, "-- ", vbYellow, Name_, vbGreen, " has left the channel."
+    End Sub
+    
+    Public Sub Event_UserTalk(IsOperator, Message)
+        If IsOperator Then
+            Form.AddChat "Chat", 13408512, "<", vbWhite, Name_, 13408512, ">", vbWhite, " " & Message
+        Else
+            Form.AddChat "Chat", 13408512, "<", vbYellow, Name_, 13408512, ">", vbWhite, " " & Message
+        End If
+    End Sub
+    
+    Public Sub Event_UserEmote(Message)
+        Form.AddChat "Chat", 13408512, "<", vbWhite, Name_, vbYellow, " " & Message, 13408512, ">"
+    End Sub
+    
+    Public Sub Event_WhisperFromUser(Message)
+        Form.AddChat "Chat", 10066329, "(Whisper) ", 13408512, "<", vbYellow, Name_, 13408512, ">", 10066329, " " & Message
+    End Sub
+    
+    Public Sub Event_ServerInfo(Message)
+        Form.AddChat "Chat", 13408512, Message
+    End Sub
+    
+    Public Sub Event_ServerError(Message)
+        Form.AddChat "Chat", vbRed, Message
+    End Sub
+    
+    Public Sub Send()
+        Dim Text, Line
+        With Form.GetObjByName("Send")
+            Text = .Text
+            If Text <> vbNullString And Text <> vbCrLf Then
+                Do While Right(Text, 2) = vbCrLf
+                    Text = Left(Text, Len(Text) - 2)
+                Loop
+                Do While Left(Text, 2) = vbCrLf
+                    Text = Mid(Text, 3)
+                Loop
+                For Each Line In Split(Text, vbCrLf)
+                    If Len(Line) = 0 Then
+                        ' do nothing
+                    ElseIf LCase(Line) = "/close" Or LCase(Line) = "/unfocus" Then
+                        Close
+                        Exit Sub
+                    ElseIf LCase(Line) = "/cls" Then
+                        .Text = ""
+                        Form.AddChat "Chat", vbYellow, "Chatfocus window cleared."
+                    ElseIf Left(Line, 3) = "/w " Or Left(Line, 3) = "/m " Or Left(Line, 5) = "/msg " Or Left(Line, 9) = "/whisper " Then
+                        Line = Split(Line, " ", 2)(1)
+                        AddQ "/w " & Name & " " & Line, , TagQueue(3, Name, Line, "/w " & Name & " ")
+                    ElseIf Left(Line, 4) = "/me " Or Left(Line, 7) = "/emote " Or Line = "/me" Or Line = "/emote" Then
+                        If GetBooleanSettingsEntry("WhisperOnly", False) Then
+                            AddQ "/w " & Name & " " & Line, , TagQueue(3, Name, Line, "/w " & Name & " ")
+                        ElseIf InStr(Line, " ") = 0 Then
+                            AddQ "/me", , TagQueue(2, Name, "", "/me")
+                        Else
+                            Line = Split(Line, " ", 2)(1)
+                            AddQ "/me " & Line, , TagQueue(2, Name, Line, "/me ")
+                        End If
+                    ElseIf Left(Line, 3) = "/p " Or Left(Line, 5) = "/pre " Or Left(Line, 8) = "/prefix " Then
+                        If GetBooleanSettingsEntry("WhisperOnly", False) Then
+                            AddQ "/w " & Name & " " & Line, , TagQueue(3, Name, Line, "/w " & Name & " ")
+                        Else
+                            Line = Split(Line, " ", 2)(1)
+                            AddQ SimplifyPrefix(Name) & ": " & Line, , TagQueue(1, Name, Line, SimplifyPrefix(Name) & ": ")
+                        End If
+                    ElseIf Left(Line, 1) = "/" Then
+                        CmdParse Line, Name
+                    ElseIf GetBooleanSettingsEntry("WhisperOnly", False) Or Channel.GetUserIndex(Name) = 0 Then
+                        AddQ "/w " & Name & " " & Line, , TagQueue(3, Name, Line, "/w " & Name & " ")
+                    ElseIf GetBooleanSettingsEntry("AlwaysWhisper", False) Then
+                        AddQ "/w " & Name & " " & Line, , TagQueue(3, Name, Line, "/w " & Name & " ")
+                    ElseIf GetBooleanSettingsEntry("AlwaysPrefix", False) Then
+                        AddQ SimplifyPrefix(Name) & ": " & Line, , TagQueue(1, Name, Line, SimplifyPrefix(Name) & ": ")
+                    Else
+                        AddQ Line, , TagQueue(1, Name, Line, "")
+                    End If
+                Next
+            End If
+            .Text = vbNullString
+            .SetFocus
+        End With
+    End Sub
+    
+    Sub CmdParse(Message, Name)
+        Dim Ret, Item
+        Ret = CommandEx(BotVars.Username, Mid(Message, 2), True)
+        If Len(Ret) > 0 Then
+            For Each Item In Split(Ret, vbCrLf)
+                If GetBooleanSettingsEntry("WhisperOnly", False) Or Channel.GetUserIndex(Name) = 0 Then
+                    AddQ "/w " & Name & " " & Item, , TagQueue(3, Name, Item, "/w " & Name & " ")
+                ElseIf Left(Item, 1) = "/" Then
+                    AddQ Item, , TagQueue(1, Name, Item, "")
+                ElseIf GetBooleanSettingsEntry("AlwaysWhisper", False) Then
+                    AddQ "/w " & Name & " " & Item, , TagQueue(3, Name, Item, "/w " & Name & " ")
+                ElseIf GetBooleanSettingsEntry("AlwaysPrefix", False) Then
+                    AddQ SimplifyPrefix(Name) & ": " & Item, , TagQueue(1, Name, Item, SimplifyPrefix(Name) & ": ")
+                Else
+                    AddQ Item, , TagQueue(1, Name, Item, "")
+                End If
+                Exit Sub
+            Next
+        Else
+            AddQ Message, , TagQueue(4, Name, Message, "/")
+        End If
+        
+        If Message = "/" Then Exit Sub
+        Dim Cmd, DBEntry
+        If Left(Message, Len(BotVars.Trigger)) = BotVars.Trigger Then
+            Cmd = LCase(Split(Mid(Message, Len(BotVars.Trigger) + 1))(0))
+        ElseIf Left(Message, 1) = "/" Then
+            Cmd = LCase(Split(Mid(Message, 2))(0))
+        Else
+            Exit Sub
+        End If
+    End Sub
+    
+    Public Sub Close()
+        Form.Hide
+    End Sub
+    
+    Public Sub Tick()
+        Dim FocusTimeout
+        If IsVisible Then
+            FocusTimeout = GetNumericSettingsEntry("FocusTimeout", 0)
+            If FocusTimeout > 0 And Duration >= FocusTimeout + 1 Then
+                Form.Hide
+            End If
+            Duration = Duration + 1
+        ElseIf Duration >= 0 Then
+            If GetBooleanSettingsEntry("FocusClear", True) Then
+                If Not Form Is Nothing Then Form.GetObjByName("Chat").Text = ""
+            Else
+                If Not Form Is Nothing Then Form.AddChat "Chat", vbRed, "Conversation closed." & vbCrLf
+            End If
+            Duration = -1
+        End If
+    End Sub
+End Class
+
+Private Function GetNumericSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    If IsNumeric(Value) Then
+        GetNumericSettingsEntry = CInt(Value)
+    Else
+        GetNumericSettingsEntry = DefaultValue
+    End If
+End Function
+
+Private Function GetBooleanSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    Select Case UCase(Value)
+        Case "Y", "YES", "T", "TRUE"
+            GetBooleanSettingsEntry = True
+        Case "N", "NO", "F", "FALSE"
+            GetBooleanSettingsEntry = False
+        Case Else
+            GetBooleanSettingsEntry = DefaultValue
+    End Select
+End Function

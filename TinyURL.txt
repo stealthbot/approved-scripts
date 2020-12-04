@@ -1,0 +1,45 @@
+Script("Name") 			= "TinyUrl Client"
+Script("Abbreviation")	= "TUC"
+Script("Author") 		= "Neco"
+Script("Category")		= "Utility"
+Script("Major")			= 1
+Script("Minor")			= 0
+Script("Revision")		= 1
+Script("Description")	= "Allows users to convert large URL's into shorter links via the TinyUrl service."
+
+' This will display the last created url if no arguments are given.
+Private Const ALLOW_LAST_URL = True
+
+Public Sub Event_Load()
+	If OpenCommand("tinyurl") Is Nothing Then
+ 		With CreateCommand("tinyurl")
+  			.Description = "Converts the supplied URL into a tinyurl link."        
+  			.RequiredRank = 1
+  			.Parameters.Add .NewParameter("Url", False, "String")
+			.Save
+		End With
+	End If
+End Sub
+
+Public Sub Event_Command(Command)
+	If Not LCase(Command.Name) = "tinyurl" Then Exit Sub
+	Dim Url : Url = Trim(Command.Argument("Url"))
+	If LenB(Url) > 0 Then
+		Dim Source
+		With CreateObject("Microsoft.XMLHTTP")
+			.Open "GET", "http://tinyurl.com/create.php?url=" & Url, False
+			.Send
+		Source = .responseText
+		End With
+		Source = Split(Split(Source, "<blockquote><b>")(2), "</b>")(0)
+		WriteSettingsEntry "LAST_CREATED_URL", Source
+		Command.Respond StringFormat("New TinyUrl: {0}", Source)
+	Else
+		Dim Last : Last = GetSettingsEntry("LAST_CREATED_URL")
+		If LenB(Last) = 0 Or Not ALLOW_LAST_URL Then
+			Command.Respond "Error: You must supply a url to shorten."
+		Else
+			Command.Respond StringFormat("Last Created TinyUrl: {0}", Last)
+		End If
+	End If
+End Sub

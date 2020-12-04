@@ -1,0 +1,55 @@
+' returns a social-networking-style "about x units" from an exact number of seconds.
+Function TimeRelation(Seconds)
+    Dim Minutes, Hours, Days, Years, Pl
+    
+    If Seconds = 0 Then
+        TimeRelation = "0 seconds"
+        Exit Function
+    End If
+    
+    Seconds = Abs(Seconds)
+    
+    Minutes = Seconds \ 60
+    Hours = Minutes \ 60
+    Days = Hours \ 24
+    Years = Days \ 365.25
+    
+    Seconds = Seconds Mod 60
+    Minutes = Minutes Mod 60
+    Hours = Hours Mod 24
+    Days = Days Mod 365.25
+    
+    If Seconds > 0 Then TimeRelation = Seconds & " second" & GetPlural(Seconds)
+    If Minutes > 0 Then TimeRelation = Minutes & " minute" & GetPlural(Minutes)
+    If Hours > 0 Then TimeRelation = Hours & " hour" & GetPlural(Hours)
+    If Days > 0 Then TimeRelation = Days & " day" & GetPlural(Days)
+    If Years > 0 Then TimeRelation = Years & " year" & GetPlural(Years)
+    TimeRelation = "about " & TimeRelation
+End Function
+
+' returns an "s" if plural (Number != 1) or vbNullString if singular (Number == 1)
+Function GetPlural(Number)
+    GetPlural = vbNullString
+    If Number <> 1 Then GetPlural = "s"
+End Function
+
+' adds an item on to the end of an array
+Function ArrayPush(Arr, Item)
+    ReDim Preserve Arr(UBound(Arr) + 1)
+    If VarType(Item) = vbObject Then
+        Set Arr(UBound(Arr)) = Item
+    Else
+        Arr(UBound(Arr)) = Item
+    End If
+    ArrayPush = Arr
+End Function
+
+' gets a formatted date and time
+Function GetDateString(D)
+    GetDateString = FormatDateTime(D, 1) & " at " & FormatDateTime(D, 3)
+End Function
+
+' converts a date object in UTC time to the current time
+Function UtcTimeToLocalTime(D)
+    UtcTimeToLocalTime = DateAdd("m", DateDiff("m", Now(), UtcNow()), D)
+End Function

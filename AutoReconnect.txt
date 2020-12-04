@@ -1,0 +1,78 @@
+'Description:
+' This script will automatically reconnect or connect your bot when it is not online.
+'
+'Settings:  Name        Default         Description
+'   ReconnectTime       60              The amount of seconds until it will
+'                                           retry connecting.
+'   ForceReconnect      False           When enabled, forces a reconnect even
+'                                           if the bot is already online.
+
+Option Explicit
+
+Private Connected
+
+Script("Name") = "AutoReconnect"
+Script("Major") = 1
+Script("Minor") = 3
+Script("Revision") = 0
+Script("Author") = "Ribose"
+
+Sub Event_Load()
+    CreateObj "LongTimer", "Reconnect"
+    Connected = IsOnline()
+    CheckStartTimer
+End Sub
+
+Sub Event_PacketSent(Protocol, ID, Length, Data)
+    Connected = True
+End Sub
+
+Sub Event_ServerError(Message)
+    If Message = "All connections closed." Then
+        Reconnect.Enabled = False
+        Connected = False
+        CheckStartTimer
+    End If
+End Sub
+
+Sub CheckStartTimer()
+    If Reconnect.Enabled = Connected Then
+        Reconnect.Interval = GetNumericSettingsEntry("ReconnectTime", 60)
+        Reconnect.Enabled = CheckCanReconnect()
+    End If
+End Sub
+
+Sub Reconnect_Timer()
+    If CheckCanReconnect() Then
+        AddChat vbYellow, "The Auto-Reconnect script is connecting your bot..."
+        If GetBooleanSettingsEntry("ForceReconnect", False) Then
+            AddChat vbYellow, "You are being reconnected while online because the setting is " & _
+                "set in scripts.ini. Set it to false to disable this behavior."
+            Disconnect
+        End If
+        Connect
+    End If
+End Sub
+
+Function CheckCanReconnect()
+    CheckCanReconnect = GetBooleanSettingsEntry("ForceReconnect", False) Or Not Connected
+End Function
+
+Function GetNumericSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    If IsNumeric(Value) Then
+        GetNumericSettingsEntry = CInt(Value)
+    Else
+        GetNumericSettingsEntry = DefaultValue
+    End If
+End Function
+
+Function GetBooleanSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    Select Case LCase(Value)
+        Case "true", "y", "yes" : GetBooleanSettingsEntry = True
+        Case Else : GetBooleanSettingsEntry = False
+    End Select
+End Function

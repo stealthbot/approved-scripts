@@ -1,0 +1,697 @@
+'// Shaman Rotation Script
+'// Created by AwaKening 10/8/2009
+
+Option Explicit
+
+'***************************
+'// SCRIPT INFO
+
+Script("Name")     = "Rotation"
+Script("Author")   = "AwaKening"
+Script("Major")    = 1
+Script("Minor")    = 3
+Script("Revision") = 6
+Script("FileName") = "Rotation.txt"
+Script("Commands") = "addshaman <name>:delshaman <name>:shamans:rotation"
+Script("Description") = "Bot must be chieftan for this script to function:"&_
+		     "If a shaman is demoted via ClanSafety, he/she can "&_
+		     "not be promoted until they are removed in settings"
+
+
+'***************************
+'// CHANGELOGS
+
+' 1.3.6
+'    - Added setting to remove a user from rotation if they leave the clan (true by default)
+'    - Fixed priority demotions when bot is reloading script or logging on
+' 1.3.5
+'    - Minor code improvements that bugged me
+'    - Added cint to priority check that may have been affecting priority promotions
+' 1.3.4
+'    - Bot will now make needed promotions/demotions when logging on or reloading
+' 1.3.3
+'    - Fixed priority promotions when a shaman logs off and others are waiting
+' 1.3.2
+'    - Made shamans Public for use in other scripts
+' 1.3.1
+'    - Fixed priority setting in scripts.ini showing more than once on some users
+'    - Fixed rotational shaman by flags
+'    - Minor code improvements
+' 1.3.0
+'    - Priority can now be added to a shaman 0-100
+'    - Removed some repeat item updates and shortened code
+'    - Added a promotion sub to cleanup some of the ShamanLoggedOn Sub
+'    - Lots of recoding to work with priorities
+' 1.2.1
+'    - Fixed an error from occuring due to loading shaman from list that left the clan
+'    - Rotation command will now list users that have flags or access req if used
+' 1.2.0
+'    - Added version to settings
+'    - Created Functions Add and RemoveShaman to clean up the Command Event
+'    - Added command shamans (alias shaman) to list permanent and rotational shaman
+' 1.1.4
+'    - Fixed Error Line 173 when removing a shaman that is not in the clan anymore
+'    - Fixed Error Line 294 (Problem with rotational shaman being removed from clan)
+' 1.1.3
+'    - Added a delay between demoting and promoting a new shaman to avoid errors
+'    - Won't try to promote peons in clan under 1 week anymore
+'    - Added AddChat's for all promotion/demotions of the usernames (mostly for debugging)
+' 1.1.2
+'    - Fixed initial shaman loading when bot firstrun
+' 1.1.1
+'    - Fixed promotion from peon to Shaman (Thanks Pyro)
+'    - Fixed an error in Event_ClanMemberList with initial login
+' 1.1.0
+'    - Fixed an error with demoting a shaman more than once after logging off (Thanks raylu)
+'    - Added userFlags and userAccess setting to allow rotations by Flag or Access Level
+'    - Fixed an error from occuring when a non-clan member is on the rotation list
+'      (Scripting runtime error '9' in Rotation: (line 265; column 2))
+' 1.0.4
+'    - Fixed an error promoting an online candidate shaman when another logs off
+'    - Fixed a bunch of dictionary item rank updates
+'    - Disabled some functionality in script reload temporarily
+' 1.0.3
+'    - Fixed offline shaman demotions
+'    - Fixed multiple promotion attempts for same user
+' 1.0.2
+'    - Tied in with ClanSafety script to prevent users from re-logging to get shaman
+' 1.0.1
+'    - Changed CreateCommand method due to a new bug in SB
+
+
+'***************************
+'// GLOBAL VARIABLES
+
+Private loggedOn	'// Boolean intial logon
+Private promoTimer	'// Promotion delayed timer
+Private promoIndex	'// Holds Index of promotion for timer
+Private IsChief		'// Boolean (Is bot chieftan)
+Public  shamans		'// Dictionary Key=Username, Item(0)=Logon time
+			'// Item(1)=rank, Item(2)=online, Item(3)=Priority
+
+Private Const Delay = 1500	'// How many milliseconds to delay a promotion proceeding a demotion
+
+
+'***************************
+'// BOT EVENTS
+
+Sub Event_Load()
+	Call CreateSettings()
+	Call CreateCommands()
+
+	Set shamans = CreateObject("Scripting.Dictionary")
+	shamans.CompareMode = 1
+
+	CreateObj "Timer", "promoTimer"
+	promoTimer.Interval = Delay
+	promoTimer.Enabled = False
+
+	Call LoadShamans()
+End Sub
+
+Sub Event_LoggedOn(Username, Product)
+	loggedOn = True
+End Sub
+
+Sub Event_ChannelJoin(ChannelName, Flags)
+	If loggedOn Then
+		loggedOn = False
+		Call doShamans()
+	End If
+End Sub
+
+'// Triggers When a user logs on/off or Rank changes
+Sub Event_ClanMemberUpdate(Username, Rank, Online)
+	If NOT shamans.Exists(Username) Then Exit Sub
+
+	If Online=shamans.Item(Username)(2) Then
+		'// Rank changed only
+		Call ItemUpdate(Username, 1, Rank)
+		Exit Sub
+	End If
+
+	Call ItemUpdate(Username, 2, Online)
+
+	'// Added v1.3.6 in attempt to fix priority bug
+	'// User statuses need to all be updated first
+	If loggedOn Then Exit Sub
+
+	If Online AND (Rank=1 OR Rank=2) Then
+		 Call ShamanLoggedOn(UserName)
+	ElseIf Rank=3 AND Not(Online) Then
+		Call ShamanLoggedOff(UserName)
+	End If
+End Sub
+
+Sub Event_ClanMemberLeaves(Username)	
+	If shamans.Exists(Username) Then
+		If boolSetting("LeavesClanRemoveUser") Then
+			AddChat color.Cyan, RemoveShaman(Username, False)
+		Else
+			shamans.Remove(Username)
+		End If
+	End If
+End Sub
+
+Sub Event_BotClanRankChanged(NewRank)
+	Call IsBotChief(NewRank)
+End Sub
+
+Sub Event_BotClanInfo(ClanTag, Rank)
+	Call IsBotChief(Rank)
+End Sub
+
+Sub Event_Command(Command)
+	With Command
+		Select Case LCase(.Name)
+		Case "addshaman"
+			.Respond AddShaman(.Args)
+		Case "delshaman"
+			.Respond RemoveShaman(.Args, True)
+		Case "rotation"
+			.Respond GetShaman(False)
+		Case "shamans"
+			Dim entry, output
+
+			output = GetShaman(True)
+			For Each entry in Split(output, vbNewLine)
+				.Respond entry
+			Next
+		End Select
+	End With
+End Sub
+
+
+'***************************
+'// PRIVATE SUBS/FUNCTIONS
+
+Private Sub LoadShamans()
+	Dim userlist, user, flags, i, flag, access, userDB
+
+	userlist = Split(Replace(GetSettingsEntry("rotational"), ",", ""))
+
+	For Each user in userlist
+		user = Split(Trim(user), "*")
+		If UBound(user)>0 Then
+			shamans.Item(user(0)) = Array(Now, 0, 0, cInt(user(1)))
+		Else
+			shamans.Item(user(0)) = Array(Now, 0, 0, 0)
+		End If
+	Next
+
+	flags  = UCase(GetSettingsEntry("userFlags"))
+	access = GetSettingsEntry("userAccess")
+
+	If Len(flags)+Len(access) = 0 Then Exit Sub
+
+	If NOT IsNumeric(access) Then access = 1001
+	access = cInt(access)
+
+	'// Necessary only for older builds of SB 2.7
+	On Error Resume Next
+	Set userDB = GetUserDatabase()
+	If Err.Number<>0 Then
+		AddChat color.Red, "SHAMAN ROTATION: Your bot requires a build update"
+		AddChat color.Red, "  for userAccess and userFlags usage"
+		Err.Clear
+		Exit Sub
+	End If
+	On Error Goto 0
+
+	For Each user in userDB
+		If Clan.GetUserIndex(user.Name)>0 AND NOT(shamans.Exists(user.Name)) Then
+			For i=1 to Len(flags)
+				flag = Mid(flags, i, 1)
+				If InStr(1, user.Flags, flag, 1)>0 Then
+					shamans.Add User.Name, Array(Now(), 0, 0, 0)
+					Exit For
+				End If
+			Next
+
+			If user.Rank >= access Then
+				shamans.Item(user.Name) = Array(Now(), 0, 0, 0)
+			End If
+		End If
+	Next
+
+	If shamans.Exists(BotVars.Username) Then shamans.Remove(BotVars.Username)
+
+	Set userDB = Nothing
+End Sub
+
+Private Sub doShamans()
+	Dim user
+
+	Call IsBotChief(Clan.Members(Clan.GetUserIndex(myUsername)).Rank)
+
+	For each user in Clan.Members
+		With user
+			If shamans.Exists(.Name) Then
+				Call ItemUpdate(.Name, 1, .Rank)
+				Call ItemUpdate(.Name, 2, Abs(.IsOnline))
+
+				If .IsOnline Then
+					If (.Rank=1 OR .Rank=2) Then
+						Call ShamanLoggedOn(.Name)
+					End If
+				End If
+			End If
+		End With
+	Next
+End Sub
+
+Private Function AddShaman(ByVal Name)
+	Dim entry
+	Dim priority: priority = 0
+
+	Name = Replace(Name, "*", " ")
+
+	If UBound(Split(Name))>0 Then
+		priority = Split(Name)(1)
+		Name     = Split(Name)(0)
+
+		If NOT(IsNumeric(priority)) Then
+			AddShaman = "Invalid priority (0-100 allowed)"
+			Exit Function
+		End If
+
+		priority = cLng(priority)
+		If priority > 100 Then priority = 100
+		If priority < 0 Then priority   = 0
+	End If
+
+	If Len(Name)=0 Then
+		AddShaman = "Please specify a Username"
+		Exit Function
+	ElseIf Clan.GetUserIndex(Name)=0 Then
+		AddShaman = "I don't see " &Name& " in the clan."
+		Exit Function
+	ElseIf shamans.Exists(Name) Then
+		If shamans.Item(Name)(3) = priority Then
+			AddShaman = StringFormat("{0} is already on the rotation with priority {1}", Name, priority)
+			Exit Function
+		Else
+			Call RemoveShaman(Name, False)
+		End If
+	End If
+
+	entry = GetSettingsEntry("rotational")
+	If Len(entry)>0 Then entry = entry & ", "
+	entry = StringFormat("{0}{1}*{2}", entry, Name, priority)
+	WriteSettingsEntry "rotational", entry
+
+	AddShaman = StringFormat("{0} was added to the shaman rotation with priority {1}", Name, priority)
+
+	shamans.Add Name, Array(Now(), 0, 0, priority)
+
+	If IsOnline Then
+		Call doShamans()
+	End If
+End Function
+
+Private Function RemoveShaman(ByVal Name, Demote)
+	If Len(Name)=0 Then
+		RemoveShaman = "Please specify a Username"
+	ElseIf NOT shamans.Exists(Name) Then
+		RemoveShaman = Name & " is not on the rotation list."
+	Else
+		Dim entry, entrys, index, priority, user
+
+		priority = "*" & shamans.Item(Name)(3)		
+		shamans.Remove(Name)
+
+		entry = GetSettingsEntry("rotational")
+		If InStr(entry, ",")=0 Then
+			entry = ""
+		Else
+			entry = Replace(entry, Name&priority& ", ", "", 1, -1, 1)
+			entry = Replace(entry, ", " &Name&priority, "", 1, -1, 1)
+
+			entry = Replace(entry, Name& ", ", "", 1, -1, 1)
+			entry = Replace(entry, ", " &Name, "", 1, -1, 1)
+		End If
+
+		WriteSettingsEntry "rotational", entry
+
+		RemoveShaman = Name & " was removed from the shaman rotation"
+
+		If NOT(Demote) Then Exit Function
+
+		index = Clan.GetUserIndex(Name)
+
+		If index > 0 Then
+			If Clan.Members(index).Rank = 3 AND IsChief Then
+				Clan.Members(index).Demote
+			End If
+		End If
+	End If
+End Function
+
+Private Function GetShaman(ByVal getAll)
+	Dim s, access, flags, i, flag
+
+	If getAll Then
+		For Each s in Clan.Shamans
+			GetShaman = GetShaman & s.Name & ", "
+		Next
+
+		If Len(GetShaman)=0 Then
+			GetShaman = "Current Shaman: None" & vbNewLine
+		Else
+			GetShaman = Left(GetShaman, Len(GetShaman)-2)
+			GetShaman = "Current Shaman: " &GetShaman & vbNewLine
+		End If
+	End If
+
+	GetShaman = GetShaman & "Rotational Shaman: "
+
+	For Each s in shamans.Keys
+		GetShaman = GetShaman & s & ", "
+		i=i+1
+	Next
+
+	flags  = UCase(GetSettingsEntry("userFlags"))
+	access = GetSettingsEntry("userAccess")
+
+	If Len(flags)+Len(access)+i = 0 Then
+		GetShaman = GetShaman & "None"
+		Exit Function
+	ElseIf Len(flags)+Len(access) = 0 Then
+		GetShaman = Left(GetShaman, Len(GetShaman)-2)
+		Exit Function
+	End If
+
+	If NOT IsNumeric(access) Then access = 1001
+	access = cInt(access)
+
+	For Each s in GetUserDatabase()
+		If Clan.GetUserIndex(s.Name)>0 Then
+			For i=1 to Len(flags)
+				flag = Mid(flags, i, 1)
+				If InStr(1, s.Flags, flag, 1)>0 Then
+					If InStr(1, Split(GetShaman,"Rotational Shaman:")(1), s.Name&", ", 1)=0 Then
+						GetShaman = GetShaman & s.Name & ", "
+					End If
+					Exit For
+				End If
+			Next
+
+			If (s.Rank >= access) And (i>Len(flags)) Then
+				GetShaman = GetShaman & s.Name & ", "
+			End If
+		End If
+	Next
+
+	If Right(GetShaman,2) <> ", " Then
+		GetShaman = GetShaman & "None"
+	Else
+		GetShaman = Left(GetShaman, Len(GetShaman)-2)
+	End If
+End Function
+
+Private Sub IsBotChief(Rank)
+	If Rank = 4 Then
+		IsChief = True
+		Addchat color.Cyan, "Shaman Rotation is Active"
+	Else
+		IsChief = False
+		Addchat color.Orange, "Shaman Rotation will not function until Bot is made chieftan"
+	End If
+End Sub
+
+Sub promoTimer_Timer()
+	promoTimer.Enabled = False
+	Clan.Members(promoIndex).Promote 3
+End Sub
+
+Private Sub ShamanLoggedOff(ByVal Username)
+	'// Only demote user if another rotational shaman is online and waiting
+	'// We don't want to be doing demotions/promotions for nothing
+
+	If NOT IsChief Then Exit Sub
+
+	Dim shaman, index, rank, highU, highP
+
+	For Each shaman in shamans.Keys
+		index = Clan.GetUserIndex(shaman)
+		If index>0 Then
+			If Clan.Members(index).IsOnline Then
+				rank =Clan.Members(index).Rank
+				If (rank=1 OR rank=2) Then
+					If cInt(shamans.Item(shaman)(3)) >= highP Then
+						highP = cInt(shamans.Item(shaman)(3))
+						highU = shaman
+					End If
+				End If
+			End If
+		End If
+	Next
+
+	If Not(highU = vbNullString) Then
+		AddChat color.Cyan, "Shaman Rotation:  Demoting " &Username
+		Clan.Members(Clan.GetUserIndex(Username)).Demote
+		Call Promote(highU)
+	End If
+End Sub
+
+Private Sub ShamanLoggedOn(ByVal Username)
+	If NOT IsChief Then Exit Sub
+	If shamans.Count = 0 Then Exit Sub
+
+	Dim demote, i, logged, online, shaman, lowestPr, priority
+
+	'// Check for demoted ClanSafety users
+	If ClanSafetyLocked(Username) Then
+		AddChat color.Orange, Username & " is locked out by ClanSafety."
+		AddChat color.Orange, "  Clear their name in the scripts.ini or promote"
+		AddChat color.Orange, "  manually to clear their name from the list"
+		Exit Sub
+	End If
+
+	'// Enough room to promote and exit sub
+	If Clan.Shamans.Count < 5 Then
+		Call Promote(Username)
+		Exit Sub
+	End If
+
+	priority = cInt(shamans.Item(Username)(3))
+
+	'// Demote offline Rotational Shaman if any
+	For Each shaman in Clan.Shamans
+		If shamans.Exists(shaman.Name) Then
+
+			'// Is shaman online
+			If Not(cInt(shamans.Item(shaman.Name)(2))) Then
+				'// Found an offline shaman
+				'// Demote, promote, exit sub
+
+				Clan.Members(Clan.GetUserIndex(shaman.Name)).Demote
+				AddChat color.Cyan, "Shaman Rotation:  Demoted " &shaman.Name
+
+				Call Promote(Username)
+				Exit Sub
+			Else
+				'// Is their priority less than or equal to users
+				If cInt(shamans.Item(shaman.Name)(3)) <= priority Then
+					online = online & shaman.Name & " "
+				End If
+			End If
+		End If
+	Next
+
+	'// None of the current shamans are rotational nor have lower or equal priority
+	'// Won't be doing any promotions at this time
+	If online="" Then Exit Sub
+
+	lowestPr = 100
+	online   = Split(Trim(online))
+
+	'// Find the lowest priority
+	For each shaman in online
+		If cInt(shamans.Item(shaman)(3)) <= lowestPr Then
+			lowestPr = cInt(shamans.Item(shaman)(3))
+			demote   = shaman
+		End If
+	Next
+
+	'// User that logged on has a higher priority than the lowest already online
+	If priority > lowestPr Then
+		Clan.Members(Clan.GetUserIndex(demote)).Demote
+		AddChat color.Cyan, "Shaman Rotation:  Demoted " &demote
+
+		Call Promote(Username)
+		Exit Sub
+	End If
+
+	demote = online(0)
+	logged = DateDiff("n", shamans.Item(demote)(0), Now)
+
+	'// Online shamans have equal priority to the logged on user
+	'// Determine which member to demote by time
+	For i=1 to UBound(online)
+		If DateDiff("n", shamans.Item(online(i))(0), Now) > logged Then
+			demote = online(i)
+			logged = DateDiff("n", shamans.Item(online(i))(0), Now)
+		End If
+	Next
+
+	'// Check if user has been online long enough to demote
+	If logged > cLng(GetSettingsEntry("minimumTime")) Then
+		Clan.Members(Clan.GetUserIndex(demote)).Demote
+		AddChat color.Cyan, "Shaman Rotation:  Demoted " &demote
+
+		Call Promote(Username)
+	End If
+End Sub
+
+Private Sub Promote(Username)
+	AddChat color.Cyan, "Shaman Rotation:  Promoting " &Username
+
+	Call ItemUpdate(Username, 0, Now)
+
+	promoIndex = Clan.GetUserIndex(Username)
+	promoTimer.Enabled = True
+End Sub
+
+Private Function ClanSafetyLocked(ByVal Username)
+	Dim entry, users, i
+
+	entry = SSC.GetSettingsEntry("locked", "clansafety")
+
+	If Len(entry)>1 Then
+		'// Lets see if the user is locked
+
+		Username = LCase(Username)
+		users = Split(LCase(Trim(entry)))
+
+		For i=0 to UBound(users)
+			If users(i) = Username Then
+				ClanSafetyLocked = True
+				Exit For
+			End If
+		Next
+	End If
+End Function
+
+Private Sub ItemUpdate(Name, whichItem, Value)
+	Dim Items
+	Items = shamans.Item(Name)
+	Items(whichItem) = Value
+	shamans.Item(Name) = Items
+End Sub
+
+Private Function boolSetting(setting)
+	Select Case LCase(GetSettingsEntry(setting))
+		Case "0", "f", "false", "n", "no"
+			boolSetting = False
+		Case Else
+			boolSetting = True
+	End Select
+End Function
+
+Private Sub CreateSettings()
+	Dim response, title, version, myversion
+
+	myversion = GetSettingsEntry("version")
+	version = Script("Major")&"."&Script("Minor")&"."&Script("Revision")
+	title = "AwaKening's SHAMAN ROTATION"
+
+	If myversion <> version Then
+
+		'// Script is not new, so rewrite the rotational info
+		If myversion <> "" Then
+			WriteSettingsEntry "rotational (info)", "Shamans that will be rotated " &_
+			"(seperate by , ).  Priority can be set with *0-100 (0 being no priority" &_
+			" and 100 being the highest)"
+		End If
+
+		WriteSettingsEntry "version", version
+		AddChat 15612594, title & " updated to " &version
+	End If
+
+	If Len(GetSettingsEntry("LeavesClanRemoveUser"))>0 Then Exit Sub
+	WriteSettingsEntry "LeavesClanRemoveUser", True
+
+	If Len(GetSettingsEntry("userFlags (info)")) >0 Then Exit Sub
+
+	'// Added 1.1.0
+	WriteSettingsEntry "userFlags/userAccess (info)", "Changes to either of these 2 settings" &_
+	" will not take effect unless you click Reload Scripts"
+
+	WriteSettingsEntry "userFlags (info)", "Members with any of "&_
+	"these flags will be rotated in addition to the Rotational List"
+	WriteSettingsEntry "userFlags", vbNullString
+
+	WriteSettingsEntry "userAccess (info)", "Members with this access "&_
+	"level or higher will be rotated in addition to the Rotational List"
+	WriteSettingsEntry "userAccess", vbNullString
+
+	If Len(GetSettingsEntry("rotational (info)"))>0 Then Exit Sub
+
+	response = InputBox("List your rotational shamans and priority (0-100).  Seperate the " &_
+	"priority with *", title, "shaman1*0, shaman2*0, shaman3*1")
+	WriteSettingsEntry "rotational (info)", "Shamans that will be rotated (seperate by , ).  " &_
+	"Priority can be set with *0-100 (0 being no priority and 100 being the highest)"
+	WriteSettingsEntry "rotational", Trim(response)
+
+	WriteSettingsEntry "minimumTime (info)", "Minutes a shaman has to be online "&_
+	"before a new logon can bump them"
+	WriteSettingsEntry "minimumTime", 120
+
+	AddChat 15612594, title &": Settings loaded in scripts.ini"
+	AddChat 13447834, "    Most changes made there will take effect immediately"
+End Sub
+
+Private Sub CreateCommands()
+	Dim Command, Parameter
+
+	If NOT(OpenCommand("shamans")) Is Nothing Then Exit Sub
+
+	Set Command = CreateCommand("shamans")
+	With Command
+		.Aliases.Add "shaman"
+		.RequiredRank = 0
+		.Description = "Lists permanent and rotational shaman"
+		.Save
+	End With
+	Set Command = Nothing
+	AddChat 9118312, "    Command (shamans) successfully created."
+
+	If NOT(OpenCommand("addshaman")) Is Nothing Then Exit Sub
+
+	Set Command = CreateCommand("addshaman")
+	With Command
+		Set Parameter = .NewParameter("Name", False, "Word")
+		Parameter.Description = "battle.net Username"
+		.Parameters.Add Parameter
+
+		.Aliases.Add "rotate"
+		.RequiredRank = 200
+		.Description = "Adds a new rotational shaman"
+		.Save
+	End With
+
+	Set Command = CreateCommand("delshaman")
+	With Command
+		Set Parameter = .NewParameter("Name", False, "Word")
+		Parameter.Description = "battle.net Username"
+		.Parameters.Add Parameter
+
+		.Aliases.Add "remshaman"
+		.RequiredRank = 200
+		.Description = "Deletes a rotational shaman"
+		.Save
+	End With
+
+	Set Command = CreateCommand("rotation")
+	With Command
+		.Aliases.Add "rotationlist"
+		.RequiredRank = 70
+		.Description = "Display the current shaman rotationlist"
+		.Save
+	End With
+
+	Set Command   = Nothing
+	Set Parameter = Nothing
+	AddChat 9118312, "    Commands (addshaman, delshaman, rotation) successfully created."
+End Sub

@@ -1,0 +1,388 @@
+'// Created July 5th, 2010
+
+Option Explicit
+
+Script("Name")     = "antispam"
+Script("Author")   = "AwaKening"
+Script("Major")    = 1
+Script("Minor")    = 1
+Script("Revision") = 4
+Script("Description") = "Punishes users for spamming the channel"
+Script("Filename") = "antispam.txt"
+
+' UPDATES
+' 1.1.4 August 7th, 2010
+'     - Changed sensitivity levels to basically match up with seconds between messages
+' 1.1.3 July 24th, 2010
+'     - Will now start checking for spam as soon as 3 messages and check time from last 4
+'     - Added priority to warning messages
+'     - Fixed warnDecay and warnings settings commands
+'     - Fixed warnings display where it wasn't counting up
+' 1.1.2 July 14th, 2010
+'     - Fixed param error on initial load (only affected new installs not upgrades)
+' 1.1.1 July 9th, 2010
+'     - Fixed isimmune access levels where access was equal
+'     - More sensitivity tweaking, and now checks message length of last 3
+'     - Can now use decimals in sensitivity levels (0-6)
+'     - Changed self ops Checking method
+'     - Removed cleanSkip Variable (clean every 30 seconds now)
+' 1.1.0 July 7th, 2010
+'     - Combined functions (warn and punish)
+'     - Now passing Flags to spamcheck sub and checking there
+'     - Added ability to list multiple Flags in immunity setting
+'     - Added command aslevel to set/check sensitivity via chat
+'     - Added command asimmunity to set/check immunity flag/access
+'     - Added command aswarnings to set/check allowed warnings
+'     - Added command aswarndecay to set/check the warnDecay minutes
+' 1.0.1 July 6th, 2010
+'     - Tweaked the sensitivity
+'     - Added Setting warndecay
+
+Private Users		'// Dictionary to track messages and time
+			'// Item Array (0-3 = Time) (4-7 = Messages)
+Private Warned		'// Dictionary to track warnings
+
+
+Sub Event_Load()
+	Call CreateSettings()
+	Call CreateCommands()
+
+	Set Users  = CreateObject("Scripting.Dictionary")
+	Set Warned = CreateObject("Scripting.Dictionary")
+
+	Users.CompareMode  = 1
+	Warned.CompareMode = 1
+End Sub
+
+Sub Event_UserEmote(Username, Flags, Message)
+	SpamCheck Username, Flags, Message
+End Sub
+
+Sub Event_UserTalk(Username, Flags, Message, Ping)
+	SpamCheck Username, Flags, Message
+End Sub
+
+'// Using this event to save creating a timer
+Sub Event_ClanMOTD(Message)
+	Call CleanUsers()
+	Call DecayWarnings()
+End Sub
+
+Sub Event_Command(Command)
+	'// If Not argument IsValid Then Null String is passed
+	With Command
+		Select Case LCase(.Name)
+			Case "aslevel":     .Respond asLevel(.Args)
+			Case "asimmunity":  .Respond asImmunity(.Argument("Level"))
+			Case "aswarnings":  .Respond asWarnings(.Argument("Level"))
+			Case "aswarndecay": .Respond asWarnDecay(.Argument("Level"))
+		End Select
+	End With
+End Sub
+
+Private Function asLevel(newLevel)
+	If NOT(IsNumeric(newLevel))Then
+		asLevel = StringFormat("Antispam Sensitivity:  {0}", NumSetting("sensitivity"))
+	Else
+		newLevel = cSng(newLevel)
+		If newLevel < 0 Then newLevel = 0
+		If newLevel > 6 Then newLevel = 6
+
+		WriteSettingsEntry "sensitivity", newLevel
+
+		asLevel = StringFormat("Antispam Sensitivity set to {0}", newLevel)
+	End If
+End Function
+
+Private Function asImmunity(newRank)
+	If newRank = "" Then
+		asImmunity = StringFormat("Antispam Immunity: {0}", GetSettingsEntry("immunity"))
+	Else
+		WriteSettingsEntry "immunity", newRank
+		asImmunity = StringFormat("Antispam Immunity set to {0}", newRank)
+	End If
+End Function
+
+Private Function asWarnings(Allowed)
+	If Allowed = "" Then
+		asWarnings = StringFormat("Antispam Warnings:  {0}", NumSetting("warnings"))
+	Else
+		Allowed = cInt(Allowed)
+		If Allowed < 0 Then Allowed = 0
+
+		WriteSettingsEntry "warnings", Allowed
+		asWarnings = StringFormat("Antispam Warnings set to {0}", Allowed)
+	End If
+End Function
+
+Private Function asWarnDecay(newMinutes)
+	If newMinutes = "" Then
+		asWarnDecay = StringFormat("Antispam warnDecay Minutes:  {0}", GetSettingsEntry("warnDecay"))
+	Else
+		newMinutes = cInt(newMinutes)
+		If newMinutes < 0 Then newMinutes = 0
+
+		WriteSettingsEntry "warndecay", newMinutes
+
+		If newMinutes = 0 Then
+			asWarnDecay = "Antispam WarnDecay Disabled"
+		Else
+			asWarnDecay = StringFormat("Antispam WarnDecay set to {0} Minutes", newMinutes)
+		End If
+	End If
+End Function
+
+Private Sub SpamCheck(Username, Flags, Message)
+	If NOT(Channel.Self.IsOperator) Then Exit Sub
+	If Flags = 2 Then Exit Sub
+	If IsImmune(Username) Then Exit Sub
+
+	If Users.Exists(Username) Then
+		Dim userInfo, i, threshhold, safe
+
+		userInfo = ShiftArray(users.Item(Username), Message)
+		Users.Item(Username) = userInfo
+
+		threshhold = Sensitivity(UBound(userInfo)-1)
+		safe       = (threshhold/(UBound(userInfo)-1))*2
+
+		For i=0 to 3
+			If i<3 Then
+				If userInfo(i+1) = "" Then
+					If i=0 Then Exit Sub
+					threshhold = threshhold - safe
+				Else
+					threshhold = threshhold - (Abs(DateDiff("s", userInfo(i), userInfo(i+1))) + 1)
+					threshhold = threshhold + Int(Len(userInfo(i+4))/30)
+
+					If userInfo(i+4) = userInfo(i+5) Then
+						threshhold = threshhold + (Len(userInfo(i+4))/20)
+					End If
+				End If
+			End If
+		Next
+
+		If threshhold > 0 Then
+			Call TakeAction(Username)
+		End If		
+	Else
+		users.Add Username, Array(Now, "", "", "", Message, "", "", "")
+	End If
+End Sub
+
+Private Function Sensitivity(intTracking)
+	Sensitivity = NumSetting("sensitivity")
+	If Sensitivity < 0 Then Sensitivity = 0
+	If Sensitivity > 6 Then Sensitivity = 6
+
+	Sensitivity = (Sensitivity * intTracking)
+End Function
+
+Private Sub TakeAction(Username)
+	Dim warnings, Items
+
+	warnings = NumSetting("warnings")
+	If warnings = 0 Then
+		'// Punish without warning
+		Command myUsername, Punish("punishment", Username, warnings), True
+		Exit Sub
+	End If
+
+	If Warned.Exists(Username) Then
+		Items = Warned.Item(Username)
+		Items(0) = cInt(Items(0)) + 1
+		Items(1) = Now
+
+		If Items(0) > warnings Then
+			Items(0) = warnings
+			Warned.Item(Username) = Items
+
+			Command myUsername, Punish("punishment", Username, warnings), True
+
+			If BoolSetting("resetWarns") Then
+				Warned.Remove(Username)
+			End If
+		Else
+			Warned.Item(Username) = Items
+			AddQ Punish("warnMessage", Username, warnings), 1
+		End If
+	Else
+		Warned.Add Username, Array(1, Now)
+		AddQ Punish("warnMessage", Username, warnings), 1
+	End If
+End Sub
+
+Private Function Punish(Entry, Username, warnings)
+	Punish = Replace(GetSettingsEntry(Entry), "%u", Username)
+	Punish = Replace(Punish, "%w", StringFormat("{0}/{1}", Warned.Item(Username)(0), warnings))
+End Function
+
+Private Function ShiftArray(ByVal Items, ByVal Message)
+	Dim i
+
+	For i=7 to 1 STEP -1: Items(i) = Items(i-1): Next
+	Items(0) = Now
+	Items(4) = Message
+
+	ShiftArray = Items
+End Function
+
+Private Function IsImmune(Username)
+	Dim immunity, i
+	immunity = GetSettingsEntry("immunity")
+
+	If IsNumeric(immunity) Then
+		If GetDBEntry(Username).Rank >= Int(immunity) Then IsImmune = True
+	Else
+		For i=1 to Len(immunity)
+			If InStr(1, GetDBEntry(Username).Flags, Mid(immunity, i, 1), 1)>0 Then
+				IsImmune = True
+				Exit For
+			End If
+		Next
+	End If
+End Function
+
+Private Sub CleanUsers()
+	Dim user
+
+	For Each user in Users.Keys
+		If Abs(DateDiff("s", Now, Users.Item(user)(0))) > 60 Then
+			Users.Remove(user)
+		End If
+	Next
+End Sub
+
+Private Sub DecayWarnings()
+	Dim user, items, decay
+
+	decay = Abs(NumSetting("warnDecay"))
+	If decay = 0 Then Exit Sub
+
+	For Each user in Warned.Keys
+		items = Warned.Item(user)
+		If Abs(DateDiff("n", Now, items(1))) >= decay Then
+			items(0) = items(0) - 1
+			items(1) = Now
+
+			If items(0) <= 0 Then
+				Warned.Remove(user)
+			Else
+				Warned.Item(user) = items
+			End If
+		End If
+	Next
+End Sub
+
+Private Sub CreateCommands()
+	If NOT(OpenCommand("aslevel") Is Nothing) Then Exit Sub
+
+	Dim cmd, param
+
+	Set cmd = CreateCommand("aslevel")
+	With cmd
+		Set param = .NewParameter("Level", False, "Decimal")
+		param.Description = "New level"
+		.Parameters.Add param
+
+		.Aliases.Add "antispam"
+		.RequiredRank = 90
+		.Description = "Set/Check the antispam level"
+		.Save
+	End With
+
+	Set cmd = CreateCommand("asimmunity")
+	With cmd
+		Set param = .NewParameter("Level", False, "String")
+		param.Description = "Access or Flag"
+		.Parameters.Add param
+
+		.Aliases.Add "asimmune"
+		.RequiredRank = 90
+		.Description = "Set/Check immunity level"
+		.Save
+	End With
+
+	Set cmd = CreateCommand("aswarnings")
+	With cmd
+		Set param = .NewParameter("Level", False, "Numeric")
+		param.Description = "Warnings"
+		.Parameters.Add param
+
+		.RequiredRank = 90
+		.Description = "Set/Check warnings"
+		.Save
+	End With
+
+	Set cmd = CreateCommand("aswarndecay")
+	With cmd
+		Set param = .NewParameter("Level", False, "Numeric")
+		param.Description = "Decay Minutes"
+		.Parameters.Add param
+
+		.Aliases.Add "asdecay"
+		.RequiredRank = 90
+		.Description = "Set/Check Warn Decay Minutes"
+		.Save
+	End With
+
+	AddChat 9118312, "Commands (aslevel, asimmunity, aswarnings, aswarndecay) successfully created."
+
+	Set param = Nothing
+	Set cmd   = Nothing
+End Sub
+
+Private Sub CreateSettings()
+	Dim response, title, version
+
+	version = StringFormat("{0}.{1}.{2}", Script("Major"), Script("Minor"), Script("Revision"))
+	If GetSettingsEntry("version") = version Then Exit Sub
+
+	title = "AwaKening's AntiSpam"
+
+	WriteSettingsEntry "version", version
+	AddChat 15612594, title &": Updated to " &version
+
+	If GetSettingsEntry("sensitivity (info)") = "0-5 (0=Least 5=Most Sensitive)" Then
+		WriteSettingsEntry "sensitivity (info)", "0-6 (0=Least 6=Most Sensitive)"
+	End If
+
+	If NOT(GetSEttingsEntry("warnDecay")="") Then Exit Sub
+
+	WriteSettingsEntry "warnDecay (info)", "Decay 1 warning every x minutes.  0 = no decay"
+	WriteSettingsEntry "warnDecay", 10
+
+	If NOT(GetSettingsEntry("sensitivity")="") Then Exit Sub
+
+	WriteSettingsEntry "sensitivity (info)", "0-6 (0=Least 6=Most Sensitive)"
+	WriteSettingsEntry "sensitivity", 2.5
+
+	WriteSettingsEntry "warnings (info)", "How many warnings to issue before punishment"
+	WriteSettingsEntry "warnings", 2
+
+	WriteSettingsEntry "warnMessage (info)", "%u=Username, %w=warned/allowed eg 1/2"
+	WriteSettingsEntry "warnMessage", "Antispam Warning (%w) for %u"
+
+	WriteSettingsEntry "resetWarns (info)", "Yes/No Reset users warns after user has been punished"
+	WriteSettingsEntry "resetWarns", "No"
+
+	WriteSettingsEntry "punishment (info)", "%u=Username, %w=warned/allowed " &_
+	"(don't use %w if no warnings will be issued), timebans can be used if you have the timeban script"
+	WriteSettingsEntry "punishment", "/kick %u Sending messages too quickly"
+
+	WriteSettingsEntry "immunity (info)", "Flags or Access level for immune users"
+	WriteSettingsEntry "immunity", "70"
+End Sub
+
+Private Function BoolSetting(Entry)
+	Select Case UCase(GetSettingsEntry(Entry))
+		Case "N", "NO", "FALSE", "0", "F"
+			BoolSetting = False
+		Case Else
+			BoolSetting = True
+	End Select
+End Function
+
+Private Function NumSetting(Entry)
+	NumSetting = CSng(GetSettingsEntry(Entry))
+End Function

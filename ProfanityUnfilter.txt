@@ -1,0 +1,200 @@
+Option Explicit
+Script("Name") = "Profanity UnFilter"
+Script("Author") = "Hdx"
+Script("Major") = 0
+Script("Minor") = 0
+Script("Revision") = 1
+'=============================================='
+'Why did I make this? Shits and fucking giggels'
+'What does it do? It reverses the Profanity filter of Battle.net, so you see "fuck you" instead of "!&$% you"'
+'Is it complete? I think so, but probably not. Its not hard to add more filters, if you find more tell me in the thread.'
+
+' Updated by Pyro on 2017-12-11
+'  - Use event pre-processor system
+'  - Added new word filters
+
+Const EVENT_PROCESSOR_SCRIPT = "Chat Event Pre-Processor"
+
+Private Const SID_CHATEVENT = &H0F
+
+Private Const EID_WHISPER     = &H04
+Private Const EID_TALK        = &H05
+Private Const EID_BROADCAST   = &H06
+Private Const EID_WHISPERSENT = &H0A
+Private Const EID_INFO        = &H12
+Private Const EID_ERROR       = &H13
+Private Const EID_EMOTE       = &H17
+
+Private SwapPacket
+Private HasProcessor
+
+Sub Event_Load()
+    HasProcessor = Not (GetScriptByName(EVENT_PROCESSOR_SCRIPT) Is Nothing)
+
+    If HasProcessor Then
+        Call ObserveScript(EVENT_PROCESSOR_SCRIPT)
+    End If
+    
+    SwapPacket = True
+End Sub
+
+Sub Event_PacketReceived(Protocol, ID, Length, Data)    
+    If HasProcessor Then Exit Sub
+    
+    If (Protocol = "BNCS") Then
+        If (ID = SID_CHATEVENT) Then
+            Dim pBuffer
+            Set pBuffer = DataBufferEx()
+            pBuffer.Data = Mid(Data, 5)
+          
+            Call Recv_SID_CHATEVENT(pBuffer)
+          
+            Set pBuffer = Nothing
+        End If
+    End If
+End Sub
+
+
+'(DWORD) Event ID'
+'(DWORD) Users Flags'
+'(DWORD) Ping'
+'(DWORD) IP Address (Defunct)'
+'(DWORD) Account number (Defunct)'
+'(DWORD) Registration Authority (Defunct)'
+'(STRING) Username'
+'(STRING) Text '
+' This method is skipped if the event processor is installed and enabled.
+Private Sub Recv_SID_CHATEVENT(Buffer)
+    If (SwapPacket = False) Then Exit Sub
+    
+    Dim EventID:  EventID  = Buffer.GetDWORD()
+    Dim Flags:    Flags    = Buffer.GetDWORD()
+    Dim Ping:     Ping     = Buffer.GetDWORD()
+    Dim IPAddr:   IPAddr   = Buffer.GetDWORD()
+    Dim Account:  Account  = Buffer.GetDWORD()
+    Dim Auth:     Auth     = Buffer.GetDWORD()
+    Dim Username: Username = Buffer.GetString()
+    Dim Text:     Text     = Buffer.GetString()
+    
+    Call Event_ChatEventReceived(EventID, Flags, Ping, IPAddr, Account, Auth, Username, Text)
+End Sub
+    
+
+Public Sub Event_ChatEventReceived(EventID, Flags, Ping, IP, Account, RegAuth, Username, Message)
+    Dim NewText
+
+    If (SwapPacket = False) Then Exit Sub
+    
+    ' Is this event supposed to be filtered?
+    If Config.ChatFilters And CheckChatFilter(Message, Username) Then Exit Sub
+    
+    ' Is this a user-generated event?
+    Select Case EventID
+        Case EID_WHISPER, EID_TALK, EID_BROADCAST, EID_WHISPERSENT, EID_INFO, EID_ERROR, EID_EMOTE:
+            NewText = Message
+            NewText = UnfilterProfanity(NewText)
+
+            ' Was any profanity found?
+            If StrComp(Message, NewText, vbBinaryCompare) = 0 Then
+                Exit Sub
+            End If
+            Message = NewText
+        Case Else
+            Exit Sub
+    End Select
+
+    ' Build the replacement packet
+    Dim out: Set out = DataBufferEx()
+    out.InsertByte &HFF
+    out.InsertByte SID_CHATEVENT
+    out.InsertWORD 4 + (6 * 4) + Len(Username) + 1 + Len(Message) + 1 ' header, 6 UInt32's, 2 Strings in 2 null terminators
+    out.InsertDWORD EventID
+    out.InsertDWORD Flags
+    out.InsertDWORD Ping
+    out.InsertDWORD IP
+    out.InsertDWORD Account
+    out.InsertDWORD RegAuth
+    out.InsertNTString CStr(Username)
+    out.InsertNTString CStr(Message)
+    
+    SwapPacket = False  
+    Call ForceBNCSPacketParse(out.Data)
+    SwapPacket = True
+    VetoThisMessage
+End Sub
+
+Public Function CensorWord(Word)
+    Dim m, m1, i, c, x, n, p, l, s
+    
+    m = "a@b#c$d%e&f!g!h!i@j#k$l%m&n!o!p!q@r#s$t%u&v!w!x!y@z#"
+    m1 = Len(m)
+    
+    For i = 1 To Len(Word)
+        c = Asc(Mid(Word, i, 1))
+        n = ((c - Asc("a")) * 2) + 1
+        
+        If n > 0 And n < m1 Then
+            p = 1
+            Do Until x <> 1
+                If (n + p) > m1 Then
+                    n = 1
+                    p = 1
+                End If
+                
+                x = Asc(Mid(m, n + p, 1))
+                p = p + 2
+            Loop
+            
+            s = s & Chr(x)
+            l = x
+        Else
+            s = Word
+            Exit For
+        End If
+    Next
+    
+    CensorWord = s
+End Function
+
+Public Function UncensorWord(Word)
+    
+End Function
+
+'List taken from VL Forums: http://forum.valhallalegends.com/index.php/topic,1931.msg14988.html#msg14988 '
+Private Function UnfilterProfanity(Text)
+    Text = Replace(Text, "!&$%@",     "pussy"    )
+    Text = Replace(Text, "$!@%",      "shit"     )
+    Text = Replace(Text, "#@%$!",     "bitch"    )
+    Text = Replace(Text, "!@!#&",     "whore"    )
+    Text = Replace(Text, "%@$%",      "dick"     )
+    Text = Replace(Text, "!@!@%&",    "nipple"   )
+    Text = Replace(Text, "$!$%",      "cock"     )
+    Text = Replace(Text, "$&!%",      "cunt"     )
+    Text = Replace(Text, "!&!@$",     "penis"    )
+    Text = Replace(Text, "!@!@!@",    "vagina"   )
+    Text = Replace(Text, "!@!@&#",    "nigger"   )
+    Text = Replace(Text, "!@!@#",     "nigga"    )
+    Text = Replace(Text, "@$%!@%&",   "asshole"  )
+    Text = Replace(Text, "$%$",       "kkk"      )
+    Text = Replace(Text, "$%@%",      "clit"     )
+    Text = Replace(Text, "!&$%",      "fuck"     )
+    Text = Replace(Text, "!@!@!%",    "faggot"   )
+    Text = Replace(Text, "$%&!",      "klux"     )
+    Text = Replace(Text, "%@%&!",     "dildo"    )
+    Text = Replace(Text, "&@$%&#$@%", "masturbat")
+    Text = Replace(Text, "&#&$%",     "erect"    )
+    Text = Replace(Text, "$%&%",      "slut"     )
+    Text = Replace(Text, "$@$&",      "kike"     )
+    Text = Replace(Text, "%&$#@#!",   "lesbian"  )
+    Text = Replace(Text, "$!@!$",     "chink"    )
+    Text = Replace(Text, "!#!@$&",    "orgasm"   )
+    Text = Replace(Text, "@$%!@!&",   "asswipe"  )
+    Text = Replace(Text, "!@!$",      "gook"     )
+    Text = Replace(Text, "$%#!%&!",   "scrotum"  )
+    Text = Replace(Text, "%!&$!&",    "douche"   )
+    Text = Replace(Text, "@!&$",      "anus"     )
+    Text = Replace(Text, "!@#@",      "nazi"     )
+    Text = Replace(Text, "!#@$%",     "prick"    )
+    '%@%&@ 
+    UnfilterProfanity = Text
+End Function

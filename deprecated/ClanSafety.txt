@@ -1,0 +1,323 @@
+Option Explicit
+
+'***************************
+'// SCRIPT INFO
+
+Script("Name") = "clansafety"
+Script("Author") = "AwaKening"
+Script("Major") = 1
+Script("Minor") = 0
+Script("Revision") = 20090613
+
+'Commands:
+' override <seconds> (allows a user to override clan safety for specified number of seconds)
+' safety <number> (display the last <number> of members to leave the clan that were logged)
+
+
+'***************************
+'// CHANGELOGS
+
+' 05/11/2009 BETA FIXES
+'	- Commands to be added next release for Tracking list display
+'	- Added commands for tracking list display
+'	- Added override options for allowedUsers
+'	- Fixed a dictionary error
+'	- Added ClanMemberUpdate Event to register/remove shaman changes
+' 05/18/2009 FULL RELEASE
+'	- Added notation for user InChannel in the log
+' 05/27/2009
+'	- Fixed an issue with IsChief on initial load
+' 06/06/2009
+'	- Array Items in the shaman dictionary should now update properly
+'	- Fixed an array bug in TakeAction Sub
+' 06/13/2009
+'	- Shaman dictionary is not reset everytime one of them logs on/off anymore
+'	- Fixed Error in Event_LoggedOn
+
+
+'***************************
+'// SETTINGS
+'   (Only section that should be changed)
+
+' How many members a shaman is allowed to kick within timeframe
+Private Const allowedKicks = 1
+
+' Minutes allowed between kicking (allowedKicks #) members from Clan
+Private Const timeFrame    = 120
+
+' Shamans with No Restrictions. (Seperate users by comma space)
+' File updates will still be made to show these users online
+Private Const allowedUsers = "AwaKening"
+
+' Filename within your bot folder to store tracking info by this script
+Private Const fileName     = "RemovedMembers.txt"
+
+' String/Int Access required to view the Tracking list (Flag, Access, or Username)
+Private Const vAccess      = 70
+
+' alias Command to view the tracking list.  "safety" will always work	
+Private Const viewlist     = "safetylist"
+
+' Default number of lines to return for viewlist if none is specified
+Private Const viewlines    = 3
+
+' alias Command to override safety for specific time.  "override" will always work
+Private Const ovrCmd       = "safetyoverride"
+
+' Default timer in (seconds) of time to override
+Private Const ovrTime      = 120
+
+' Max timer allowed in (minutes) for override timer if user specific
+Private Const ovrMax       = 5
+
+
+'***************************
+'// GLOBAL VARIABLES
+
+Private Const ForReading = 1
+Private Const ForWriting = 2
+Private IsChief		'// Boolean
+Private shamans		'// Dictionary Object
+Private overridetime	'// CDate Now
+Private LoggedOn	'// Timer Object
+
+
+'***************************
+'// BOT EVENTS
+
+Sub Event_Load()
+	Set shamans = CreateObject("Scripting.Dictionary")
+	shamans.CompareMode = 1
+End Sub
+
+Sub Event_PressedEnter(Text)
+	If Left(Text,1) = "/" Then
+		ProcessText BotVars.Username, BotVars.Trigger& Mid(Text,2), 4
+	End If
+End Sub
+
+Sub Event_UserTalk(Username, Flags, Message, Ping)
+	ProcessText Username, Message, 1
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+	ProcessText Username, Message, 3
+End Sub
+
+Sub Event_ClanMemberLeaves(Username)
+	Call LogIt(Username)
+End Sub
+
+Sub Event_ClanMemberUpdate(Username, Rank, Online)
+	'// Triggers when rank changes or a user logs on/off
+	Call CheckRank(Rank, Username)
+End Sub
+
+Sub Event_BotClanInfo(ClanTag, Rank)
+	Call CheckRank(Rank, myUsername)
+End Sub
+
+Sub Event_BotClanRankChanged(NewRank)
+	Call CheckRank(NewRank, myUsername)
+End Sub
+
+Sub Event_LoggedOn(Username, Product)
+	CreateObj "LongTimer", "LoggedOn"
+	LoggedOn.Interval = 10
+	LoggedOn.Enabled = True
+End Sub
+
+
+'***************************
+'// PRIVATE SUBS/FUNCTIONS
+
+Public Sub LoggedOn_Timer()
+	LoggedOn.Enabled = False
+	Call CheckRank(Clan.Members(Clan.GetUserIndex(myUsername)).Rank, myUsername)
+End Sub
+
+Private Sub LogIt(Username)
+	Dim objFSO, File, user, online, i, j, oldTXT
+
+	For Each user in Clan.Shamans
+		i = Clan.GetUserIndex(user.Name)
+		If Clan.Members(i).IsOnline Then
+			online = online & " " & user.Name
+			If GetPositionByName(user.Name)>0 Then
+				online = online & "(InChannel)"
+			End If
+
+			j = shamans.Item(user.Name)(1)+1
+			online = online & "(" & j & ")"
+			Call ItemUpdate(user.Name, 1, j)
+
+			If IsChief AND Int(j) > Int(allowedKicks) Then
+				AddChat vbCyan, user.Name & " is over the allowed safety limit"
+				If DateDiff("s", overridetime, Now()) > 0 Then
+					Call TakeAction(user.Name)
+				End If
+			ElseIf j = 1 Then
+				Call ItemUpdate(user.Name, 0, Now())
+			End If
+				
+		End If
+	Next
+
+	If Len(online)=0 Then online = "None"
+
+	Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+	If objFSO.FileExists(BotPath & FileName) Then
+		Set File = objFSO.OpenTextFile(BotPath & FileName, ForReading, True)
+		oldTXT = Split(File.ReadAll, vbCrLf, 2)(1)
+		File.Close
+	End If
+
+	Set File = objFSO.OpenTextFile(BotPath & FileName, ForWriting, True)
+
+	With File
+		.WriteLine "Membergone  |  Date/Time  |  Shamans online @ time of incident"
+		.WriteLine Username & "  |  " & Now & "  |  " & Replace(Trim(online), " ", ", ")
+		.Write oldTXT
+		.Close
+	End With
+
+	AddChat vbYellow, "ClanSafe Update:  " &Username& "  |  " &Now& "  |  " &Replace(Trim(online), " ", ", ")
+
+	Set File = Nothing
+	Set objFSO = Nothing
+End Sub
+
+Private Sub TakeAction(shaman)
+	Dim allowed, i, tallowed
+
+	allowed = Split(allowedUsers, ", ")
+	For i=0 to UBound(allowed)
+		If LCase(shaman) = LCase(allowed(i)) Then Exit Sub
+	Next
+
+	tallowed = shamans.Item(shaman)(0)
+	shamans.Remove shaman
+
+	If DateDiff("n", tallowed, Now) > timeFrame Then
+		shamans.Add shaman, Array(Now, 1)
+	Else
+		If Clan.Members(Clan.GetUserIndex(shaman)).Rank < 2 Then Exit Sub
+		Clan.Members(Clan.GetUserIndex(shaman)).Demote
+		AddQ shaman& " has been Temporarily demoted by AwaKening's ClanSafety Script."
+		AddQ "/w " &shaman& " You've been temporarily demoted by AwaKening's ClanSafety Script."
+	End If
+End Sub
+
+Private Sub CheckRank(Rank, Usercheck)
+	Dim n, i
+
+	If (Rank>2 AND NOT shamans.Exists(Usercheck)) OR shamans.Count=0 Then
+		If shamans.Count=0 Then
+			AddChat vbCyan, "ClanSafety:  Loading Shamans"
+			For Each n in Clan.Shamans
+				AddChat vbCyan, Space(5) & n.Name
+				shamans.Add n.Name, Array(Now()-7, 0)
+			Next
+		Else
+			shamans.Add UserCheck, Array(Now()-7, 0)	'// lastkick, count
+			AddChat vbCyan, "ClanSafety:  Shaman Loaded - " & Usercheck
+		End If
+	End If
+
+	If Usercheck = BotVars.Username Then
+		If Rank=4 Then
+			IsChief = True
+			AddChat vbCyan, "Bot is chieftan, ClanSafety is Active!"
+		Else
+			IsChief = False
+			AddChat vbRed, "ClanSafety:  Chieftan position is needed for protection."
+			AddChat vbRed, "             Logging is still active."
+		End If
+	End If
+End Sub
+
+Private Sub ProcessText(Username, Text, Origin)
+	If NOT(Left(Text, Len(BotVars.Trigger))) = BotVars.Trigger Then Exit Sub
+	If Len(Text)<Len(BotVars.Trigger)+1 Then Exit Sub
+
+	Dim cmd, lines, objFSO, File, tmp
+	cmd = Split(Mid(Text,Len(BotVars.Trigger)+1))
+
+	Select Case cmd(0)
+	Case "safety", viewlist
+		If NOT userHasAccess(Username, vAccess) Then Exit Sub
+
+		Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+		If NOT objFSO.FileExists(BotPath & FileName) Then
+			Dsp Origin, "The safetylist is currently empty", Username, vbCyan
+			Set objFSO = Nothing
+			Exit Sub
+		End If
+
+		lines = viewlines
+		If UBound(cmd)>0 Then
+			If IsNumeric(cmd(1)) Then lines = cInt(cmd(1))
+		End If
+
+		Set File = objFSO.OpenTextFile(BotPath & FileName, ForReading, True)
+		File.ReadLine	'// Move to 2nd line
+
+		Dsp Origin, "Safetylist("&lines&"):  Member  |  Time  |  Shamans online @ time", Username, vbCyan
+		Do While lines>0 AND NOT File.AtEndOfStream
+			Dsp Origin, File.ReadLine, Username, vbCyan
+			lines = lines -1
+		Loop
+
+		File.Close
+		Set File = Nothing
+		Set objFSO = Nothing
+	Case "override", ovrCmd
+		If NOT userHasAccess(Username, allowedUsers) Then Exit Sub
+
+		tmp = ovrTime
+		If UBound(cmd)>0 Then
+			If IsNumeric(cmd(1)) Then
+				tmp = cInt(cmd(1))
+				If tmp/60 > ovrMax Then tmp = ovrMax*60
+			End If
+		End If
+
+		overridetime = DateAdd("s", Abs(tmp), Now)
+
+		Dsp Origin, "Clan Safety Disabled for " & tmp & " seconds.", Username, vbCyan
+	End Select
+End Sub
+
+Private Sub ItemUpdate(Name, whichItem, Value)
+	Dim Items
+	Items = shamans.Item(Name)
+	Items(whichItem) = Value
+	shamans.Item(Name) = Items
+End Sub	
+
+Private Function userHasAccess(User, required)
+	userHasAccess = False
+
+	If User = BotVars.Username Then
+		VetoThisMessage
+		userHasAccess = True
+	Else
+		Dim A, F
+		GetStdDBEntry User, A, F
+		If IsNumeric(required) Then
+			If A >= cInt(required) Then
+				userHasAccess = True
+			End If
+		ElseIf LCase(required)=LCase(User) Then
+			userHasAccess = True
+		ElseIf InStr(1, F, required, 1)>0 Then
+			userHasAccess = True
+		ElseIf InStr(required, ", ")>0 Then
+			If InStr(1, required, User&", ", 1)>0 OR InStr(1, required, ", "&User, 1)>0 Then
+				userHasAccess = True
+			End If
+		End If
+	End If
+End Function

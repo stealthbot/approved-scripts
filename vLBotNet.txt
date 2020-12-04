@@ -1,0 +1,1264 @@
+#include "\lib\Ribose\StructuredSettings.txt"
+
+Option Explicit
+
+Script("Name") = "vL BotNet"
+Script("Author") = "Ribose"
+Script("Description") = "Allows you to access the Valhalla Legends BotNet service."
+Script("Major") = 0
+Script("Minor") = 9
+Script("Revision") = 20171211
+
+Private Const SET_AUTOCONNECT        = "ConnectOnLoad"   ' bool
+Private Const SET_DEBUG              = "Debug"           ' bool
+Private Const SET_SERVER             = "Server"          ' string
+Private Const SET_PORT               = "Port"            ' uint16
+Private Const SET_BOTNAME            = "BotName"         ' string
+Private Const SET_BOTPASS            = "BotPass"         ' string
+Private Const SET_DBNAME             = "DatabaseName"    ' string
+Private Const SET_DBPASS             = "DatabasePass"    ' string
+Private Const SET_USEACCOUNT         = "UseAccount"      ' bool
+Private Const SET_ACCOUNTNAME        = "AccountName"     ' string
+Private Const SET_ACCOUNTPASS        = "AccountPass"     ' string
+Private Const SET_CHDROP             = "ChatDropOptions" ' uint32
+
+Private Const STATE_SERVER           = "ConnectedServer" ' string
+Private Const STATE_PORT             = "ConnectedPort"   ' uint16
+Private Const STATE_SVERSION         = "ServerVersion"   ' uint32
+Private Const STATE_CVERSION         = "ClientVersion"   ' uint32
+Private Const STATE_CCAPS            = "ClientCaps"      ' uint32
+Private Const STATE_CHDROP           = "ChatDropOptions" ' uint32
+Private Const STATE_LOGONSTATE       = "LogonState"      ' uint32
+Private Const STATE_SELFADDR         = "SelfAddress"     ' byte()
+Private Const STATE_SELFBOTID        = "SelfBotID"       ' uint32
+Private Const STATE_SELFACCOUNT      = "SelfAccount"     ' string
+Private Const STATE_SELFDB           = "SelfDatabase"    ' string
+Private Const STATE_ADMINFLAGS       = "AdminFlags"      ' uint32
+Private Const STATE_LASTWHTO         = "LastWhisperToID" ' uint32
+
+Private Const CMD_BOTNET             = "botnet"
+Private Const CMD_BOTNET_AL_1        = "bn"
+Private Const CMD_BOTNET_AL_2        = "bnc"
+Private Const CMD_BOTNET_AL_3        = "bnd"
+Private Const CMD_BOTNET_ARG_SC      = "subcommand"
+Private Const CMD_BOTNET_ARG_AR      = "args"
+
+Private Const CMD_BOTNET_GET         = "get"
+Private Const CMD_BOTNET_SET         = "set"
+Private Const CMD_BOTNET_CONNECT     = "connect"
+Private Const CMD_BOTNET_CLOSE       = "close"
+Private Const CMD_BOTNET_CHAT        = "chat"
+Private Const CMD_BOTNET_CHAT_EM     = "em"
+Private Const CMD_BOTNET_CHAT_BC     = "bc"
+Private Const CMD_BOTNET_CHAT_BCEM   = "bcem"
+Private Const CMD_BOTNET_CHAT_WH     = "wh"
+Private Const CMD_BOTNET_CHAT_WHEM   = "whem"
+Private Const CMD_BOTNET_CHAT_RE     = "re"
+Private Const CMD_BOTNET_CHAT_REEM   = "reem"
+Private Const CMD_BOTNET_COMMAND     = "command"
+Private Const CMD_BOTNET_USER        = "user"
+
+Private Const PREFIX_BOTNET_COLOR    = &H888888
+Private Const PREFIX_BOTNET          = "(BotNet) "
+
+Private Const BN_PROTOCOL_VER        = &H01
+
+Private Const BN_SERVERLEVEL_1       = &H01 ' server version level 0x01
+Private Const BN_SERVERLEVEL_2       = &H02 ' server version level 0x02
+Private Const BN_SERVERLEVEL_3       = &H03 ' server version level 0x03
+Private Const BN_SERVERLEVEL_4       = &H04 ' server version level 0x04
+
+Private Const BN_CLIENTLEVEL_0       = &H00 ' client version level 0x00
+Private Const BN_CLIENTLEVEL_1       = &H01 ' client version level 0x01 [v4]
+
+Private Const BN_CLIENTCAP_AWAITDB   = &H01 ' client capabilitie: wait for DB updates [v4]
+
+Private Const BN_LOGONSTATE_NONE     = &H00000000 ' logon state: nothing yet
+Private Const BN_LOGONSTATE_WAIT     = &H00000001 ' logon state: received S>C VERSION, awaiting responses below:
+Private Const BN_LOGONSTATE_0A       = &H00000010 ' logon state: part 1: client version [v4]
+Private Const BN_LOGONSTATE_0D       = &H00000020 ' logon state: part 2: account [optional; v2]
+Private Const BN_LOGONSTATE_10       = &H00000040 ' logon state: part 3: chat options [optional; v4]
+Private Const BN_LOGONSTATE_02       = &H00000080 ' logon state: part 4: first update
+Private Const BN_LOGONSTATE_RDY      = &H000000F1 ' logon state: combination of 4 parts and WAIT; this means we can request 0x06/0x03 and the first received 0x06 is "self" which brings up the welcome notice
+
+Private Const BN_CHAT_TARGET_ALL     = &H00 ' chat target: all (broadcasts)
+Private Const BN_CHAT_TARGET_DB      = &H01 ' chat target: database (db messages)
+Private Const BN_CHAT_TARGET_USER    = &H02 ' chat target: user (whispers)
+
+Private Const BN_CHAT_ACTION_SAY     = &H00 ' chat action: normal
+Private Const BN_CHAT_ACTION_EMOTE   = &H01 ' chat action: emote
+
+Private Const BN_ACCOUNT_LOGON       = &H00 ' subcommand for account: logon  [v2]
+Private Const BN_ACCOUNT_CHPW        = &H01 ' subcommand for account: change [v2]
+Private Const BN_ACCOUNT_CREATE      = &H02 ' subcommand for account: create [v2]
+
+Private Const BN_CHATOPTS_CHDROP     = &H00 ' subcommand for chat options: chat drop [v4]
+
+Private Const BN_CHDROP_REFUSE_NONE  = &H00 ' refuse none                                  [v4]
+Private Const BN_CHDROP_REFUSE_NOACC = &H01 ' refuse when no-account                       [v4]
+Private Const BN_CHDROP_REFUSE_ALL   = &H02 ' refuse all                                   [v4]
+Private Const BN_CHDROP_REFUSE_ODB   = &H01 ' refuse all for ODB (other-database) whispers [v4]
+
+Private Const BN_CHDROP_MUL_ALL      = &H00000001 ' multiply for broadcasts                    [v4]
+Private Const BN_CHDROP_MUL_DB       = &H00000100 ' multiply for db messages                   [v4]
+Private Const BN_CHDROP_MUL_USER     = &H00010000 ' multiply for whispers                      [v4]
+Private Const BN_CHDROP_MUL_ODB_USER = &H01000000 ' multiply for ODB (other-database) whispers [v4]
+
+Private Const BNC_KEEPALIVE          = &H00 ' C>S [v4]
+Private Const BNC_BOTLOGON           = &H01 ' C>S
+Private Const BNC_UPDATE             = &H02 ' C>S
+Private Const BNC_DBMOD              = &H03 ' C>S
+Private Const BNC_COMMAND            = &H04 ' C>S
+Private Const BNC_CYCLE              = &H05 ' C>S
+Private Const BNC_INFO               = &H06 ' C>S
+Private Const BNC_COMMANDALL         = &H07 ' C>S
+Private Const BNC_COMMANDBOT         = &H08 ' C>S
+Private Const BNC_DBPW               = &H09 ' C>S
+Private Const BNC_VERSION            = &H0a ' C>S [v4]
+Private Const BNC_CHAT               = &H0b ' C>S
+Private Const BNC_ADMIN              = &H0c ' C>S [v2]
+Private Const BNC_ACCOUNT            = &H0d ' C>S [v2]
+Private Const BNC_DBCHMODE           = &H0e ' C>S [v4]
+Private Const BNC_CHATOPTIONS        = &H10 ' C>S [v4]
+
+Private Const BNS_KEEPALIVE          = &H00 ' S>C
+Private Const BNS_BOTLOGONACK        = &H01 ' S>C
+Private Const BNS_UPDATEACK          = &H02 ' S>C
+Private Const BNS_DBMODACK           = &H03 ' S>C
+Private Const BNS_COMMANDDB          = &H04 ' S>C
+Private Const BNS_CYCLE              = &H05 ' S>C
+Private Const BNS_INFO               = &H06 ' S>C
+Private Const BNS_LEFT               = &H07 ' S>C
+Private Const BNS_PROTOCOL           = &H08 ' S>C [v4]
+Private Const BNS_VERSIONACK         = &H09 ' S>C [v4]
+Private Const BNS_VERSION            = &H0a ' S>C
+Private Const BNS_CHAT               = &H0b ' S>C
+Private Const BNS_ADMIN              = &H0c ' S>C [v2]
+Private Const BNS_ACCOUNTACK         = &H0d ' S>C [v2]
+Private Const BNS_DBCHMODEACK        = &H0e ' S>C [v4]
+Private Const BNS_CHATOPTIONSACK     = &H10 ' S>C [v4]
+
+Private BN_Settings, BN_State, BN_Users, BN_RecvBuffer, BN_ReconnectTry, BN_SilentRC
+
+'/------------\
+'| Bot Events |
+'\------------/
+
+Sub Event_Load()
+    Call BotNet_Init  
+End Sub
+
+Sub Event_Close()
+    Call BotNet_Close
+End Sub
+
+Sub Event_LoggedOff()
+    Call BotNet_UpdateInfo
+End Sub
+
+Sub Event_ChannelJoin(ChannelName, Flags)
+    Call BotNet_UpdateInfo
+End Sub
+
+Sub Event_Command(Command)
+    Dim Subcommand, ArgsS, ArgsR
+    Dim Key, Value
+    Dim ChID, Message, UserObj, ChUser
+    If Command.Name = CMD_BOTNET Then
+        If Command.IsValid Then
+            Subcommand = Command.Argument(CMD_BOTNET_ARG_SC)
+            ArgsS = Command.Argument(CMD_BOTNET_ARG_AR)
+            ArgsR = Split(ArgsS & "  ", " ")
+
+            Select Case LCase(Subcommand)
+                Case CMD_BOTNET_GET
+                    Key = ArgsR(0)
+                    If Len(Key) > 0 Then
+                        Key = FindSettingThatStartsWith(BN_Settings, Key)
+                        If SettingExists(BN_Settings, Key) Then
+                            Value = GetSetting(BN_Settings, Key)
+                            BotNet_Print Command, Color.Yellow, "Setting " & Key & " = " & Value
+                        Else
+                            BotNet_Print Command, Color.Yellow, "Setting " & Key & " does not exist. Settings: " & ListSettings(BN_Settings)
+                        End If
+                    Else
+                        BotNet_Print Command, Color.Yellow, "Settings: " & ListSettings(BN_Settings)
+                    End If
+                Case CMD_BOTNET_SET
+                    Key = ArgsR(0)
+                    Key = FindSettingThatStartsWith(BN_Settings, Key)
+                    Value = Mid(ArgsS, Len(Key) + 2)
+                    If Len(Key) > 0 Then
+                        If SettingExists(BN_Settings, Key) Then
+                            If IsValidSettingValue(BN_Settings, Key, Value) Then
+                                Call SetSetting(BN_Settings, Key, Value)
+                                Call SaveSettings(BN_Settings)
+                                Value = GetSetting(BN_Settings, Key)
+                                BotNet_Print Command, Color.Yellow, "Set setting " & Key & " = " & Value
+                            Else
+                                BotNet_Print Command, Color.Yellow, "Setting " & Key & " must be set to a valid value. " & GetValidSettingString(BN_Settings, Key)
+                            End If
+                        Else
+                            BotNet_Print Command, Color.Yellow, "Setting " & Key & " does not exist. Settings: " & ListSettings(BN_Settings)
+                        End If
+                    Else
+                        BotNet_Print Command, Color.Yellow, "Settings: " & ListSettings(BN_Settings)
+                    End If
+                Case CMD_BOTNET_CONNECT
+                    Call BotNet_Close
+                    Call BotNet_Connect(False)
+                Case CMD_BOTNET_CLOSE
+                    Call BotNet_Close
+                Case CMD_BOTNET_USER
+                    ChID = BotNet_FindUser(ArgsS)
+                    If ChID > 0 Then
+                        Set UserObj = BotNet_GetUserByID(ChID)
+                        BotNet_Print Command, Color.Yellow, "User information: " & UserObj.GetFullString() & "."
+                        Set UserObj = Nothing
+                    Else
+                        BotNet_Print Command, Color.Salmon, "User """ & ArgsS & """ not found."
+                    End If
+                Case CMD_BOTNET_CHAT
+                    Message = ArgsS
+                    Call BotNet_Chat(BN_CHAT_TARGET_DB, BN_CHAT_ACTION_SAY, 0, Message)
+                Case CMD_BOTNET_CHAT_EM
+                    Message = ArgsS
+                    Call BotNet_Chat(BN_CHAT_TARGET_DB, BN_CHAT_ACTION_EMOTE, 0, Message)
+                Case CMD_BOTNET_CHAT_BC
+                    Message = ArgsS
+                    Call BotNet_Chat(BN_CHAT_TARGET_ALL, BN_CHAT_ACTION_SAY, 0, Message)
+                Case CMD_BOTNET_CHAT_BCEM
+                    Message = ArgsS
+                    Call BotNet_Chat(BN_CHAT_TARGET_ALL, BN_CHAT_ACTION_EMOTE, 0, Message)
+                Case CMD_BOTNET_CHAT_WH
+                    ChUser = ArgsR(0)
+                    ChID = BotNet_FindUser(ChUser)
+                    Message = Mid(ArgsS, Len(ChUser) + 2)
+                    If ChID > 0 Then
+                        Call BotNet_Chat(BN_CHAT_TARGET_USER, BN_CHAT_ACTION_SAY, ChID, Message)
+                        Call BotNet_SetState(STATE_LASTWHTO, "#" & ChID)
+                    Else
+                        BotNet_Print Command, Color.Salmon, "User """ & ChUser & """ not found."
+                    End If
+                Case CMD_BOTNET_CHAT_WHEM
+                    ChUser = ArgsR(0)
+                    ChID = BotNet_FindUser(ChUser)
+                    Message = Mid(ArgsS, Len(ChUser) + 2)
+                    If ChID > 0 Then
+                        Call BotNet_Chat(BN_CHAT_TARGET_USER, BN_CHAT_ACTION_EMOTE, ChID, Message)
+                        Call BotNet_SetState(STATE_LASTWHTO, ChID)
+                    Else
+                        BotNet_Print Command, Color.Salmon, "User """ & ChUser & """ not found."
+                    End If
+                Case CMD_BOTNET_CHAT_RE
+                    Message = ArgsS
+                    ChID = BotNet_State(STATE_LASTWHTO)
+                    If ChID > 0 Then
+                        Call BotNet_Chat(BN_CHAT_TARGET_USER, BN_CHAT_ACTION_SAY, ChID, Message)
+                    Else
+                        BotNet_Print Command, Color.Salmon, "Have not whispered to any users yet."
+                    End If
+                Case CMD_BOTNET_CHAT_REEM
+                    Message = ArgsS
+                    ChID = BotNet_State(STATE_LASTWHTO)
+                    If ChID > 0 Then
+                        Call BotNet_Chat(BN_CHAT_TARGET_USER, BN_CHAT_ACTION_EMOTE, ChID, Message)
+                    Else
+                        BotNet_Print Command, Color.Salmon, "Have not whispered to any users yet."
+                    End If
+            End Select
+        Else
+            BotNet_Print Command, Color.ConsoleText, "Provide a BotNet subcommand to execute. The following are supported: " & _
+                    CMD_BOTNET_GET & ", " & CMD_BOTNET_SET & ", " & CMD_BOTNET_CONNECT & ", " & CMD_BOTNET_CLOSE & ", " & CMD_BOTNET_CHAT & ", " & CMD_BOTNET_USER & "."
+        End If
+    End If
+End Sub
+
+'/---------------------------\
+'| Initialization & Settings |
+'\---------------------------/
+
+Sub InitCommand()
+    Dim cmd, Param
+
+    If OpenCommand(CMD_BOTNET) Is Nothing Then
+        Set cmd = CreateCommand(CMD_BOTNET)
+        With cmd
+            Set Param = .NewParameter(CMD_BOTNET_ARG_SC, False, "word")
+            Param.Description = "The BotNet subcommand. Subcommands"
+            .Parameters.Add Param
+            Set Param = .NewParameter(CMD_BOTNET_ARG_AR, True, "string")
+            Param.Description = "The arguments for the BotNet subcommand."
+            .Parameters.Add Param
+            
+            .Aliases.Add CMD_BOTNET_AL_1
+            .Aliases.Add CMD_BOTNET_AL_2
+            .Aliases.Add CMD_BOTNET_AL_3
+            .Description = "Command to control vL BotNet connection."
+            .RequiredRank = -1
+            .RequiredFlags = "V"
+            .Save
+            AddChat vbWhite, "Command Saved"
+        End With
+    End If
+End Sub
+
+Sub InitSettings()
+    Set BN_Settings = CreateObject("Scripting.Dictionary")
+    BN_Settings.Item(SET_AUTOCONNECT)  = BooleanSetting(False)
+    BN_Settings.Item(SET_DEBUG)        = BooleanSetting(False)
+    BN_Settings.Item(SET_SERVER)       = Setting(vbNullString)
+    BN_Settings.Item(SET_PORT)         = IntegerSetting(&H5555&, 0, &HFFFF&)
+    BN_Settings.Item(SET_BOTNAME)      = Setting(vbNullString)
+    BN_Settings.Item(SET_BOTPASS)      = Setting(vbNullString)
+    BN_Settings.Item(SET_DBNAME)       = Setting(vbNullString)
+    BN_Settings.Item(SET_DBPASS)       = Setting(vbNullString)
+    BN_Settings.Item(SET_USEACCOUNT)   = BooleanSetting(True)
+    BN_Settings.Item(SET_ACCOUNTNAME)  = Setting(vbNullString)
+    BN_Settings.Item(SET_ACCOUNTPASS)  = Setting(vbNullString)
+    BN_Settings.Item(SET_CHDROP)       = IntegerSetting(0, 0, &HFFFFFFFF)
+End Sub
+
+Sub BotNet_PrintDebug(Text)
+    If GetSetting(BN_Settings, SET_DEBUG) Then
+        BotNet_Print Nothing, Color.Salmon, "DEBUG: " & Text
+    End If
+End Sub
+
+'/---------------\
+'| BotNet Client |
+'\---------------/
+
+Sub BotNet_Init()
+    Call InitCommand
+    Call InitSettings
+    Call LoadSettings(BN_Settings)
+    
+    CreateObj "Winsock", "BotNetSock"
+    CreateObj "LongTimer", "BotNetKeepAlive"
+    CreateObj "LongTimer", "BotNetReconnect"
+    Set BN_State = CreateObject("Scripting.Dictionary")
+    Call BotNet_Reset
+    
+    Call BotNet_AutoConnectCheck
+End Sub
+
+Sub BotNet_AutoConnectCheck()
+    Dim AutoConnect
+    AutoConnect = GetSetting(BN_Settings, SET_AUTOCONNECT)
+    BotNet_PrintDebug "Auto Connect? " & AutoConnect
+    If AutoConnect Then
+        Call BotNet_Connect(False)
+    End If
+End Sub
+
+Sub BotNet_Reset()
+    Call BotNet_SetState(STATE_SERVER,      vbNullString)
+    Call BotNet_SetState(STATE_PORT,        0)
+    Call BotNet_SetState(STATE_SVERSION,    0)
+    Call BotNet_SetState(STATE_CVERSION,    0)
+    Call BotNet_SetState(STATE_CCAPS,       0)
+    Call BotNet_SetState(STATE_LOGONSTATE,  BN_LOGONSTATE_NONE)
+    Call BotNet_SetState(STATE_SELFADDR,    vbNullString)
+    Call BotNet_SetState(STATE_SELFBOTID,   0)
+    Call BotNet_SetState(STATE_SELFACCOUNT, vbNullString)
+    Call BotNet_SetState(STATE_SELFDB,      vbNullString)
+    Call BotNet_SetState(STATE_ADMINFLAGS,  0)
+    Call BotNet_SetState(STATE_LASTWHTO,    0)
+    Set BN_Users = CreateObject("Scripting.Dictionary")
+    BN_ReconnectTry = 0
+    BotNetKeepAlive.Enabled = False
+End Sub
+
+Sub BotNet_Print(Command, Color, Text)
+    If Command Is Nothing Then
+        AddChat PREFIX_BOTNET_COLOR, PREFIX_BOTNET, Color, Text
+    ElseIf Command.IsLocal And Not Command.PublicOutput Then
+        AddChat PREFIX_BOTNET_COLOR, PREFIX_BOTNET, Color, Text
+    Else
+        Command.Respond PREFIX_BOTNET & Text
+    End If
+End Sub
+
+Sub BotNet_PrintChat(Target, Action, ID, Message, IsSending)
+    Dim TargetColor, TargetText, UserColor, IDFrom, IDTo, IDText, WhContext
+    If IsSending Then
+        IDFrom = BotNet_State(STATE_SELFBOTID)
+        IDTo = ID
+    Else
+        IDFrom = ID
+        IDTo = BotNet_State(STATE_SELFBOTID)
+    End If
+    Select Case Target
+        Case BN_CHAT_TARGET_ALL
+            TargetColor = Color.Magenta
+            TargetText = "[ ALL ] "
+            IDText = CStr(BotNet_GetUserByID(IDFrom))
+        Case BN_CHAT_TARGET_DB
+            TargetColor = Color.White
+            TargetText = "[ DB ] "
+            IDText = CStr(BotNet_GetUserByID(IDFrom))
+        Case BN_CHAT_TARGET_USER
+            TargetColor = Color.LimeGreen
+            TargetText = "[ WHISPER ] "
+            IDText = CStr(BotNet_GetUserByID(IDFrom))
+            If IsSending Then
+                WhContext = "(-> " & CStr(BotNet_GetUserByID(IDTo)) & ") "
+            Else
+                WhContext = "(" & CStr(BotNet_GetUserByID(IDFrom)) & " ->) "
+                If IDText = "Bot" And Asc(Left(Message, 1)) = 222 Then Exit Sub
+            End If
+    End Select
+    If IsSending Then
+        UserColor = Color.Cyan
+    Else
+        UserColor = Color.Yellow
+    End If
+    Select Case Action
+        Case BN_CHAT_ACTION_SAY
+            AddChat PREFIX_BOTNET_COLOR, PREFIX_BOTNET, TargetColor, TargetText, Color.Yellow, WhContext, UserColor, IDText & ": ", Color.White, Message
+        Case BN_CHAT_ACTION_EMOTE
+            AddChat PREFIX_BOTNET_COLOR, PREFIX_BOTNET, TargetColor, TargetText, Color.Yellow, WhContext, Color.Yellow, "** ", UserColor, IDText & " ", Color.Yellow, Message
+    End Select
+End Sub
+
+Sub BotNet_PrintWelcome()
+    Dim SV, CV, CC, ID, Params
+    Params = vbNullString
+    SV =  BotNet_State(STATE_SVERSION)
+    CV =  BotNet_State(STATE_CVERSION)
+    CC =  BotNet_State(STATE_CCAPS)
+    ID =  BotNet_State(STATE_SELFBOTID)
+    Params = Params & " on service version 0x" & Hex(SV)
+    If SV >= BN_SERVERLEVEL_4 Then
+        Params = Params & " with client support 0x" & Hex(CV) & "+0x" & Hex(CC)
+    End If
+    AddChat PREFIX_BOTNET_COLOR, PREFIX_BOTNET, _
+            Color.LimeGreen, "Logged on to ", _
+            Color.Turquoise, "Valhalla Legend's BotNet", _
+            Color.LimeGreen, " service as ", _
+            Color.Cyan, BotNet_GetUserByID(ID).GetFullName(), _
+            Color.LimeGreen, ", ", _
+            Color.Yellow, BotNet_GetUserByID(ID).GetInfoString(), _
+            Color.LimeGreen, Params, _
+            Color.LimeGreen, "."
+End Sub
+
+Function BotNet_State(Key)
+    BotNet_State = BN_State.Item(Key)
+End Function
+
+Sub BotNet_SetState(Key, Value)
+    If Key = STATE_LOGONSTATE Then BotNet_PrintDebug "LogonState=" & Hex(Value)
+    BN_State.Item(Key) = Value
+End Sub
+
+Sub BotNet_UpdateInfo()
+    Dim UniqueUsername, CurrentChannel, BnetAddress, DatabaseString, CycleStatus
+    UniqueUsername = Channel.Self.Name
+    If Len(UniqueUsername) = 0 Then
+        UniqueUsername = BotVars.Username
+        If Len(UniqueUsername) = 0 Then
+            UniqueUsername = "Unknown"
+        End If
+    End If
+    CurrentChannel = Channel.Name
+    If Len(CurrentChannel) = 0 Then
+        If IsOnline Then 
+            CurrentChannel = "<Not in channel>"
+        Else
+            CurrentChannel = "<Not logged on>"
+        End If
+    End If
+    BnetAddress = AddressToNetwork(GetCurrentServerIP())
+    DatabaseString = StringFormat("{0} {1}", GetSetting(BN_Settings, SET_DBNAME), GetSetting(BN_Settings, SET_DBPASS))
+    CycleStatus = False
+    Call Send_BNC_UPDATE(UniqueUsername, CurrentChannel, BnetAddress, DatabaseString, CycleStatus)
+End Sub
+
+Sub BotNet_RequestUsers()
+    Call Send_BNC_INFO()
+End Sub
+
+Function BotNet_InsertPWString(Packet, Value)
+    Dim I
+    If StrComp(Left(Value, 4), "HEX:", vbTextCompare) = 0 Then
+        Value = Replace(Value, Space(1), vbNullString)
+        For I = 5 To Len(Value) Step 2
+            Packet.InsertByte Eval("&H" & Mid(Value, I, 2))
+        Next
+        Packet.InsertByte 0
+    ElseIf StrComp(Left(Value, 4), "STR:", vbTextCompare) = 0 Then
+        Packet.InsertNTString CStr(Mid(Value, 5))
+    Else
+        Packet.InsertNTString CStr(Value)
+    End If
+End Function
+
+Function BotNet_GetUserByID(BotID)
+    If BN_Users.Exists(BotID) Then
+        Set BotNet_GetUserByID = BN_Users.Item(BotID)
+    Else
+        Set BotNet_GetUserByID = New BotNetUserClass
+        Call BotNet_GetUserByID.InitEmpty(BotID)
+    End If
+End Function
+
+Function BotNet_FindUser(ByVal SearchTerm)
+    Dim BotID, UserObj
+    BotNet_FindUser = 0
+    If Left(SearchTerm, 1) = "#" Or Left(SearchTerm, 1) = "%" Then
+        ' first, check if numeric
+        SearchTerm = Mid(SearchTerm, 2)
+        If IsNumeric(SearchTerm) Then
+            BotNet_FindUser = CInt(SearchTerm)
+        End If
+    ElseIf Left(SearchTerm, 1) = "*" Then
+        ' next, check if we're looking by full name without account: *BNET_NAME[#ID]
+        For Each BotID In BN_Users.Keys()
+            Set UserObj = BN_Users.Item(BotID)
+            SearchTerm = Mid(SearchTerm, 1)
+            If StrComp(Left(UserObj.BotName & "#" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+               StrComp(Left(UserObj.BotName & "%" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Then
+                If BotNet_FindUser > 0 Then
+                    ' multiple results
+                    BotNet_FindUser = 0
+                    Exit Function
+                End If
+                BotNet_FindUser = BotID
+            End If
+        Next
+    Else
+        ' next, check if we're looking by full name with account: BOTNET_ACCOUNT[*BNET_NAME][#ID]
+        For Each BotID In BN_Users.Keys()
+            Set UserObj = BN_Users.Item(BotID)
+            SearchTerm = Mid(SearchTerm, 1)
+            If UserObj.IsOnAccount() Then
+                If StrComp(Left(UserObj.AccountName & "*" & UserObj.BotName & "#" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                   StrComp(Left(UserObj.AccountName & "*" & UserObj.BotName & "%" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                   StrComp(Left(UserObj.AccountName & "#" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                   StrComp(Left(UserObj.AccountName & "%" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Then
+                    If BotNet_FindUser > 0 Then
+                        ' multiple results
+                        BotNet_FindUser = 0
+                        Exit Function
+                    End If
+                    BotNet_FindUser = BotID
+                End If
+            End If
+        Next
+        ' finally, check if we're looking by full name from account-less users: BNET_NAME[#ID]
+        If BotNet_FindUser = 0 Then
+            For Each BotID In BN_Users.Keys()
+                Set UserObj = BN_Users.Item(BotID)
+                SearchTerm = Mid(SearchTerm, 1)
+                If Not UserObj.IsOnAccount() Then
+                    If StrComp(Left(UserObj.AccountName & "*" & UserObj.BotName & "#" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                       StrComp(Left(UserObj.AccountName & "*" & UserObj.BotName & "%" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                       StrComp(Left(UserObj.BotName & "#" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Or _
+                       StrComp(Left(UserObj.BotName & "%" & BotID, Len(SearchTerm)), SearchTerm, vbTextCompare) = 0 Then
+                        If BotNet_FindUser > 0 Then
+                            ' multiple results
+                            BotNet_FindUser = 0
+                            Exit Function
+                        End If
+                        BotNet_FindUser = BotID
+                    End If
+                End If
+            Next
+        End If
+    End If
+End Function
+
+Sub BotNet_Chat(Target, Action, ID, Message)
+    Call Send_BNC_CHAT(Target, Action, ID, Message)
+    Call BotNet_PrintChat(Target, Action, ID, Message, True)
+End Sub
+
+Sub BotNet_Connect(Silent)
+    Dim Server, Port
+    Server = LCase(Trim(GetSetting(BN_Settings, SET_SERVER)))
+    Port = GetSetting(BN_Settings, SET_PORT)
+    If Len(Server) = 0 Or _
+       StrComp(Server, "0.0.0.0", vbBinaryCompare) = 0 Or _
+       StrComp(Server, "255.255.255.255", vbBinaryCompare) = 0 Then
+        BotNet_Print Nothing, Color.GreenYellow, "No server is set. Use /botnet set Server"
+        Exit Sub
+    End If
+    Set BN_RecvBuffer = DataBufferEx()
+    Call BotNet_SetState(STATE_SERVER, Server)
+    Call BotNet_SetState(STATE_PORT,   Port)
+    BotNetSock.RemoteHost = GetSetting(BN_Settings, SET_SERVER)
+    BotNetSock.RemotePort = GetSetting(BN_Settings, SET_PORT)
+    If Not Silent Then BotNet_Print Nothing, Color.GreenYellow, "Connecting to " & GetSetting(BN_Settings, SET_SERVER) & "..."
+    BotNetKeepAlive.Interval = 150
+    BotNetKeepAlive.Enabled = True
+    BN_SilentRC = Silent
+    BotNetSock.Connect
+End Sub
+
+' Packet Header
+'(UINT8) protocol version
+'(UINT8) packet id
+'(UINT16) packet len
+Sub BotNet_SendPacket(Buffer, ID)
+    If BotNetSock.State <> 7 Then Exit Sub
+    BotNet_PrintDebug "SendData " & (Buffer.Length + 4)
+    DataBuffer.InsertByte BN_PROTOCOL_VER
+    DataBuffer.InsertByte ID
+    DataBuffer.InsertWord Buffer.Length + 4
+    If Buffer.Length > 0 Then
+        DataBuffer.InsertByteArr Buffer.GetDataAsByteArr()
+    End If
+    DataBuffer.SendData BotNetSock
+End Sub
+
+Sub BotNet_Close()
+    If BotNetSock.State = 0 Then Exit Sub
+    BotNetSock.Close
+    Call BotNet_Reset
+    If Not BN_SilentRC Then BotNet_Print Nothing, Color.Salmon, "Connection closed."
+End Sub
+
+Sub BotNet_ScheduleReconnect()
+    If Config.ReconnectType = 0 Then ' diabled
+        BotNetReconnect.Enabled = False
+        Exit Sub
+    ElseIf Config.ReconnectType = 1 Then ' delay
+        BotNetReconnect.Interval = Config.ReconnectDelay
+    ElseIf Config.ReconnectType = 2 Then ' delay * try
+        BotNetReconnect.Interval = Config.ReconnectDelay * BN_ReconnectTry
+        BotNetReconnect.Enabled = True
+        BN_ReconnectTry = BN_ReconnectTry + 1
+    End If
+    If BotNetReconnect.Interval > Config.ReconnectDelayMax Then
+        BotNetReconnect.Interval = Config.ReconnectDelayMax
+    End If
+    BotNetReconnect.Enabled = True
+    BN_ReconnectTry = BN_ReconnectTry + 1
+End Sub
+'/-----------------\
+'| BotNetReconnect |
+'\-----------------/
+
+Sub BotNetReconnect_Timer()
+    BotNetReconnect.Enabled = False
+    Call BotNet_Connect(True)
+End Sub
+
+'/-----------------\
+'| BotNetKeepAlive |
+'\-----------------/
+
+Sub BotNetKeepAlive_Timer()
+    If BotNetSock.State <> 7 Then
+        BotNetKeepAlive.Enabled = False
+        Exit Sub
+    End If
+    If BotNet_State(STATE_LOGONSTATE) = BN_LOGONSTATE_NONE Then
+        BotNet_Print Nothing, Color.Salmon, "The BotNet service has not announced its server version. The bot cannot continue."
+        Call BotNet_Close
+        Exit Sub
+    End If
+    If BotNet_State(STATE_SVERSION) >= BN_SERVERLEVEL_4 Then
+        Call Send_BNC_KEEPALIVE
+    End If
+End Sub
+
+'/------------\
+'| BotNetSock |
+'\------------/
+
+Sub BotNetSock_Connect()
+    BotNet_PrintDebug "Connect"
+    Call Send_BNC_BOTLOGON(GetSetting(BN_Settings, SET_BOTNAME), GetSetting(BN_Settings, SET_BOTPASS))
+End Sub
+
+Sub BotNetSock_Close()
+    BotNet_Print Nothing, Color.Salmon, "Remote host closed connection."
+    BotNetSock.Close
+    Call BotNet_ScheduleReconnect
+End Sub
+
+' Packet Header
+'(UINT8) protocol version
+'(UINT8) packet id
+'(UINT16) packet len
+Sub BotNetSock_DataArrival(Length)
+    Dim Packet
+    BotNet_PrintDebug "DataArrival " & Length
+    BN_ReconnectTry = 0
+    BN_RecvBuffer.GetDataAndAppend BotNetSock, Length
+    Do While BN_RecvBuffer.IsFullPacket(2)
+        Set Packet = BN_RecvBuffer.TakePacket(2)
+        Call Recv_PacketSwitch(Packet)
+        Set Packet = Nothing
+    Loop
+End Sub
+
+Sub BotNetSock_Error(Number, Description, sCode, Source, HelpFile, HelpContext, CancelDisplay)
+    If Not BN_SilentRC Then BotNet_Print Nothing, Color.Salmon, "Error #" & Number & " -- " & Description
+    Call BotNet_Close
+    Call BotNet_ScheduleReconnect
+End Sub
+
+'/----------------\
+'| Packet Sending |
+'\----------------/
+
+' Packet 0x00 C>S KEEPALIVE
+' [blank]
+Sub Send_BNC_KEEPALIVE()
+    Dim Packet
+    Set Packet = DataBufferEx()
+    BotNet_SendPacket Packet, BNC_KEEPALIVE
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x01 C>S BOTLOGON
+' (NTSTRING) Bot name
+' (NTSTRING) Bot pass
+Sub Send_BNC_BOTLOGON(Username, Password)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertNTString CStr(Username)
+    BotNet_InsertPWString Packet, Password
+    BotNet_SendPacket Packet, BNC_BOTLOGON
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x02 C>S UPDATE
+'  (NTSTRING) Battle.net username
+'  (NTSTRING) Battle.net channel name
+' (UINT32:IP) Battle.net IP
+'  (NTSTRING) Database name & pass
+'    (UINT32) Cycle status (0 or 1)
+Sub Send_BNC_UPDATE(UniqueUsername, CurrentChannel, BnetAddress, DatabaseString, CycleStatus)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertNTString CStr(UniqueUsername)
+    Packet.InsertNTString CStr(CurrentChannel)
+    Packet.InsertDword CLng(BnetAddress)
+    Packet.InsertNTString CStr(DatabaseString)
+    Packet.InsertBool CBool(CycleStatus)
+    BotNet_SendPacket Packet, BNC_UPDATE
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x06 C>S INFO
+' [blank]
+Sub Send_BNC_INFO()
+    Dim Packet
+    Set Packet = DataBufferEx()
+    BotNet_SendPacket Packet, BNC_INFO
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x0A C>S VERSION [v4]
+' (UINT32) Client version
+' (UINT32) Client capabilities
+Sub Send_BNC_VERSION(ClientVersion, ClientCaps)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertDword CLng(ClientVersion)
+    Packet.InsertDword CLng(ClientCaps)
+    BotNet_SendPacket Packet, BNC_VERSION
+    Set Packet = Nothing
+End Sub
+
+
+' Packet 0x0B C>S CHAT
+'   (UINT32) Target (0 = all, 1 = db, 2 = user)
+'   (UINT32) Action (0 = normal, 1 = emote)
+'   (UINT32) ID Target
+' (NTSTRING) Message
+Sub Send_BNC_CHAT(Target, Action, ID, Message)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertDword CLng(Target)
+    Packet.InsertDword CLng(Action)
+    Packet.InsertDword CLng(ID)
+    Packet.InsertNTString CStr(Message)
+    BotNet_SendPacket Packet, BNC_CHAT
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x0D C>S ACCOUNT [v2]
+'   (UINT32) Subcommand
+' (NTSTRING) Account name
+' Subcommand = 0x00 [logon]:
+'     (NTSTRING) Password
+' Subcommand = 0x01 [change password]:
+'     (NTSTRING) Old password
+'     (NTSTRING) New password
+' Subcommand = 0x02 [create]:
+'     (NTSTRING) Password
+Sub Send_BNC_ACCOUNT(Subcommand, AccountName, AccountPass, AccountPassChange)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertDword Subcommand
+    Packet.InsertNTString CStr(AccountName)
+    Select Case Subcommand
+        Case BN_ACCOUNT_LOGON, BN_ACCOUNT_CREATE
+            BotNet_InsertPWString Packet, AccountPass
+        Case BN_ACCOUNT_CHPW
+            BotNet_InsertPWString Packet, AccountPass
+            BotNet_InsertPWString Packet, AccountPassChange
+        Case Else
+            BotNet_Print Nothing, Color.Salmon, "Unknown C>S 0x0D ACCOUNT subcommand: 0x" & Hex(Subcommand)
+            Exit Sub
+    End Select
+    BotNet_SendPacket Packet, BNC_ACCOUNT
+    Set Packet = Nothing
+End Sub
+
+' Packet 0x10 C>S CHATOPTIONS [v4]
+' (UINT32) Subcommand
+' Subcommand = 0x00 [chat drop options]:
+'     (UINT8) refusal for broadcasts/target-all (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for db messages/target-database (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for whispers/target-user (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for whispers/target-user, from other-database users (0=none, 1=all)
+Sub Send_BNC_CHATOPTIONS(Subcommand, OptionValue)
+    Dim Packet
+    Set Packet = DataBufferEx()
+    Packet.InsertDword Subcommand
+    Select Case Subcommand
+        Case BN_CHATOPTS_CHDROP
+            Packet.InsertDword OptionValue
+        Case Else
+            BotNet_Print Nothing, Color.Salmon, "Unknown C>S 0x10 CHATOPTS subcommand: 0x" & Hex(Subcommand)
+            Exit Sub
+    End Select
+    BotNet_SendPacket Packet, BNC_CHATOPTIONS
+    Set Packet = Nothing
+End Sub
+
+'/------------------\
+'| Packet Receiving |
+'\------------------/
+
+' Handler switch
+Sub Recv_PacketSwitch(Packet)
+    Dim ProtocolVer, ID, Length
+    ProtocolVer = Packet.GetByte
+    ID          = Packet.GetByte
+    Length      = Packet.GetWord
+    
+    Select Case ID
+        Case BNS_KEEPALIVE      : Call Recv_BNS_KEEPALIVE(Packet)
+        Case BNS_BOTLOGONACK    : Call Recv_BNS_BOTLOGONACK(Packet)
+        Case BNS_UPDATEACK      : Call Recv_BNS_UPDATEACK(Packet)
+        Case BNS_DBMODACK       : Call Recv_BNS_DBMODACK(Packet)
+        Case BNS_COMMANDDB      : Call Recv_BNS_COMMANDDB(Packet)
+        Case BNS_CYCLE          : Call Recv_BNS_CYCLE(Packet)
+        Case BNS_INFO           : Call Recv_BNS_INFO(Packet)
+        Case BNS_LEFT           : Call Recv_BNS_LEFT(Packet)
+        Case BNS_PROTOCOL       : Call Recv_BNS_PROTOCOL(Packet)
+        Case BNS_VERSIONACK     : Call Recv_BNS_VERSIONACK(Packet)
+        Case BNS_VERSION        : Call Recv_BNS_VERSION(Packet)
+        Case BNS_CHAT           : Call Recv_BNS_CHAT(Packet)
+        Case BNS_ADMIN          : Call Recv_BNS_ADMIN(Packet)
+        Case BNS_ACCOUNTACK     : Call Recv_BNS_ACCOUNTACK(Packet)
+        Case BNS_DBCHMODEACK    : Call Recv_BNS_DBCHMODEACK(Packet)
+        Case BNS_CHATOPTIONSACK : Call Recv_BNS_CHATOPTIONSACK(Packet)
+        Case Else               : Call Recv_UnknownPacket(Packet, ID, Length)
+    End Select
+End Sub
+
+' Packet 0x00 S>C KEEPALIVE
+' [blank]
+Sub Recv_BNS_KEEPALIVE(Packet)
+    BotNet_PrintDebug "Received BNS_KEEPALIVE"
+    ' do nothing
+End Sub
+
+' Packet 0x01 S>C BOTLOGONACK
+' (UINT32)    Success (0 or 1)
+'  (UINT8)[4] Client IP Address [v4]
+Sub Recv_BNS_BOTLOGONACK(Packet)
+    Dim Success
+    BotNet_PrintDebug "Received BNS_BOTLOGONACK"
+    Success = Packet.GetBool()
+    Call BotNet_SetState(STATE_SELFADDR, NetworkToAddress(Packet.GetDword()))
+    If Not Success Then
+        BotNet_Print Nothing, Color.Salmon, "Initial log on was rejected."
+    End If
+End Sub
+
+' Packet 0x02 S>C UPDATEACK
+' (UINT32) Success (0 or 1)
+' (UINT32) Flags: ZTFF
+Sub Recv_BNS_UPDATEACK(Packet)
+    Dim Success, AdminFlags, LogonState
+    BotNet_PrintDebug "Received BNS_UPDATEACK"
+    Success    = Packet.GetBool()
+    AdminFlags = Packet.GetDword()
+    If Success Then
+        If AdminFlags <> 0 Then
+            Call BotNet_SetState(STATE_ADMINFLAGS, AdminFlags)
+        End If
+        LogonState = BotNet_State(STATE_LOGONSTATE)
+        If LogonState <> BN_LOGONSTATE_RDY Then
+            LogonState = LogonState Or BN_LOGONSTATE_02
+            Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+            If LogonState = BN_LOGONSTATE_RDY Then Call BotNet_RequestUsers()
+        End If
+    Else
+        BotNet_Print Nothing, Color.Salmon, "User information update was rejected."
+    End If
+End Sub
+
+' Packet 0x06 S>C INFO
+'   (UINT32) Bot ID
+'   (UINT32) Database access flags [v4 c1]: 1 = read; 2 = write; 4 = restricted access
+'   (UINT32) Administrative capabilities [v4 c1]: ZTFF
+'   (UINT32) IP address of the bot being described [v4 c1 A]
+' (NTSTRING) Bot name [MAX 20]
+' (NTSTRING) Bot channel
+'   (UINT32) Bot server IP
+' (NTSTRING) account name [v2 MAX 16]
+' (NTSTRING) database [v3]
+Sub Recv_BNS_INFO(Packet)
+    Dim BotID, AccessFlags, AdminFlags, IP, BotName, BotChannel, BotServerIP, AccountName, DatabaseName
+    Dim UserObj
+    BotNet_PrintDebug "Received BNS_INFO"
+    BotID = Packet.GetDword()
+    If BotNet_State(STATE_SVERSION) >= BN_SERVERLEVEL_4 Then
+        If BotNet_State(STATE_CVERSION) >= BN_CLIENTLEVEL_1 Then
+            AccessFlags = Packet.GetDword()
+            AdminFlags  = Packet.GetDword()
+            If ZTFF_HasAnyFlags(BotNet_State(STATE_ADMINFLAGS), "ACL") Then
+                IP = NetworkToAddress(Packet.GetDword())
+            End If
+        End If
+    End If
+    BotName        = Packet.GetString()
+    BotChannel     = Packet.GetString()
+    BotServerIP    = NetworkToAddress(Packet.GetDword())
+    If BotNet_State(STATE_SVERSION) >= BN_SERVERLEVEL_2 Then
+        AccountName = Packet.GetString()
+    End If
+    If BotNet_State(STATE_SVERSION) >= BN_SERVERLEVEL_3 Then
+        DatabaseName = Packet.GetString()
+    End If
+    Set UserObj = New BotNetUserClass
+    Call UserObj.Init(BotID, BotName, BotChannel, BotServerIP, AccountName, DatabaseName, AccessFlags, AdminFlags, IP)
+    BotNet_PrintDebug "Update user #" & BotID & ": " & UserObj.GetFullString()
+    Set BN_Users.Item(BotID) = UserObj
+    If BotNet_State(STATE_SELFBOTID) = 0 Then
+        Call BotNet_SetState(STATE_SELFBOTID, BotID)
+        Call BotNet_PrintWelcome()
+    End If
+End Sub
+
+' Packet 0x07 S>C LEFT
+' (UINT32) Bot ID
+Sub Recv_BNS_LEFT(Packet)
+    Dim BotID, UserObj
+    BotNet_PrintDebug "Received BNS_LEFT"
+    BotID = Packet.GetDword()
+    Set UserObj = BotNet_GetUserByID(BotID)
+    BotNet_PrintDebug "Leaving user #" & BotID & ": " & UserObj.GetFullName()
+    Set UserObj = Nothing
+    If BN_Users.Exists(BotID) Then
+        BN_Users.Remove BotID
+    End If
+End Sub
+
+' Packet 0x08 S>C PROTOCOL [v4]
+' (UINT32) Error code
+'  (UINT8) ID of the offending command
+' (UINT16) Length of the offending packet
+' (UINT16) Length of unprocessed data
+Sub Recv_BNS_PROTOCOL(Packet)
+    Dim ErrorCode, PacketID, PacketLen, PacketUnp
+    BotNet_PrintDebug "Received BNS_PROTOCOL"
+    ErrorCode = Packet.GetDword()
+    PacketID  = Packet.GetByte()
+    PacketLen = Packet.GetWord()
+    PacketUnp = Packet.GetWord()
+    BotNet_Print Nothing, Color.Salmon, "Server Protocol violation. Error #" & ErrorCode & " encountered in: " & _
+            "PACKET 0x" & Hex(PacketID) & "  LEN " & PacketLen & " b  UNPROC " & PacketUnp & " b"
+    Call BotNet_Close()
+End Sub
+
+' Packet 0x09 S>C VERSIONACK [v4]
+' (UINT32) Client version
+Sub Recv_BNS_VERSIONACK(Packet)
+    Dim Version, LogonState
+    BotNet_PrintDebug "Received BNS_VERSIONACK"
+    Version = Packet.GetDword()
+    LogonState = BotNet_State(STATE_LOGONSTATE)
+    If LogonState <> BN_LOGONSTATE_RDY Then
+        Call BotNet_SetState(STATE_CVERSION, Version)
+        Call BotNet_SetState(STATE_CCAPS, BN_CLIENTCAP_AWAITDB)
+        LogonState = LogonState Or BN_LOGONSTATE_0A
+        Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+        If LogonState = BN_LOGONSTATE_RDY Then Call BotNet_RequestUsers()
+    End If
+End Sub
+
+' Packet 0x0A S>C VERSION
+' (UINT32) Version (1, 2, 3, 4)
+Sub Recv_BNS_VERSION(Packet)
+    Dim Version, LogonState
+    BotNet_PrintDebug "Received BNS_VERSION"
+    Version = Packet.GetDword()
+    LogonState = CLng(BotNet_State(STATE_LOGONSTATE))
+    If LogonState = BN_LOGONSTATE_NONE Then
+        LogonState = BN_LOGONSTATE_WAIT
+        Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+        Call BotNet_SetState(STATE_SVERSION, Version)
+        ' 0x0a
+        If Version >= BN_SERVERLEVEL_4 Then
+            Call Send_BNC_VERSION(BN_CLIENTLEVEL_1, BN_CLIENTCAP_AWAITDB)
+        Else
+            LogonState = LogonState Or BN_LOGONSTATE_0A
+            Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+        End If
+        ' 0x0d
+        If Version >= BN_SERVERLEVEL_2 Then
+            If GetSetting(BN_Settings, SET_USEACCOUNT) Then
+                If Len(GetSetting(BN_Settings, SET_ACCOUNTNAME)) > 0 And Len(GetSetting(BN_Settings, SET_ACCOUNTPASS)) > 0 Then
+                    Call Send_BNC_ACCOUNT(BN_ACCOUNT_LOGON, GetSetting(BN_Settings, SET_ACCOUNTNAME), GetSetting(BN_Settings, SET_ACCOUNTPASS), vbNullString)
+                Else
+                    BotNet_Print Nothing, Color.Salmon, "Set an account name and password with the following commands: /botnet set AccountName <name>; botnet set AccountPass <pass>; botnet set UseAccount True"
+                    Call SetSetting(BN_Settings, SET_USEACCOUNT, False)
+                    Call SaveSettings(BN_Settings)
+                    LogonState = LogonState Or BN_LOGONSTATE_0D
+                    Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+                End If
+            Else
+                LogonState = LogonState Or BN_LOGONSTATE_0D
+                Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+            End If
+        Else
+            LogonState = LogonState Or BN_LOGONSTATE_0D
+            Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+        End If
+        ' 0x10
+        If Version >= BN_SERVERLEVEL_4 Then
+            If GetSetting(BN_Settings, SET_CHDROP) <> 0 Then
+                Call Send_BNC_CHATOPTIONS(BN_CHATOPTS_CHDROP, GetSetting(BN_Settings, SET_CHDROP))
+            Else
+                LogonState = LogonState Or BN_LOGONSTATE_10
+                Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+            End If
+        Else
+            LogonState = LogonState Or BN_LOGONSTATE_10
+            Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+        End If
+        ' 0x02
+        Call BotNet_UpdateInfo()
+    Else
+        BotNet_Print Nothing, Color.Salmon, "Unexpected server version (duplicate packet 0x0A)! Value: 0x" & Hex(Version)
+    End If
+End Sub
+
+' Packet 0x0B S>C CHAT
+'   (UINT32) Target (0 = all, 1 = db, 2 = user)
+'   (UINT32) Action (0 = normal, 1 = emote)
+'   (UINT32) ID Source
+' (NTSTRING) Message
+Sub Recv_BNS_CHAT(Packet)
+    Dim Target, Action, ID, Message
+    BotNet_PrintDebug "Received BNS_CHAT"
+    Target  = Packet.GetDword()
+    Action  = Packet.GetDword()
+    ID      = Packet.GetDword()
+    Message = Packet.GetString(2)
+    Call BotNet_PrintChat(Target, Action, ID, Message, False)
+End Sub
+
+' Packet 0x0D S>C ACCOUNTACK [v4]
+' (UINT32) subcommand
+' (UINT32) Success (0 or 1)
+Sub Recv_BNS_ACCOUNTACK(Packet)
+    Dim Subcommand, Success, LogonState
+    BotNet_PrintDebug "Received BNS_ACCOUNTACK"
+    Subcommand = Packet.GetDword()
+    Success    = Packet.GetBool()
+    LogonState = BotNet_State(STATE_LOGONSTATE)
+    Select Case Subcommand
+        Case BN_ACCOUNT_LOGON
+            If LogonState <> BN_LOGONSTATE_RDY Then
+                If Success Then
+                    Call BotNet_SetState(STATE_SELFACCOUNT, GetSetting(BN_Settings, SET_ACCOUNTNAME))
+                    LogonState = LogonState Or BN_LOGONSTATE_0D
+                    Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+                    If LogonState = BN_LOGONSTATE_RDY Then Call BotNet_RequestUsers()
+                Else
+                    BotNet_Print Nothing, Color.Salmon, "Automatic account logon rejected. Trying to create..."
+                    Call Send_BNC_ACCOUNT(BN_ACCOUNT_CREATE, GetSetting(BN_Settings, SET_ACCOUNTNAME), GetSetting(BN_Settings, SET_ACCOUNTPASS), vbNullString)
+                End If
+            Else
+                If Success Then
+                    BotNet_Print Nothing, Color.Yellow, "Account logon accepted."
+                Else
+                    BotNet_Print Nothing, Color.Salmon, "Account logon rejected."
+                End If
+            End If
+        Case BN_ACCOUNT_CHPW
+            If Success Then
+                BotNet_Print Nothing, Color.Yellow, "Account password change accepted."
+            Else
+                BotNet_Print Nothing, Color.Salmon, "Account password change rejected."
+            End If
+        Case BN_ACCOUNT_CREATE
+            If LogonState <> BN_LOGONSTATE_RDY Then
+                If Success Then
+                    BotNet_Print Nothing, Color.Yellow, "Account did not exist and was created."
+                    Call Send_BNC_ACCOUNT(BN_ACCOUNT_LOGON, GetSetting(BN_Settings, SET_ACCOUNTNAME), GetSetting(BN_Settings, SET_ACCOUNTPASS), vbNullString)
+                Else
+                    BotNet_Print Nothing, Color.Salmon, "Account creation rejected. You are not on an account."
+                    LogonState = LogonState Or BN_LOGONSTATE_0D
+                    Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+                    If LogonState = BN_LOGONSTATE_RDY Then Call BotNet_RequestUsers()
+                End If
+            Else
+                If Success Then
+                    BotNet_Print Nothing, Color.Yellow, "Account creation accepted."
+                Else
+                    BotNet_Print Nothing, Color.Salmon, "Account creation rejected."
+                End If
+            End If
+    End Select
+End Sub
+
+' Packet 0x10 S>C CHATOPTIONS [v4]
+' (UINT32) Subcommand
+' Subcommand = 0x00 [chat drop options]:
+'     (UINT8) refusal for broadcasts/target-all (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for db messages/target-database (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for whispers/target-user (0=none, 1=any no-account, 2=all)
+'     (UINT8) refusal for whispers/target-user, from other-database users (0=none, 1=all)
+Sub Recv_BNS_CHATOPTIONSACK(Packet)
+    Dim Subcommand, Value, LogonState
+    BotNet_PrintDebug "Received BNS_CHATOPTIONS"
+    Subcommand = Packet.GetDword()
+    Value      = Packet.GetDword()
+    LogonState = BotNet_State(STATE_LOGONSTATE)
+    Select Case Subcommand
+        Case BN_CHATOPTS_CHDROP
+            Call BotNet_SetState(STATE_CHDROP, Value)
+            If LogonState <> BN_LOGONSTATE_RDY Then
+                LogonState = LogonState Or BN_LOGONSTATE_10
+                Call BotNet_SetState(STATE_LOGONSTATE, LogonState)
+                If LogonState = BN_LOGONSTATE_RDY Then Call BotNet_RequestUsers()
+            End If
+    End Select
+End Sub
+
+Sub Recv_UnknownPacket(Packet, ID, Length)
+    BotNet_PrintDebug "Received unknown packet 0x" & Hex(ID) & ", " & Length & " bytes"
+End Sub
+
+
+Class BotNetUserClass
+    Private m_BotID, m_BotName, m_BotChannel, m_BotServerIP, m_AccountName, m_DatabaseName, m_AccessFlags, m_AdminFlags, m_IP
+
+    Public Sub Init(BotID, BotName, BotChannel, BotServerIP, AccountName, DatabaseName, AccessFlags, AdminFlags, IP)
+        m_BotID = BotID
+        m_BotName = BotName
+        m_BotChannel = BotChannel
+        m_BotServerIP = BotServerIP
+        m_AccountName = AccountName
+        m_DatabaseName = DatabaseName
+        m_AccessFlags = AccessFlags
+        m_AdminFlags = AdminFlags
+        m_IP = IP
+    End Sub
+
+    Public Sub InitEmpty(BotID)
+        m_BotID = BotID
+        m_BotName = vbNullString
+        m_BotChannel = vbNullString
+        m_BotServerIP = vbNullString
+        m_AccountName = vbNullString
+        m_DatabaseName = vbNullString
+        m_AccessFlags = 0
+        m_AdminFlags = 0
+        m_IP = vbNullString
+    End Sub
+
+    Public Property Get BotID() : BotID = m_BotID : End Property
+    Public Property Get BotName() : BotName = m_BotName : End Property
+    Public Property Get BotChannel() : BotChannel = m_BotChannel : End Property
+    Public Property Get BotServerIP() : BotServerIP = m_BotServerIP : End Property
+    Public Property Get AccountName() : AccountName = m_AccountName : End Property
+    Public Property Get DatabaseName() : DatabaseName = m_DatabaseName : End Property
+    Public Property Get AccessFlags() : AccessFlags = m_AccessFlags : End Property
+    Public Property Get AdminFlags() : AdminFlags = m_AdminFlags : End Property
+    Public Property Get IP() : IP = m_IP : End Property
+
+    Public Property Get IsSelf()
+        IsSelf = CBool(BotNet_State(STATE_SELFBOTID) = m_BotID)
+    End Property
+
+    Public Property Get IsOnBNCS()
+        Dim AddrInt
+        AddrInt = AddressToNetwork(m_BotServerIP)
+        If AddrInt = &HFFFFFFFF Or AddrInt = 0 Then
+            IsOnBNCS = False
+        Else
+            IsOnBNCS = True
+        End If
+    End Property
+
+    Public Property Get IsOnAccount()
+        If Len(m_AccountName) = 0 Or StrComp(m_AccountName, "No Account", vbBinaryCompare) = 0 Then
+            IsOnAccount = False
+        Else
+            IsOnAccount = True
+        End If
+    End Property
+
+    Public Default Function ToString()
+        If IsOnAccount() Then
+            ToString = m_AccountName
+        ElseIf Len(m_BotName) > 0 Then
+            ToString = "*" & m_BotName & "#" & m_BotID
+        Else
+            ToString = "#" & m_BotID
+        End If
+    End Function
+
+    Public Function GetFullName()
+        If IsOnAccount() Then
+            GetFullName = m_AccountName & "*" & m_BotName & "#" & m_BotID
+        ElseIf Len(m_BotName) > 0 Then
+            GetFullName = "*" & m_BotName & "#" & m_BotID
+        Else
+            GetFullName = "#" & m_BotID
+        End If
+    End Function
+
+    Public Function GetInfoString()
+        Dim DBInfo
+        DBInfo = vbNullString
+        If Len(m_DatabaseName) > 0 Then DBInfo = " (Database: " & m_DatabaseName & ")"
+        If IsOnBNCS() Then
+            GetInfoString = "on Battle.net (" & m_BotServerIP & ") in channel " & m_BotChannel & DBInfo
+        Else
+            GetInfoString = "off Battle.net" & DBInfo
+        End If
+    End Function
+
+    Public Function GetFullString()
+        GetFullString = GetFullName() & ", " & GetInfoString()
+    End Function
+End Class
+
+
+
+
+
+
+
+
+
+' temporary: NYI
+Function ZTFF_HasAnyFlags(Int32Value, ToCheck)
+    ZTFF_HasAnyFlags = False
+End Function
