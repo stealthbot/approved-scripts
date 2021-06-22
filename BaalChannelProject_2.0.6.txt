@@ -1,0 +1,2179 @@
+Script("Name") = "BCP"
+Script("Author") = "vi[r]us (IAreConnection @ StealthBot.net)"
+Script("Major") = 2
+Script("Minor") = 6
+Script("Revision") = 0
+
+	'// This is a unique code given to each public release. The version name (BCP x.x.x) is always the first 3 numbers.
+	'// Major_Minor_Revision_BetaCode_ScriptType (ScriptType is always 0 for public releases)
+	Const bcpVID = 20600
+	Const bcpVD  = "9/28/2010"
+	
+	'// The bot maintains the following files and folders (in the StealthBot directory):
+	'// bcp_settings.ini				-- Used to keep settings for the script.
+	'// bot folder/bcp_users			-- The folder where user profiles are stored.
+	'// bcp_translations.txt			-- A text file containing instructions used to "translate" friend messages.
+	'// bot folder/bcp_translations		-- Formerly used to hold old translations. Defunct in this version.
+	'// bot folder/bcp_versions			-- Will be used to hold outdated scripts in upcoming versions. Defunct in this version.
+	
+	'// The bot will by default access the following websites on the internet:
+	'// http://toshley.net/bcp/downloads/getcurrentversion.php					-- Used to find the current script version.
+	'// http://toshley.net/bcp/downloads/translations/getcurrentversion.php		-- Used to find the current translations version.
+	'// http://toshley.net/bcp/.../commit.php									-- Used to report information to the GDB if turned on.
+	'// http://toshley.net/bcp/news/[vID].txt									-- Used to get the news for your version.
+	
+	'// This file belongs in the /scripts/ folder of your StealthBot directory. It is no longer a plugin as of 2.0.4.
+	
+	'// I have been getting a lot of comments lately about the BCP code itself. It is not commented on except in areas where there are
+	'// special notes required for myself. If you don't know how to use Visual Basic, please don't edit the script yourself.
+
+	' // SETTINGS ARE NOW STORED IN A CONFIG FILE IN THE BOT'S FOLDER CALLED bcp_settings.ini
+
+	'============================================================================================================================
+	'= Parenthesis "(" and ")" denote the user who found the bug, if it is
+	'= not specified, they were found by the community or a developer.
+	'=
+	'= Everything in the changelog is only there to show users what has changed. This
+	'= includes displayed messages and minor code changes, as well as large changes.
+	'============================================================================================================================
+	' ChangeLog for 2.0.6 (id 20600, 20601)
+	' * Added a quick disable/enable for the script's internal functions (the new scripting system isn't forgiving at all)
+	'	--the bot will still do some things (such as reset the GDB on/off toggle)
+	' * Fixed a bug where the bot raises an error over a blank command
+	' * The script now checks for updates since 2.0.6, but does not download them for you
+	' * Added /bcp update  command which checks for script updates
+	' * Added /bcp transupdate  command which checks for translations file updates
+	' * Added /bcp mutual  command which allows you to check if a friend is logged in and mutual (deprecated, for testing)
+	' * Added /bcp news  command which gets the news for your version
+	' * Added LogoutOnNoMutual=int config entry, which is the time in minutes after a user has logged in that
+	'	the bot will check their friend mutuality. If they aren't mutual or have gone offline, they will be removed
+	'	--this only works if the bot has not been restarted: in testing
+	' * Added LogoutOnOffline config entry, which removes people if they are offline on your friends list periodically
+	'	--this only happens if they are a runner
+	'	--this follows the same time constraint as the game message display
+	' * Added /bcp config open  command to open the settings file in the default editor (changes are automatic)
+	' * Added IsLadder profile setting to user profiles to fix temporary unknowns until someone rejoins the channel
+	' * Added IsHardcore profile setting ^
+	' * Added IsExpansion profile setting ^
+	' * The bot will now mark ladder, nonladder and hardcore on the GDB
+	' * The bot will not use the GDB for the duration of the session if it becomes unavailable for any reason
+	'   --this resets when the bot logs on *meaning you can reconnect to reset it
+	' * Replaced the FOREWARD in the script file with a nonedit warning
+	' * Added /bcp setup  command which runs an interface to help you set up the bot
+	'	--this includes GDB setup
+	' * The firstrun message now tells you such a command exists IN BIG LETTERS.
+	' * The bots will now ignore Diablo-only commands from users that aren't using Diablo
+	'	--effected commands: getinfo, myinfo, login, logout, games
+	' * When reporting command invalidity, the bot will now say the command and the required access
+	' * Reworded some responses that only make sense to people who know more than a "normal" person does (they were
+	'	created when the script was in beta, and only developers needed to read it)
+	' * Added /bcp find  command that works in the same fashion as the in-game one, it is however more descriptive
+	' * Fixed a bug where hardcore flags stick to users even after rejoining the channel (ChX-Dragon)
+	' * Fixed a bug where ladder flags stick to users even after rejoining the channel (ChX-Dragon)
+	' * Changed a potential type mismatch from product comparisons (ChX-Dragon)
+	' * Fixed the error occuring because %game is replaced before %gametime, thereby making the latter give the wrong value or never appear (ChX-Dragon)
+	' * Added information for files and locations at the top of the script. In case this is ever necessary, it is now in the script itself.
+	' * Added the option to show MessageBox notifications for things the bot has done or needs your help with to assist users who like to minimize at startup (Main:ShowDialogs = boolean)
+	'	--effected events: translation updates, script updates, gdb turning off
+	' * Changed the way news is read so that it can see links
+	' * Added UseNewestProfile entry, which can be used to completely turn off GDB downloads for newer profiles  by setting it to False (Behavior:UseNewestProfile = boolean)
+	' * Fixed an index error that occured when a translation mismatch occurs
+	' * The translation warning message no longer shows English to English
+	' * Removed unused functions and classes (code only)
+    ' * Added a simple error escape for commands (you will no longer see the obnoxious StealthBot warning when mistyping a command)
+    ' * Added /bcp reset  command; this command allows you to reset a single person's game count and information (same clear method as purge)
+    ' * The .myinfo command now includes the player's rank
+    ' * Added Translations:GermanLanguageSupport=Boolean under translations, which simply hard removes " eingeklinkt" from game names (the space is included). Enabled by default.
+    ' * Setting filters to nothing turns them off, and will no longer raise an error
+    ' * Added Behavior:AutoLock=Boolean to automatically lock the bot's window when BCP loads
+    '
+    '   Developer's Notes
+	'	### YNI (but still in code)
+	' * The bot will now check to see if the user logging in is a mutual friend (experimental, the bot takes a moment to update)
+	' * Added MsgMutualError config entry which is copied to the user when they are not a mutual friend (requires the above)
+    '
+    ' * This release was coupled with a GDB reset and Blizzard also reset their ladder. If you experience any problem just turn GDB off temporarily.
+	'
+	'============================================================================================================================
+	' ChangeLog for 2.0.5 (id 20500)
+	' * Added dozens of debug messages
+	' * Added EagleEyes, a method to see what the bot sees that most users
+	'	ignore in chat (works similar to .NET IDE's intellisense)
+	' * Added /bcp version command to check bot version and translations
+	' * Added /bcp eagleeyes [status] where [status] is "enable" or "disable"
+	'	(no quotes): see above
+	' * Fixed the problem with users not being found (StealthBot scripts ignore
+	'	scripting events with insufficient arguments, didn't realize that)
+	' * Open Characters (not ephemeral characters) are now treated as non-diablo players.
+	'
+	'============================================================================================================================
+	' ChangeLog for 2.0.4 (id 20400)
+	' * The plugin is now a StealthBot 2.7 script.
+	' * Added news module
+	' * Replaced the old BCP domain I used with the new .net domain
+	'
+	'============================================================================================================================
+	' ChangeLog for 2.0.3 (id 20300)
+	' * Added .top command
+	' * Added .career rank command (sub of career: .career rank)
+	' * Fixed profile updating
+	' * Added .getcareer <username> <command> command for getinfo compatability
+	' * Added a system of/for debug messages to help users diagnose problems
+	' * Minor typo fixes
+	' * This release includes a new translation system, old files will be outdated
+	'	but fix themselves by auto-updating
+	' * Translations are now updated every 2 hours instead of 12.
+	' * MsgType config entry now accepts "True" and "False" and is reflective
+	'	of True = "Repeat" and False = "Ask"; the old system is still in place
+	' $ The script still defaults MsgType to "Ask"
+	' * Properly adjusted the command system to use an "Else" operator on switch
+	'	so that .career and .getcareer are the same as .myinfo and .getinfo
+	' * The mirror commands .myinfo and .getinfo are now defaulted in config
+	' * Added ProfileHead config entry; it's the Location section of the bot's
+	'	profile when it updates it. It still includes the VID, however.
+
+	' ________________
+	'/
+	'	HEY THERE
+	'
+	'	YEAH, YOU
+	'
+	'	THE ONE READING THE SCRIPT FILE
+	'
+	'	YOU'RE IN THE WRONG SPOT, BRO
+	'
+	'	CHECK OUT BCP_SETTINGS.INI TO CHANGE STUFF, NOT HERE
+	'
+	'\_________________
+	'
+	' _______________
+	'/ Quick Links
+	'
+	'  ==> Help Topics
+	'  http://toshley.net/bcp/help.php
+	'
+	'  ==> GDB Explained
+	'  http://toshley.net/bcp/help.php?view=GDB
+	'
+	'  ==> Forum
+	'  http://toshley.net/forum/
+	'
+	'\________________
+
+
+
+'%=================================%
+'%                                 %
+'%     do not edit below here      %
+'%    consult bcp_settings.ini     %
+'%                                 %
+'%=================================%
+
+	Public bcpFSO, bcpUsers
+	Public bcpIC, bcpLastGameRequest
+	Public bcpLastProfileUpdate
+	Public bcpLastConnect, bcpMarkOffline
+	Public bcpGDBTemp_Disable
+
+	Public bcpTmrSec, bcpTmrHr
+	'// The internal channel contains a bcp_User object without run data to easily swap it.
+
+	'// Helpful constants
+	Const bcp_game_DiabloII = "D2DV"
+	Const bcp_game_DiabloIIExp = "D2XP"
+
+Class bcp_User
+	Public Username
+	Public StatString
+	Public Product
+	Public Character
+	Public CClass
+	Public Title 'Slayer, etc
+	Public Level 'Int
+	Public InGame 'Bool
+	Public GameObject 'bcp_Game
+	Public Language
+	
+	Public IsExpansion 'Bool
+	Public IsLadder 'Bool
+	Public IsHardcore 'Bool
+	
+	Public Runs 'Int
+	Public Time 'Int
+	Public Fastest 'Int
+	Public LastTime 'Int
+	Public LastGameName
+	
+	'// Personal
+	Public HideGameDuration
+	Public NameOverCharacter
+	Public HideGDBGame
+
+	Public HideLogMsg
+	Public LastLog
+
+	Public LastSeen
+
+	'// Temporary
+	Public CareerResetCode
+
+	Sub EmptyGame()
+		If Not InGame Then Exit Sub
+		InGame = False
+		LastTime = GameObject.Duration()
+		LastGameName = GameObject.Name
+	End Sub
+
+	Sub Parse()
+		LastSeen = Now()
+		'Bot name differences, we have to make a system that agrees with both
+		'because Eric does not love me.
+		'...
+		'2.6: (Matriarch Swampie, a ladder level 90 sorceress on realm USEast).
+		'2.7: (Champion Swampie,  a level 90 ladder Sorceress on USEast).
+
+		If (Not Product = bcp_game_DiabloII) and (Not Product = bcp_game_DiabloIIExp) Then
+			Character = Username
+			CClass = "nonchar"
+			Title = ""
+			bcp_EagleMsg Username & " is not using Diablo II or Lord of Destruction (Product: " & Product & ")."
+			Exit Sub
+		End If
+
+		If InStr(LCase(StatString), "open character") > 0 Then
+			If Len(Character) = 0 Then
+				Character = Username
+				CClass = "nonchar"
+				Title = ""
+				Level = 0
+				bcp_EagleMsg Username & " is an open character, but no record of character found. (Product: " & Product & ")."
+			Else
+				bcp_EagleMsg Username & " is an open character, keeping user as """ & Character & """."
+			End If
+			Exit Sub
+		End If
+
+		On Error Resume Next : Err.Clear
+		If UBound(Split(StatString, " ")) < 4 Then Product = "INVALID" : Exit Sub
+		StatString = Split(StatString, " (")(1)
+		StatString = Left(StatString, Len(StatString)-1)
+		partA = Split(Split(StatString, ", ")(0), " ")
+		partS = Split(StatString, ", ")(1)
+		partB = Split(Split(StatString, ", ")(1), " ")
+
+		If UBound(partA) = 1 Then
+			Title = partA(0)
+			Character = partA(1)
+		Else
+			Title = "Player"
+			Character = partA(0)
+		End If
+
+		p = Array("Paladin", "Barbarian", "Assassin", "Druid", "Amazon", "Necromancer", "Sorceress")
+
+		Level = Int(Split(Split(partS, " level ")(1), " ")(0))
+		For i = 0 to UBound(p)
+			If InStr(LCase(partS), LCase(" " & p(i) & " ")) > 0 Then
+				CClass = p(i)
+				Exit For
+			End If
+		Next
+		CClass = LCase(CClass)
+
+		If InStr(StatString, " ladder ") Then
+			IsLadder = True
+		Else
+			IsLadder = False
+		End If
+		
+		If InStr(StatString, " hardcore ") Then
+			IsHardcore = True
+		Else
+			IsHardcore = False
+		End If
+		
+		If Product = "D2XP" Then
+			IsExpansion = True
+		Else
+			IsExpansion = False
+		End If
+		
+		On Error GoTo 0
+		If Err.Number <> 0 Then AddChat vbRed, "[BCP] StatString Parse error: " & StatString
+		Err.Clear
+		'// not the statstring, its what the bot "thinks" the statstring is (so it can be manipulated)
+		'// this was the problem with the 2.0.4 conversion; some users use different versions with diff
+		'// statstring values
+		bcp_EagleMsg "User " & Username & " stats: " & Product & " # [H|" & IsHardcore & "][L|" & IsLadder & "] [" & Title & "] " & Character & ", a level " & Level & " " & CClass & "."
+	End Sub
+
+	Function IsDiablo()
+		If Product = bcp_game_DiabloII or Product = bcp_game_DiabloIIExp Then
+			IsDiablo = True
+		Else
+			IsDiablo = False
+		End If
+	End Function
+
+	Function IsOpenCharacter()
+		If Not IsDiablo() or Int(Level) = 0 Then
+			IsOpenCharacter = True
+		Else
+			IsOpenCharacter = False
+		End If
+	End Function
+
+	Function FormatString(Message)
+		m = Message
+
+		On Error Resume Next : Err.Clear
+			a = Array("%user", "%name", "%char", "%class", "%lvl", _
+			     "%runid", "%total", "%avg", "%fst", "%title", _
+			     "%runs", "%gametime", "%game")
+			b = Array(PreferedName(), Username, Character, CClass, Level, _
+			     Runs+1, bcp_FmtTime(Time), bcp_FmtTime(Average()), bcp_FmtTime(Fastest), Title, _
+			     Runs, bcp_FmtTime(GameObject.Duration()), GameObject.Name)
+		On Error GoTo 0
+		If Err.Number <> 0 Then AddChat vbRed, "[BCP] Format error " & Err.Number & ": " & Err.Description
+
+		For i = 0 to UBound(a)
+			m = Replace(m, a(i), b(i))
+		Next
+
+		FormatString = m
+	End Function
+
+	Function GameTimeOK()
+		If GameObject.Duration() < bcp_Get("main", "MinGame") or GameObject.Duration() > bcp_Get("main", "MaxGame") Then
+			GameTimeOK = False
+		Else
+			GameTimeOK = True
+		End If
+	End Function
+
+	Sub Save()
+		path = "bcp_users/" & LCase(Username) & ".user"
+		If Runs = 0 Then
+			If bcpFSO.FileExists(path) Then bcpFSO.DeleteFile(path)
+			Exit Sub
+		End If
+
+		WriteConfigEntry "UData", "Username", CStr(Username), path
+		WriteConfigEntry "UData", "StatString", CStr(StatString), path
+		WriteConfigEntry "UData", "Product", CStr(Product), path
+		WriteConfigEntry "UData", "Level", CStr(Level), path
+		WriteConfigEntry "UData", "Character", CStr(Character), path
+		WriteConfigEntry "UData", "CClass", CStr(CClass), path
+		WriteConfigEntry "UData", "Title", CStr(Title), path
+		WriteConfigEntry "UData", "Runs", CStr(Runs), path
+		WriteConfigEntry "UData", "Time", CStr(Time), path
+		WriteConfigEntry "UData", "Fastest", CStr(Fastest), path
+		WriteConfigEntry "UData", "LastTime", CStr(LastTime), path
+		WriteConfigEntry "UData", "LastGameName", CStr(LastGameName), path
+		WriteConfigEntry "UData", "Language", CStr(Language), path
+		WriteConfigEntry "Personal", "HideGameDuration", CStr(HideGameDuration), path
+		WriteConfigEntry "Personal", "NameOverCharacter", CStr(NameOverCharacter), path
+		WriteConfigEntry "Personal", "HideGDBGame", CStr(HideGDBGame), path
+		WriteConfigEntry "UType", "IsLadder", CStr(IsLadder), path
+		WriteConfigEntry "UType", "IsHardcore", CStr(IsHardcore), path
+		WriteConfigEntry "UType", "IsExpansion", CStr(IsExpansion), path
+	End Sub
+
+	Sub GDB_Update(Status)
+		DoGDB_Update Status, 0
+	End Sub
+	
+	Sub GDB_UpdateComp(Status, C)
+		DoGDB_Update Status, C
+	End Sub
+	
+	Sub DoGDB_Update(Status, CompensateGame)
+		If Runs = 0 Then Exit Sub
+		Call Save()
+		If bcp_Get("GDB", "username") = "" or bcp_Get("GDB", "disable") = True Then
+			Exit Sub
+		End If
+		
+		If bcpGDBTemp_Disable Then
+			AddChat vbYellow, "[BCP:GDB] The bot is temporarily not committing to the GDB. Update failed."
+			Exit Sub
+		End If
+		
+		AddChat vbYellow, "[BCP:GDB] Updating " & Username & "..."
+		i_Status = Status
+		If HideGDBGame Then
+			i_Status = ""
+			AddChat vbYellow, "[BCP:GDB] Hiding " & Username & "'s game on the GDB."
+		End If
+		
+		islString = "0"
+		If IsLadder Then islString = "1"
+		ishString = "0"
+		If IsHardcore Then ishString = "1"
+		
+		WebString = Username & "|" & _
+			    Character & "|" & _
+			    Runs & "|" & _
+			    Average() & "|" & _
+			    "Realm|" & i_Status & "|" & _
+			    Level & "|" & _
+			    CClass & "|" & _
+			    Time & "|" & _
+			    Fastest & "|" & _
+				islString & "|" & _
+				ishString
+
+		uName = bcp_Get("GDB", "username")
+		uPassword = bcp_Get("GDB", "password")		
+
+		webURL = bcp_Get("GDB", "location") & "?u=" & uName & "&p=" & uPassword & "&item1=" & WebString
+		On Error Resume Next : Err.Clear
+		SciNet.Cancel
+		t = Timer
+		result = SciNet.OpenURL(CStr(webURL))
+		t = Round(Timer-t, 2)
+		If Not Err.Number = 0 Then
+			AddChat vbRed, "[BCP] Note: Failed to update " & Username & " on the GDB."
+			AddChat vbRed, Space(8) & Err.Number & ": " & Err.Description
+			
+			If (Err.Number = 35761) and (Err.Description = "Request timed out") Then
+				AddChat vbRed, "**************************************"
+				AddChat vbRed, "[BCP] The GDB database is not responding, the bot will temporarily stop committing data to the GDB until it is reloaded."
+				AddChat vbRed, "[BCP] It is possible the website is temporarily offline or updating, please try again in a few minutes."
+				AddChat vbRed, "**************************************"
+				If (bcp_Get("Main", "ShowDialogs")) Then Call MsgBox("The bot has temporarily turned off the GDB because it is unavailable.", 0, "BCP Warning")
+				bcpGDBTemp_Disable = True
+			End If
+			Err.Clear
+		Else
+			m = Split(result, " ", 2)
+			If Int(m(0)) = 1 Then
+				AddChat vbGreen, "[BCP:GDB] Success: " & m(1) & " (" & t & "s)"
+			ElseIf Int(m(0)) = 2 Then
+				AddChat vbCyan, "[BCP:GDB] Update: There is an updated profile for " & Username & "."
+				If (bcp_Get("Behavior", "UseNewestProfile")) Then
+					newData = Split(m(1), "|")
+					before = Runs
+					Username = newData(0)
+					Character = newData(1)
+					Runs = Int(newData(2))
+					'Average
+					'Realm
+					Status = newData(5)
+					Level = Int(newData(6))
+					CClass = newData(7)
+					Time = Int(newData(8))
+					Fastest = Int(newData(9))
+					If CompensateGame > 0 Then
+						timeBonus = CompensateGame
+						Runs = Runs + 1
+						Time = Time + timeBonus
+					End If
+					Call Save()
+					AddChat vbCyan, "[BCP:GDB] " & Username & " (" & Character & ") now has " & Runs & " games (had " & before & "), with an average time of " & bcp_FmtTime(Int(Time / Runs)) & "."
+				Else
+					AddChat vbRed, "[BCP] Note: There is a new profile for " & Username & " but you have turned profile downloading off."
+				End If
+			Else
+				AddChat vbRed, "[BCP:GDB] Failure (" & m(0) & "): " & m(1)
+			End If
+		End If
+		On Error GoTo 0
+	End Sub
+
+	Function Rank()
+		Rank = 0
+		bubble = bcp_RankBubble()
+		For i = 1 to UBound(bubble)
+			If LCase(bubble(i)) = LCase(Username) Then
+				Rank = i
+				Exit Function
+			End If
+		Next
+	End Function
+	
+	Function MutualFriend()
+		MutualFriend = bcp_Mutual(Username)
+	End Function
+	
+	Function Friend()
+		Friend = bcp_Friend(Username)
+	End Function
+
+	Function Average()
+		If Runs = 0 or Time = 0 Then Average = 0 : Exit Function
+		Average = Int(Time / Runs)
+	End Function
+	
+	Function PreferedName()
+		If NameOverCharacter Then
+			PreferedName = Username
+		Else
+			PreferedName = Character
+		End If
+	End Function
+
+	Sub Class_Initialize()
+		InGame = False
+		Set GameObject = Nothing
+		HideGameDuration = False
+		NameOverCharacter = False
+		HideGDBGame = False
+		HideLogMsg = True
+		Runs = 0
+		Level = 0
+		Time = 0
+		Fastest = 0
+		LastTime = 0
+		LastGameName = "Incomplete"
+		IsLadder = False : IsHardcore = False
+		LastLog = DateAdd("s", -(bcp_Get("main", "MsgNoSpam")), Now())
+		CareerResetCode = "~" & Chr(0) & Chr(2) '// Can't type those
+	End Sub
+End Class
+
+Sub bcp_PurgeList(LimitOf)
+	For Each Key in bcpUsers.Keys
+		With bcpUsers.Item(Key)
+			If .Runs < LimitOf Then
+				.Runs = 0
+				.Time = 0
+				.Fastest = 0
+				.Save
+				AddChat vbRed, "[BCP] Purge: " & .Username
+			End If
+		End With
+	Next
+End Sub
+
+Sub bcp_Folder()
+	If Not bcpFSO.FolderExists(BotPath() & "bcp_users") Then
+		bcpFSO.CreateFolder(BotPath() & "bcp_users")
+		AddChat vbGreen, "[BCP] Users are stored in: {BOTPATH}/bcp_users as configuration files"
+	End If
+End Sub
+
+Class bcp_Game
+	Public Name
+	Public Host
+	Public Started
+
+	Function Duration()
+		Duration = Abs(DateDiff("s", Started, Now()))
+	End Function
+	
+	Sub Class_Initialize()
+		Started = Now()
+	End Sub
+End Class
+
+Function bcp_Mutual(Username)
+	bcp_Mutual = False
+	For Each Friend in Friends
+		If LCase(Friend.Name) = LCase(Username) Then
+			If CBool(Friend.IsMutual) Then
+				bcp_Mutual = True
+				Exit For
+			End If
+		End If
+	Next
+End Function
+
+Function bcp_Friend(Username)
+	bcp_Friend = False
+	For Each Friend in Friends
+		If LCase(Friend.Name) = LCase(Username) Then
+			bcp_Friend = True
+		End If
+	Next
+End Function
+
+Function bcp_FriendOnline(Username)
+	bcp_FriendOnline = False
+	For Each Friend in Friends
+		If LCase(Friend.Name) = LCase(Username) Then
+			If Friend.Status = 1 Then
+				bcp_FriendOnline = True
+			End If
+		End If
+	Next
+End Function
+
+Function bcp_FixTranslation(Line)
+	
+	bcp_FixTranslation = Line
+	For i = 0 to 255
+		bcp_FixTranslation = Replace(bcp_FixTranslation, "[" & i & "]", Chr(i))
+	Next
+End Function
+
+Function bcp_Translate(Text)
+	If Not bcpFSO.FileExists(BotPath() & "bcp_translations.txt") Then Exit Function
+	On Error Resume Next : Err.Clear
+	Set file = bcpFSO.OpenTextFile(BotPath() & "bcp_translations.txt", 1)
+	Q = Split(file.ReadAll(), vbCrLf)
+	lang = "?"
+	tVer = bcp_Get("Translations", "Version")
+	phixd = Text
+	bcp_DebugMsg "Translate: " & phixd
+	
+	If tVer = 3 Then bcp_DebugMsg "Version 3 check..."
+	
+	For i = 0 to UBound(Q)
+		p = Split(Q(i), "|")
+		If UBound(p) >= 2 Then
+			Name = p(0)
+			Game = p(1)
+			OE = p(2)
+			bcp_DebugMsg "Checking " & Name & "..."
+		Else
+			bcp_DebugMsg "Invalid translation: " & Join(p)
+		End If
+		
+		If tVer = 3 Then
+			'// 3 and lower use padding
+			Padding = Int(p(3))
+			
+			If Match(Text, Game, True) Then
+				lang = Name
+				D = Split(Game, "*")
+
+				p_user = Split(Split(Text, D(0))(1), D(1))(0)
+				p_prod = Split(Split(Text, D(1))(1), D(2))(0)
+				p_gamename = Split(Text, D(2))(1)
+				p_gamename = Left(p_gamename, Len(p_gamename)-1)
+				If Padding > 0 Then p_gamename = Right(p_gamename, Len(p_gamename)-Padding)
+				phixd = "Your friend " & p_user & " entered a " & p_prod & " game called " & p_gamename & "."
+			End If
+
+			If Match(Text, OE, True) Then
+				lang = Name
+				D = Split(OE, "*")
+
+				p_user = Split(Split(Text, D(0))(1), D(1))(0)
+				phixd = "Your friend " & p_user & " has exited Battle.net."
+			End If
+		ElseIf tVer > 3 Then
+			'// >3 doesn't use padding, it uses char replace
+			Game = bcp_FixTranslation(Game)
+			OE = bcp_FixTranslation(OE)
+			bcp_DebugMsg "Adjusted: " & Game
+			bcp_DebugMsg "Adjusted: " & OE
+			If Match(Text, Game, True) Then
+				lang = Name
+				D = Split(Game, "*")
+
+				p_user = Split(Split(Text, D(0))(1), D(1))(0)
+				p_prod = Split(Split(Text, D(1))(1), D(2))(0)
+				p_gamename = Split(Text, D(2))(1)
+				p_gamename = Left(p_gamename, Len(p_gamename)-1)
+
+				phixd = "Your friend " & p_user & " entered a " & p_prod & " game called " & p_gamename & "."
+			End If
+
+			If Match(Text, OE, True) Then
+				lang = Name
+				D = Split(OE, "*")
+
+				p_user = Split(Split(Text, D(0))(1), D(1))(0)
+				phixd = "Your friend " & p_user & " has exited Battle.net."
+			End If
+		End If
+	Next
+	file.Close
+	bcp_DebugMsg "Fixed from " & lang & " to English: " & phixd
+	If Err.Number <> 0 Then
+		AddChat vbRed, "[BCP] Translation error: " & Err.Description
+		Err.Clear
+		lang = "?"
+		phixd = Text
+	End If
+	
+	bcp_Translate = Array(lang, phixd)
+	On Error GoTo 0
+End Function
+
+Sub bcp_CheckTranslationsCond()
+	If DateDiff("s", CDate(bcp_Get("Translations", "LastUpdate")), Now()) > (60 * 60 * 2) or bcp_Get("Translations", "Version") = 0 Then
+		bcp_CheckTranslations
+	Else
+		bcp_DebugMsg "Translations file #" & bcp_Get("Translations", "Version") & ", last updated " & bcp_Get("Translations", "LastUpdate") & "."
+	End If
+End Sub
+
+Sub bcp_CheckNews()
+	AddChat vbYellow, "[BCP] Checking for recent BCP news..."
+
+	Call bcp_Set("News", "Location", CStr("http://toshley.net/bcp/news/"), False)
+	newsUpdateLoc = bcp_Get("News", "Location")
+	newsFile = newsUpdateLoc & "news_" & bcpVID & ".txt"
+	
+	SciNet.Cancel
+	On Error Resume Next : Err.Clear
+	data = SciNet.OpenURL(CStr(newsfile))
+	If Err.Number <> 0 or data = "" Then
+		AddChat vbRed, "[BCP] An error occured checking for news."
+		bcp_DebugMsg Err.Description
+		Err.Clear
+		Exit Sub
+	End If
+	On Error GoTo 0 : Err.Clear
+	
+	If (InStr(data, "404 Not Found") > 0) Then
+		AddChat vbRed, "[BCP] An error occured checking for news: item not found"
+		bcp_DebugMsg "News download got 404ed"
+		Err.Clear
+		Exit Sub
+	End If
+
+	part = Split(data, "||")
+	
+	title = part(0)
+	lines = Split(part(1), "\n")
+	
+	AddChat vbWhite, " "
+	AddChat vbWhite, "    http://toshley.net/bcp/"
+	AddChat vbGreen, "    --- BCP News ---"
+	AddChat vbCyan, "     " & title
+	For i = 0 to UBound(lines)
+		AddChat vbWhite, "     " & lines(i)
+	Next
+	AddChat vbWhite, " "
+End Sub
+
+Sub bcp_CheckScriptVersion()
+	scriptVer = bcpVID
+	scriptLU = bcp_Get("Main", "ScriptLastUpdate")
+	scriptUpdateLoc = bcp_Get("Main", "ScriptUpdateLoc")
+
+	Call bcp_Set("Main", "ScriptLastUpdate", CStr(Now()), True)
+	
+	AddChat vbYellow, "[BCP] Checking for script updates..."
+
+	SciNet.Cancel
+	On Error Resume Next : Err.Clear
+	data = SciNet.OpenURL(CStr(scriptUpdateLoc & "?id=" & bcpVID))
+	If Err.Number <> 0 or data = "" or InStr(data, "404 Not Found") > 0 Then
+		AddChat vbRed, "[BCP] An error occured checking for script updates."
+		bcp_DebugMsg Err.Description
+		Err.Clear
+		Exit Sub
+	End If
+	
+	On Error GoTo 0 : Err.Clear
+	
+	serverVer = Int(Split(data, "#")(0))
+	serverLoc = Split(data, "#")(1)
+	serverMsg = Split(data, "#")(2)
+	lines = Split(serverMsg, "//")
+	
+	If serverVer = "ERROR" Then
+		AddChat vbRed, "[BCP] An error occured getting the most recent version: " & serverMsg
+		bcp_DebugMsg Err.Description
+		Err.Clear
+		Exit Sub
+	End If
+
+	If Int(serverVer) > Int(bcpVID) Then
+		AddChat vbRed, "[BCP] This current version of BCP is out of date. The server has BCP " & serverVer & " but you have BCP " & bcpVID & "."
+		AddChat vbRed, "[BCP] It is recommended that you update at " & serverLoc & " ."
+		If (serverMsg <> "") Then
+			AddChat vbWhite, "[BCP] The updater has supplied the following information about the update:"
+			For i = 0 to UBound(lines)
+				AddChat vbWhite, "     " & lines(i)
+			Next
+		End If
+		If (bcp_Get("Main", "ShowDialogs")) Then Call MsgBox("There is a new version of the script available. Your bot window has more information for you.", 0, "BCP Warning")
+	ElseIf Int(serverVer) < Int(bcpVID) Then
+		AddChat vbRed, "[BCP] This current version of BCP is newer than the one on record. The server has BCP " & serverVer & " but you have BCP " & bcpVID & "."
+		AddChat vbRed, "[BCP] You do not need to get the older version, however you may want to consider reading the changelog at " & serverLoc & " ."
+	Else
+		AddChat vbGreen, "[BCP] This version of up to date (vID " & bcpVID & ")."
+	End If
+End Sub
+
+Sub bcp_CheckTranslations()
+	transVer = bcp_Get("Translations", "Version")
+	transLU = bcp_Get("Translations", "LastUpdate")
+	transUpdateLoc = bcp_Get("Translations", "GetVersion")
+
+	Call bcp_Set("Translations", "LastUpdate", CStr(Now()), True)
+	
+	AddChat vbYellow, "[BCP] Checking for translation updates..."
+
+	SciNet.Cancel
+	On Error Resume Next : Err.Clear
+	data = SciNet.OpenURL(CStr(transUpdateLoc))
+	If Err.Number <> 0 or data = "" Then
+		AddChat vbRed, "[BCP] An error occured checking for translation updates."
+		bcp_DebugMsg Err.Description
+		Err.Clear
+		Exit Sub
+	End If
+	On Error GoTo 0 : Err.Clear
+	
+	serverVer = Int(Split(data, "#")(0))
+	serverLoc = Split(data, "#")(1)
+	
+	If serverVer <> transVer Then
+		AddChat vbYellow, "[BCP] Your translations file is out of date. The script will download it now. Please allow any script control dialogs."
+		AddChat vbYellow, "[BCP] Source of document (you have " & transVer & ") (server has " & serverVer & "): " & serverLoc
+		
+		If bcpFSO.FileExists(BotPath() & "bcp_translations.txt") Then
+			bcpFSO.DeleteFile(BotPath() & "bcp_translations.txt")
+		End If
+		
+		t = Timer
+		SSC.PrintURLToFile "bcp_translations.txt", CStr(serverLoc)
+		t = Round( Timer-t, 2)
+		Call bcp_Set("Translations", "Version", CStr(serverVer), True)
+		AddChat vbGreen, "[BCP] Download complete. Your translations are now up-to-date (" & t & "s.)"
+		If (bcp_Get("Main", "ShowDialogs")) Then Call MsgBox("Your bot has downloaded a new translations file.", 0, "BCP Warning")
+	Else
+		AddChat vbGreen, "[BCP] Your translations file is up to date (" & transVer & ")."
+	End If
+End Sub
+
+Sub bcp_GDBStatus(Status)
+	If bcp_Get("GDB", "username") = "" or bcp_Get("GDB", "disable") = True Then
+		Exit Sub
+	End If
+	
+	If bcpGDBTemp_Disable Then
+		AddChat vbYellow, "[BCP:GDB] The bot is temporarily not committing to the GDB. Update failed."
+		Exit Sub
+	End If
+		
+	AddChat vbYellow, "[BCP:GDB] Updating bot status..."
+
+	uName = bcp_Get("GDB", "username")
+	uPassword = bcp_Get("GDB", "password")		
+
+	webURL = bcp_Get("GDB", "location") & "?u=" & uName & "&p=" & uPassword & "&setstatus=" & Replace(Status, " ", "+")
+	On Error Resume Next : Err.Clear
+	SciNet.Cancel
+	t = Timer
+	result = SciNet.OpenURL(CStr(webURL))
+	t = Round(Timer-t, 2)
+	If Not Err.Number = 0 Then
+		AddChat vbRed, "[BCP] Note: Failed to update " & Username & " on the GDB."
+		AddChat vbRed, Space(8) & Err.Number & ": " & Err.Description
+		
+		If (Err.Number = 35761) and (Err.Description = "Request timed out") Then
+			AddChat vbRed, "**************************************"
+			AddChat vbRed, "[BCP] The GDB database is not responding, the bot will temporarily stop committing data to the GDB until it is reloaded."
+			AddChat vbRed, "[BCP] It is possible the website is temporarily offline or updating, please try again in a few minutes."
+			AddChat vbRed, "**************************************"
+			bcpGDBTemp_Disable = True
+		End If
+			
+		Err.Clear
+	Else
+		m = Split(result, " ", 2)
+		If Int(m(0)) = 1 Then
+			AddChat vbGreen, "[BCP:GDB] Success: " & m(1) & " (" & t & "s)"
+		Else
+			AddChat vbRed, "[BCP:GDB] Failure (" & m(0) & "): " & m(1) & "  (Username: " & uName & ")"
+		End If
+	End If
+	On Error GoTo 0
+End Sub
+
+Function bcp_TopX(n)
+	bcp_TopX = ""
+	bubble = bcp_RankBubble()
+	If (UBound(bubble) = 0) Then Exit Function
+	If UBound(bubble) < n Then
+		t = UBound(bubble)
+	Else
+		t = n
+	End If
+	
+	For i = 1 to t
+		If bcpUsers.Exists(bubble(i)) Then
+			bcp_TopX = bcp_TopX & bubble(i) & " (" & bcpUsers.Item(bubble(i)).Runs & "), "
+		End If
+	Next
+	
+	If bcp_TopX <> "" Then
+		bcp_TopX = Left(bcp_TopX, Len(bcp_TopX) - 2)
+	End If
+End Function
+
+Function bcp_RankBubble()
+	Dim b()
+	Sandbox = Split(Join(bcpUsers.Keys, chr(0)), chr(0))
+	For i = 0 to UBound(Sandbox)
+		Sandbox(i) = Sandbox(i) & "|" & bcpUsers.Item(Sandbox(i)).Runs
+	Next
+	Total = bcpUsers.Count
+	ReDim b(Total)
+	g = 0
+	k = "?"
+	n = 0
+
+	For i = 1 to Total
+		For x = 0 to UBound(Sandbox)
+			If Sandbox(x) <> "" Then
+				q = Split(Sandbox(x), "|")
+					If Int(q(1)) > g Then
+						k = q(0)
+						g = Int(q(1))
+						n = x
+					End If
+			End If
+		Next
+		Sandbox(n) = ""
+
+		b(i) = k
+		g = 0
+	Next
+	bcp_RankBubble = b
+End Function
+
+Function bcp_FmtTime(Seconds)
+	If Int(Seconds) < 60 Then bcp_FmtTime = Seconds & "s" : Exit Function
+	s = Int(Seconds) : m = 0 : h = 0
+	While s >= 60
+		s = s - 60
+		m = m + 1
+		If m = 60 Then m = 0 : h = h + 1
+	WEnd
+	If h > 0 Then ret = ret & h & " hours, "
+	If m > 0 Then ret = ret & m & " minutes, "
+	If s > 0 Then ret = ret & s & " seconds, "
+	bcp_FmtTime = Left(ret, Len(ret)-2)
+End Function
+
+Function bcp_FmtGameList()
+	fmtA = bcp_Get("Messages", "GameReturn") & " "
+	fmtB = bcp_Get("Messages", "GameDelimeter") & " "
+
+	smt = bcp_Get("Messages", "GamePretext") & " "
+	games = 0
+	For Each Key in bcpUsers.Keys
+		With bcpUsers.Item(Key)
+			If .InGame Then
+				games = games + 1
+				smt = smt & .FormatString(fmtA) & fmtB
+			End If
+		End With
+	Next
+	If games > 0 Then
+		smt = Replace(Left(smt, Len(smt)-Len(fmtB)), "%i", games)
+	Else
+		smt = bcp_Get("Messages", "NoGames")
+	End If
+
+	bcp_FmtGameList = smt
+End Function
+
+Sub bcp_Set(Section, Key, Value, Overwrite)
+	If bcp_Get(Section, Key) <> "" and Overwrite = False Then
+		Exit Sub
+	Else
+		ssc.WriteConfigEntry Section, Key, CStr(Value), "bcp_settings.ini"
+		bcp_DebugMsg "[BCP] Created config entry for " & Key & "."
+		Exit Sub
+	End If
+	ssc.WriteConfigEntry Section, Key, CStr(Value), "bcp_settings.ini"
+End Sub
+
+Function bcp_Get(Section, Key)
+	bcp_Get = ssc.GetConfigEntry(Section, Key, "bcp_settings.ini")
+	If bcp_Get = "True" or bcp_Get = "False" Then bcp_Get = CBool(bcp_Get)
+	if IsNumeric(bcp_Get) Then bcp_Get = Int(bcp_Get)
+End Function
+
+Sub bcp_ReadAll()
+	On Error Resume Next
+	Set contents = bcpFSO.GetFolder(BotPath & "bcp_users")
+	For Each file In contents.Files
+		nameArr = Split(file, "\")
+		name = "bcp_users/" & nameArr(UBound(nameArr))
+		Set nameArr = Nothing
+		If Len(name) > 6 Then
+			If Right(name, 5) = ".user" Then
+				Username = GetConfigEntry("UData", "Username", name)
+				If Not bcpUsers.Exists(Username) and Len(Username) > 3 and Len(Username) < 32 Then
+					bcpUsers.Add Username, new bcp_User
+Err.Clear
+					With bcpUsers.Item(Username)
+						'...
+						.Username = Username
+						.StatString = GetConfigEntry("UData", "StatString", name)
+						.Product = GetConfigEntry("UData", "Product", name)
+						.Character = GetConfigEntry("UData", "Character", name)
+						.CClass = GetConfigEntry("UData", "CClass", name)
+						.Title = GetConfigEntry("UData", "Title", name)
+						.Level = Int(GetConfigEntry("UData", "Level", name))
+						.Runs = Int(GetConfigEntry("UData", "Runs", name))
+						.Time = Int(GetConfigEntry("UData", "Time", name))
+						.Fastest = Int(GetConfigEntry("UData", "Fastest", name))
+						.LastTime = Int(GetConfigEntry("UData", "LastTime", name))
+						.LastGameName = GetConfigEntry("UData", "LastGameName", name)
+						.Language = GetConfigEntry("UData", "Language", name)
+						.HideGameDuration = CBool(GetConfigEntry("Personal", "HideGameDuration", name))
+						.NameOverCharacter = CBool(GetConfigEntry("Personal", "NameOverCharacter", name))
+						.HideGDBGame = CBool(GetConfigEntry("Personal", "HideGDBGame", name))
+						.IsLadder = CBool(GetConfigEntry("UType", "IsLadder", name))
+						.IsExpansion = CBool(GetConfigEntry("UType", "IsExpansion", name))
+						.IsHardcore = CBool(GetConfigEntry("UType", "IsHardcore", name))
+						'...
+						
+
+
+If Err.Number = 0 Then
+Else
+	If Err.Number = 5 or Err.Number = 13 Then
+		AddChat vbRed, "[BCP] It is possible " & Username & "'s profile needs to be updated. It should function correctly, however."
+	Else
+		AddChat vbRed, "[BCP] Error: " & Err.Number & ": " & Err.Description
+	End If
+	Err.Clear
+End If
+					End With
+				End If
+			End If
+		End If
+	Next
+	On Error GoTo 0
+End Sub
+
+Sub bcp_SaveAll()
+	For Each Key in bcpUsers.Keys
+		bcpUsers.Item(Key).Save()
+	Next
+	AddChat vbGreen, "[BCP] All users saved."
+End Sub
+
+Function bcp_ConcVersion()
+	bcp_ConcVersion = Script("Major") & "." & Script("Revision") & "." & Script("Minor")
+End Function
+
+Sub bcp_Startup()
+	AddChat vbCyan, "[BCP] Starting up... please wait"
+	t = Timer
+	Set bcpFSO = CreateObject("Scripting.FileSystemObject")
+	Set bcpUsers = CreateObject("Scripting.Dictionary")
+	Set bcpIC = CreateObject("Scripting.Dictionary")
+
+	bcpIC.CompareMode = 1
+	bcpUsers.CompareMode = 1
+	bcpMarkOffline = False
+	bcpGDBTemp_Disable = False
+
+	'// 2.0
+	
+	bcp_Set "Debug", "enable", "False", False
+
+	bcp_DebugMsg "Dictionaries loaded, creating configuration..."
+	
+	bcp_Set "Main", "FirstRun", "True", False
+	bcp_Set "Main", "Filter", "baal|chaos", False
+	bcp_Set "Main", "MinGame", "60", False
+	bcp_Set "Main", "MaxGame", "250", False
+	bcp_Set "Main", "MinLvl", "80", False
+	bcp_Set "Main", "MinPing", "-1", False
+	bcp_Set "Main", "MsgType", "Ask", False 'Ask,Repeat
+	bcp_Set "Main", "MsgNoSpam", "10", False
+	bcp_Set "Main", "MsgDelay", "60", False
+	bcp_Set "Main", "AllowLadder", "True", False
+	bcp_Set "Main", "AllowNonLadder", "True", False
+	bcp_Set "Main", "AllowHardcore", "True", False
+	
+	bcp_Set "Commands", "games", "0", False
+	bcp_Set "Commands", "login", "20", False
+	bcp_Set "Commands", "logout", "20", False
+	bcp_Set "Commands", "forcelogout", "60", False
+	bcp_Set "Commands", "forcelogin", "60", False
+	bcp_Set "Commands", "pref", "0", False
+	bcp_Set "Commands", "career", "0", False
+	
+	bcp_Set "Aliases", "baal", "games", False
+	bcp_Set "Aliases", "chaos", "games", False
+
+	bcp_set "GDB", "username", "", False
+	bcp_set "GDB", "password", "", False
+	bcp_set "GDB", "location", "", False
+
+	'// 2.0 (1)
+
+	bcp_Set "Main", "ProfileUpdate", "3", False
+
+	bcp_Set "Behavior", "LogoutInvalidFilter", "False", False
+	bcp_Set "Behavior", "LogoutOnExit", "True", False
+	bcp_Set "Behavior", "SaveOnExit", "True", False
+
+	bcp_Set "CRS", "Enable", "True", False
+
+	bcp_Set "Messages", "GameReturn", "[ %game by %user ]", False
+	bcp_Set "Messages", "GameDelimeter", ",", False
+	bcp_Set "Messages", "NoGames", "/me : No games available.", False
+	bcp_Set "Messages", "GamePretext", "/me : %i Games:", False
+	bcp_Set "Messages", "NewGame", "/me : New game %game started by %user (level %lvl %class (run #%runid.))", False
+
+	'// 2.0 (2)
+
+	bcp_Set "Behavior", "LogoutOnPiggy", "True", False
+	bcp_Set "Commands", "bcpfind", "20", False
+	bcp_Set "Commands", "bcpeval", "20", False
+	bcp_Set "Commands", "bcpfastest", "20", False
+	bcp_Set "Translations", "Version", "0.0", False
+	bcp_Set "Translations", "LastUpdate", CStr( DateAdd("s", -(60 * 60 * 24), Now()) ), False
+	bcp_Set "Translations", "GetVersion", "http://toshley.net/bcp/downloads/translations/getcurrentversion.php", False
+	
+	'// 2.0 (3)
+	bcp_Set "Commands", "top", "0", False
+	bcp_Set "Commands", "getcareer", "0", False
+	bcp_Set "Aliases", "myinfo", "career", False
+	bcp_Set "Aliases", "getinfo", "getcareer", False
+	bcp_Set "Main", "ProfileHead", "http://toshley.net/bcp", False
+	
+	'// 2.0 (4)
+	'// nothing added in 2.0.4
+	
+	'// 2.0 (5)
+	bcp_Set "Debug", "EagleEyes", "False", False
+	
+	'// 2.0 (6)
+	bcp_Set "Main", "BCPEnabled", "True", False
+	bcp_Set "Main", "ScriptLastUpdate", CStr( DateAdd("s", -(60 * 60 * 24), Now()) ), False
+	bcp_Set "Main", "ScriptUpdateLoc", "http://toshley.net/bcp/downloads/getcurrentversion.php", False
+	'bcp_Set "Main", "MsgMutualError", "Note: You are not on the bot's friends list, please add " & BotVars.Username & " to friends before running or you will be logged out.", False
+	bcp_Set "Behavior", "LogoutOnNoMutual", "10", False
+	bcp_Set "Behavior", "LogoutOnOffline", "True", False
+	bcp_Set "Main", "ShowDialogs", "False", False
+	bcp_Set "Behavior", "UseNewestProfile", "True", False
+    bcp_Set "Translations", "GermanLanguageSupport", "True", False
+    bcp_Set "Behavior", "AutoLock", "False", False
+	
+	bcp_DebugMsg "Configuration loaded, loading profiles..."
+	
+	bcp_Folder
+	bcp_ReadAll
+
+	bcpTmrSec = 0 : bcpTmrHr = 0
+
+	bcp_DebugMsg "Profiles loaded, creating timers and setting dates..."
+	
+	'// Old timer creation scheme
+	'TimerInterval "bcp", "second", 1
+	'TimerInterval "bcp", "hour", 3600
+
+	'TimerEnabled "bcp", "second", True
+	'TimerEnabled "bcp", "hour", True
+	
+	'// The new stuff (2.0.4)
+	CreateObj "LongTimer", "LTsecond"
+	CreateObj "LongTimer", "LThour"
+
+	With LTsecond
+		.Interval = 1
+		.Enabled = True
+	End With
+	
+	With LThour
+		.Interval = 3600
+		.Enabled = True
+	End With
+	'// ...
+	
+	bcpLastProfileUpdate = Now()
+	bcpLastGameRequest = Now()
+	bcpLastConnect = Now()
+
+	bcp_DebugMsg "Loading completed, finalizing and checking translations..."
+	
+	If bcp_Get("main", "firstrun") = True Then
+		AddChat vbGreen, "[BCP] Welcome to BCP " & bcp_ConcVersion() & " by vi[r]us (IAreConnection) [" & bcpVID & "]."
+		AddChat vbOrange, "[BCP] If you are running BCP for the first time, please take the time to run the setup help -- type ""/bcp setup""  (no quotes) in your bot to begin."
+		AddChat vbYellow, "[BCP] For more advanced users reinstalling, don't forget to edit bcp_settings.ini to your liking. It is located in the bot's main folder (Settings->Edit Files->Open Bot Folder.)"
+		AddChat vbYellow, "[BCP] Note: You may want check for updates over time at: http://toshley.net/bcp"
+		AddChat vbYellow, "[BCP] Thank you for using BCP. As of 2.0.6 most of this jazz is automated, so just hang in there!"
+		AddChat vbCyan, "[BCP] Note: You will also need to reset any GDB usernames, locations and passwords."
+		bcp_Set "main", "firstrun", False, True
+	Else
+		t = Round(Timer-t, 2)
+		If bcpUsers.Count > 100 Then AddChat vbYellow, "[BCP] Note: you have a lot of channel patrons, if you experience intense lag when the bot closes, type ""/bcp cfg set behavior saveonexit False"" (no quotes) to disable mass-save on exit. The command is case sensative."
+		AddChat vbCyan, "[BCP] BCP " & bcp_ConcVersion() & " by vi[r]us (on StealthBot: IAreConnection): Loaded " & bcpUsers.Count & " profiles. (" & t & "ms)   visit http://toshley.net/bcp  for frequent questions or support"
+	End If
+	
+	'// updates
+	bcp_CheckTranslationsCond
+	bcp_CheckNews
+	bcp_CheckScriptVersion
+    
+    If bcp_Get("Behavior", "AutoLock") = True Then
+        AddChat vbRed, "[BCP] You have chosen to have BCP lock your bot window. To turn this off go into BCP's config and set AutoLock to ""False"" under Behavior."
+        Command BotVars.Username, "/locktext", True
+    End If
+	
+End Sub
+
+Sub LThour_Timer()
+	bcp_CheckTranslationsCond
+End Sub
+
+Sub LTsecond_Timer()
+	'On Error Resume Next : Err.Clear
+
+	If Not IsOnline and bcpMarkOffline Then
+		bcpMarkOffline = False
+		bcp_GDBStatus "Offline"
+	End If
+
+	logoutNMdelay = bcp_Get("Behavior", "LogoutOnNoMutual")
+	For Each Key in bcpUsers.Keys
+		With bcpUsers.Item(Key)
+			If CBool(.InGame) Then
+				If .GameObject.Duration() > (bcp_Get("main", "MaxGame") * 1.5) Then
+					.InGame = False
+					AddChat vbRed, "[BCP] " & .Username & "'s game has taken too long. Removing."
+					.GDB_Update("")
+				End If
+			End If
+			
+			If logoutNMdelay > 1 Then
+				If (Abs(DateDiff("s", .LastLog, Now())) > logoutNMdelay) AND .MutualFriend() AND .Friend() Then
+					'AddChat vbRed, "[BCP] " & .Username & " has been logged in for more than " & logoutNMdelay & " minutes but has not added this bot. Removing."
+					'AddQ "/f r " & psD2 & .Username
+				End If
+			End If
+			
+			If Not IsOnline or (Abs(DateDiff("s", bcpLastConnect, Now())) < 60) Then
+				'// don't check
+			Else
+				If bcp_Get("Behavior", "LogoutOnOffline") Then
+					If Not bcp_FriendOnline(.Username) and .Friend() Then
+						AddChat vbRed, "[BCP] " & .Username & " is offline. Removing."
+						AddQ "/f r " & psD2 & .Username
+					End If
+				End If
+			End If
+		End With
+	Next
+
+	'Err.Clear : On Error GoTo 0
+
+	'// BCP_ENABLED_CHECK
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	If Not IsOnline or (Abs(DateDiff("s", bcpLastConnect, Now())) < 60) Then
+		'AddChat vbRed, "[BCP] The bot is not online or has just connected. Refraining from messages/profile."
+		Exit Sub
+	End If
+
+	If LCase(bcp_Get("main", "MsgType")) = "repeat" or (bcp_Get("main", "MsgType") = True) Then
+		bcpTmrSec = bcpTmrSec + 1
+		If bcpTmrSec >= bcp_Get("main", "msgdelay") Then
+			bcpTmrSec = 0
+			AddQ bcp_FmtGameList()
+		End If
+	End If
+
+	On Error Resume Next : Err.Clear
+
+	x = Int(bcp_Get("Main", "ProfileUpdate"))
+	If x >= 1 Then
+		If Int(DateDiff("s", bcpLastProfileUpdate, Now())) > (x * 60) Then
+			bcpLastProfileUpdate = Now()
+			bodyOf = MyChannel & " Top Runners: " & vbCrLf
+			data = Join(Split(bcp_TopX(5), ", "), vbCrLf)
+			bodyOf = bodyOf & data
+			SetBotProfile "", "[BCP " & bcp_ConcVersion() & "." & bcpVID & "] " & bcp_Get("Main", "ProfileHead"), bodyOf
+			bcp_DebugMsg "Profile updated."
+		End If
+	End If
+
+	Err.Clear : On Error GoTo 0
+End Sub
+	
+Sub Event_Load()
+	bcp_Startup
+End Sub
+
+Sub Event_LoggedOn(Username, Product)
+	bcpLastConnect = Now()
+	bcpMarkOffline = True
+	bcpGDBTemp_Disable = False
+	bcp_GDBStatus "Online as " & Username
+	bcp_DebugMsg "Set online status: " & Username
+End Sub
+
+Sub Event_ServerInfo(Message)
+	'// BCP_ENABLED_CHECK (blue messages)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	parts = Split(Message, " ")
+	If InStr(Message, " your friends list.") > 0 Then
+		If bcpIC.Exists(parts(1)) Then
+			If bcpIC.Item(parts(1)).HideLogMsg Then
+				bcpIC.Item(parts(1)).HideLogMsg = False
+				AddChat vbYellow, "[BCP] Friends list action recognized; bot requested script to ignore it"
+				Exit Sub
+			End If
+		Else
+			AddChat vbRed, "[BCP] Friends list action recognized; this message is not used by the script right now"
+			Exit Sub
+		End If
+
+		If parts(0) = "Added" Then
+			If (bcp_Get("Main", "MsgMutualError") <> "") Then
+				MutualError = bcp_Get("Main", "MsgMutualError")
+			End If
+			completeMsg = "You have been logged IN."
+			'If Not bcp_Mutual(parts(1)) Then completeMsg = completeMsg & " " & MutualError
+			AddQ "/w " & psD2 & parts(1) & " " & completeMsg
+			bcp_DebugMsg "User " & parts(1) & " log action: entry      result: success"
+		ElseIf parts(0) = "Removed" Then
+			msg = "You have been logged OUT."
+			If bcpUsers.Exists(parts(1)) Then
+				With bcpUsers.Item(parts(1))
+					If .Runs > 1 Then msg = "You have been logged OUT. You have completed " & .Runs & " games at roughly " & bcp_FmtTime(.Average()) & " (" & .Average() & " seconds) per game."
+				End With
+			End If
+
+			AddQ "/w " & psD2 & parts(1) & " " & msg
+			bcp_DebugMsg "User " & parts(1) & " log action: removal      result: success"
+		End If
+	End If
+End Sub
+
+Sub Event_ServerError(Message)
+	'// BCP_ENABLED_CHECK (red messages)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	parts = Split(Message, " ")
+	If Message = "You already have the maximum number of friends in your list.  You will need to remove some of your friends before adding more." Then
+		AddQ "BCP Error: There is no more room on my friends list"
+		bcp_DebugMsg "User " & parts(1) & " log action: entry      result: error: friends list is full"
+	End If
+
+	If InStr(Message, " is already in your friends list.") Then
+		If bcpIC.Exists(parts(0)) Then
+			If bcpIC.Item(parts(0)).HideLogMsg Then
+				bcpIC.Item(parts(0)).HideLogMsg = False
+				AddChat vbYellow, "[BCP] Friends list action recognized; bot requested script to ignore it"
+				Exit Sub
+			End If
+		Else
+			AddChat vbRed, "[BCP] Friends list action recognized; this message is not used by the script right now"
+			Exit Sub
+		End If
+
+		AddQ "/w " & psD2 & parts(0) & " You are already logged IN."
+		bcp_DebugMsg "User " & parts(1) & " log action: entry      result: error: user is already logged in"
+	End If
+End Sub
+
+Sub Event_UserTalk(Username, Flags, Message, Ping)
+
+	'// BCP_ENABLED_CHECK (talk)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+
+	'// Blank command w/ just trigger
+	If LCase(Message) = LCase(BotVars.Trigger) Then Exit Sub
+	
+	b = BotVars.Trigger
+	GetDBEntry Username, a, f
+	If Left(Message, Len(b)) = b Then
+		cmd = Split(Mid(Message, Len(b)+1), " ")
+	Else
+		Exit Sub
+	End If
+
+	If bcp_Get("aliases", LCase(cmd(0))) <> "" Then
+		newcmd = bcp_Get("aliases", LCase(cmd(0)))
+		AddChat vbCyan, "[BCP] Command alias recognized: changes """ & cmd(0) & """ to """ & newcmd & """"
+		cmd(0) = newcmd
+	End If
+
+	If bcp_Get("commands", LCase(cmd(0))) <> "" Then
+		cmdA = Int(bcp_Get("commands", LCase(cmd(0))))
+		If (a < cmdA) and (Not cmdA = 0) Then
+			AddChat vbRed, "[BCP] Error: " & Username & " does not have enough bot access to do command """ & BotVars.Trigger & LCase(cmd(0)) & """; requires " & cmdA & " access"
+			bcp_DebugMsg "User " & Username & " log action: command      result: failure: does not have required " & cmdA & " access to do '" & cmd(0) & "'; has " & a
+			Exit Sub
+		End If
+	Else
+		Exit Sub
+	End If
+
+	If Not bcpIC.Exists(Username) Then
+		AddChat vbRed, "[BCP] Error: The bot has not seen " & Username & " before in the channel... they should rejoin"
+		bcp_DebugMsg "User " & Username & " log action: precommand      result: failure: user doesn't exist in internal channel database"
+		Exit Sub
+	End If
+
+    On Error Resume Next : Err.Clear
+    
+	Select Case LCase(cmd(0))
+		Case "games"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+			
+			If Not LCase(bcp_Get("main", "MsgType")) = "ask" or (bcp_Get("main", "MsgType") = False) Then
+				AddChat vbRed, "[BCP] The bot refused to tell a user the games list; games are displayed periodically instead"
+				bcp_DebugMsg "User " & Username & " log action: command      result: failure: cannot show games when host requests periodic display"
+				Exit Sub
+			Else
+				If Abs(DateDiff("s", bcpLastGameRequest, Now())) < bcp_Get("main", "MsgNoSpam") Then
+					AddChat vbRed, "[BCP] Waiting until cooldown expires to display games by command."
+					bcp_DebugMsg "User " & Username & " log action: command      result: failure: command fizzled"
+					Exit Sub
+				End If
+				AddQ bcp_FmtGameList()
+				bcpLastGameRequest = Now()
+			End If
+		Case "login"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+		
+			If DateDiff("s", bcpIC.Item(Username).LastLog, Now()) < bcp_Get("main", "MsgNoSpam") Then
+				AddChat vbRed, "[BCP] The command user cannot login now, they need to wait " & (bcp_Get("main", "MsgNoSpam") - Abs(DateDiff("s", bcpIC.Item(Username).LastLog, Now()))) & " seconds!"
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: user cannot be added if they have logged out less than " & bcp_Get("main", "MsgNoSpam") & "s (MsgNoSpam) ago"
+				Exit Sub
+			End If
+
+			bcpIC.Item(Username).LastLog = Now()
+			If (Ping > bcp_Get("main", "MinPing")) and (bcp_Get("main", "MinPing") <> -1) Then
+				AddQ "/w " & psD2 & Username & " You must have a ping lower than " & bcp_Get("main", "MinPing") & " to login."
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: user cannot be added if ping lower than " & bcp_Get("main", "MinPing") & "ms (MinPing)"
+				Exit Sub
+			End If
+
+			If (Not bcp_Get("main", "AllowHardcore")) and (bcpIC.Item(Username).IsHardcore) Then
+				AddQ "/w " & psD2 & Username & " Hardcore characters are not permitted to login."
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: hardcore characters are not allowed by host"
+				Exit Sub
+			End If
+
+			If (Not bcp_Get("main", "AllowNonLadder")) and (Not bcpIC.Item(Username).IsLadder) Then
+				AddQ "/w " & psD2 & Username & " Non-ladder characters are not permitted to login."
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: non-ladder characters are not allowed by host"
+				Exit Sub
+			End If
+
+			If (Not bcp_Get("main", "AllowLadder")) and (bcpIC.Item(Username).IsLadder) Then
+				AddQ "/w " & psD2 & Username & " Ladder characters are not permitted to login."
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: ladder characters are not allowed by host"
+				Exit Sub
+			End If
+
+			If bcpIC.Item(Username).Level < bcp_Get("main", "MinLvl") Then
+				AddQ "/w " & psD2 & Username & " Your character must be at least level " & bcp_Get("main", "MinLvl") & " to login."
+				bcp_DebugMsg "User " & Username & " log action: entry      result: failure: character in IC is lower than required"
+				Exit Sub
+			End If
+			bcpIC.Item(Username).LastLog = Now()
+			bcpIC.Item(Username).HideLogMsg = False
+			AddQ "/f a " & Username
+		Case "logout"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+			
+			If DateDiff("s", bcpIC.Item(Username).LastLog, Now()) < bcp_Get("main", "MsgNoSpam") Then
+				AddChat vbRed, "[BCP] The command user cannot logout now, they need to wait " & (bcp_Get("main", "MsgNoSpam") - Abs(DateDiff("s", bcpIC.Item(Username).LastLog, Now()))) & " seconds!"
+				bcp_DebugMsg "User " & Username & " log action: removal      result: failure: user cannot be added if they have logged out less than " & bcp_Get("main", "MsgNoSpam") & "s (MsgNoSpam) ago"
+				Exit Sub
+			End If
+
+			bcpIC.Item(Username).LastLog = DateAdd("n", 3, Now())
+			bcpIC.Item(Username).HideLogMsg = False
+			If bcpUsers.Exists(Username) Then bcpUsers.Item(Username).GDB_Update("")
+			AddQ "/f r " & Username
+		Case "forcelogin"
+			If bcpIC.Exists(cmd(1)) Then
+				bcpIC.Item(cmd(1)).HideLogMsg = True
+			Else
+				AddQ "/w " & psD2 & Username & " You can only force a login for users the bot has seen."
+				AddChat vbYellow, "[BCP] This command only works when there is a channel object."
+			End If
+			AddQ "/f a " & cmd(1)
+		Case "forcelogout"
+			If bcpIC.Exists(cmd(1)) Then
+				bcpIC.Item(cmd(1)).HideLogMsg = True
+			Else
+				AddQ "/w " & psD2 & Username & " You can only force a login for users the bot has seen."
+				AddChat vbYellow, "[BCP] This command only works when there is a channel object."
+			End If
+			AddQ "/f r " & cmd(1)
+		Case "pref"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+			
+			If bcpUsers.Exists(Username) Then
+				If UBound(cmd) = 0 Then
+					AddQ "/w " & psD2 & Username & " " & _
+					"Preferences available to you: hidecharacter, hideduration"
+					Exit Sub
+				End If
+
+				With bcpUsers.Item(Username)
+					Select Case LCase(cmd(1))
+						Case "hcn", "hidecharacter", "showaccount", "showname"
+							If .NameOverCharacter Then
+								.NameOverCharacter = False
+								AddQ "/w " & psD2 & Username & " " & _
+								"Your character will now be shown instead of your account name."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: character shown over account"
+							Else
+								.NameOverCharacter = True
+								AddQ "/w " & psD2 & Username & " " & _
+								"Your account name will now be shown instead of your character."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: account shown over character"
+							End If
+						Case "hd", "hideduration", "hideinfo", "hidedata"
+							If .HideGameDuration Then
+								.HideGameDuration = False
+								AddQ "/w " & psD2 & Username & " " & _
+								"The bot will now whisper you your last game's duration and name."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: game overview whispered upon return"
+							Else
+								.HideGameDuration = True
+								AddQ "/w " & psD2 & Username & " " & _
+								"The bot will now refrain from whispering you your game's data."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: game overview muted"
+							End If
+						Case "hgdb", "hidegdb", "hidegame"
+							If .HideGDBStatus Then
+								.HideGDBStatus = False
+								AddQ "/w " & psD2 & Username & " " & _
+								"The bot will no longer disguise your game on the GDB."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: gdb disguise disabled"
+							Else
+								.HideGDBStatus = True
+								AddQ "/w " & psD2 & Username & " " & _
+								"The bot will now disguise your game on the GDB."
+								bcp_DebugMsg "User " & Username & " log action: cfg      result: success: gdb disguise enabled"
+							End If
+					End Select
+				End With
+			Else
+				AddQ "/w " & psD2 & Username & " " & _
+				"You do not have a career here, you cannot set preferences."
+				bcp_DebugMsg "User " & Username & " log action: command      result: failure: user cannot manipulate the bot's internal commands without a career"
+			End If
+		Case "career", "my", "myinfo"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+			
+			If UBound(cmd) >= 1 Then
+				user = cmd(1)
+			Else
+				user = "info"
+			End If
+			
+			If bcpUsers.Exists(Username) Then
+				With bcpUsers.Item(Username)
+					Select Case LCase(user)
+						Case "reset", "delete"
+							Randomize
+							.CareerResetCode = CStr(Int( Rnd * 100000 ) + 1000)
+							AddQ "/w " & psD2 & Username & " " & _
+							"Please type '" & BotVars.Trigger & "career confirmdelete " & .CareerResetCode & "' (no quotes) to confirm this."
+							bcp_DebugMsg "User " & Username & " log action: CAREER CODE REQUEST      result: success: code = " & .CareerResetCode
+						Case "confirmdelete", "confirm", "deletecode", "resetcode"
+							If .CareerResetCode = cmd(2) Then
+								.Runs = 0
+								.Time = 0
+								.Fastest = 0
+								.Save
+								AddQ "/w " & psD2 & Username & " " & _
+								"Your career (runs, time, average, fastest game) has been reset."
+								bcp_DebugMsg "User " & Username & " log action: CAREER DELETION      result: success"
+							Else
+								AddQ "/w " & psD2 & Username & " " & _
+								"Your code is " & .CareerResetCode & "."
+							End If
+						Case "rank"
+							AddQ "/w " & psD2 & Username & " " & _
+							"Your career ranks #" & .Rank() & " of " & bcpUsers.Count & " on this bot."
+						Case Else
+							AddQ "/w " & psD2 & Username & " " & _
+							"You have completed " & .Runs & " runs at roughly " & bcp_FmtTime(.Average()) & " (" & .Average() & "s) each (ranked #" & .Rank() & "). Your fastest run was " & bcp_FmtTime(.Fastest) & ". Your last was " & bcp_FmtTime(.LastTime) & "."
+					End Select
+				End With
+			Else
+				AddQ "/w " & psD2 & Username & " " & _
+				"You do not have a career here."
+				bcp_DebugMsg "User " & Username & " log action: command      result: failure: user cannot manipulate the bot's internal commands without a career"
+			End If
+		Case "getcareer", "getinfo"
+			If (Not bcpIC.Item(Username).IsDiablo()) Then
+				AddChat vbRed, "[BCP] " & Username & " does not use Diablo II and cannot use this command."
+			End If
+			
+			Select Case UBound(cmd)
+				Case 2
+					user = cmd(1)
+					op = cmd(2)
+				Case 1
+					user = cmd(1)
+					op = "info"
+				Case Else
+					Exit Sub
+			End Select
+			
+			If bcpUsers.Exists(user) Then
+				With bcpUsers.Item(user)
+					Select Case LCase(op)
+						Case "rank"
+							AddQ "/w " & psD2 & Username & " " & _
+							"The career for " & .Username & " ranks #" & .Rank() & " of " & bcpUsers.Count & " on this bot."
+						Case Else
+							AddQ "/w " & psD2 & Username & " " & _
+							.Username & " has completed " & .Runs & " runs at roughly " & bcp_FmtTime(.Average()) & " (" & .Average() & "s) each. Their fastest run was " & bcp_FmtTime(.Fastest) & ". The last run was " & bcp_FmtTime(.LastTime) & "."
+					End Select
+				End With
+			Else
+				AddQ "/w " & psD2 & Username & " " & _
+				"The user " & user & " could not be found. Please use their account name, or type " & BotVars.Trigger & "bcpfind " & user & "  to find it."
+				bcp_DebugMsg "User " & Username & " log action: command      result: failure: user not found"
+			End If
+		Case "bcpfind", "bcpwhois", "cf"
+			If UBound(cmd) = 0 Then
+				u = Username
+			Else
+				u = LCase(cmd(1))
+				For Each Key in bcpIC.Keys
+					ou = LCase(bcpIC.Item(Key).Username)
+					oc = LCase(bcpIC.Item(Key).Character)
+					If (ou = u) or (oc = u) Then
+						u = Key
+						Exit For
+					End If
+
+					If (InStr(ou, u) > 0) or (InStr(oc, u) > 0) Then
+						u = Key
+					End If
+				Next
+			End If
+
+			If Not bcpIC.Exists(u) Then
+				AddQ "/w " & psD2 & Username & " " & _
+				"Error: the bot has not seen that user since it was started"
+			Else
+				With bcpIC.Item(u)
+					m = "User " & .Username & " "
+					If .IsDiablo() Then
+						If .IsOpenCharacter() Then
+							m = m & "is an open character (last seen: " & bcp_FmtTime( DateDiff("s", .LastSeen, Now())) & ".)"
+						Else
+							m = m & "(aka " & .Character & ") is a level " & .Level & " " & .CClass & "."
+						End If
+					Else
+						m = m & "is not using Diablo II (last seen: " & bcp_FmtTime( DateDiff("s", .LastSeen, Now())) & ".)"
+					End If
+				End With
+
+				AddQ m
+			End If
+		Case "bcpeval"
+			tgames = 0
+			For Each Key in bcpUsers.Keys
+				tgames = tgames + bcpUsers.Item(Key).Runs
+			Next
+			AddQ "There are " & bcpUsers.Count & " unique profiles on this bot and " & tgames & " total games completed."
+		Case "bcpfastest", "fastest"
+			tname = ""
+			ttime = 9999
+			For Each Key in bcpUsers.Keys
+				If bcpUsers.Item(Key).Fastest < ttime Then
+					tname = Key
+					ttime = bcpUsers.Item(Key).Fastest
+				End If
+			Next
+
+			If tname = "" Then
+				AddQ "/w " & psD2 & Username & " " & _
+				"Error: the bot has no games to gather this information from"
+			Else
+				AddQ "The fastest game completed on this bot was completed in " & bcp_FmtTime(ttime) & " by " & tname & "."
+			End If
+		Case "bcptop", "top"
+			If UBound(cmd) = 0 Then
+				t = 5
+			Else
+				t = Int(cmd(1))
+			End If
+			AddQ "/w " & psD2 & Username & " " & _
+			"Top " & t & " users: " & bcp_TopX(5)
+	End Select
+
+    On Error GoTo 0
+    If (Err.Number <> 0) Then
+        AddChat vbRed, "[BCP] An error has occured processing remote commands: " & Err.Description
+    End If
+    
+End Sub
+
+Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+
+	ProperMessageA = bcp_Translate(Message)
+	If (IsArray(ProperMessageA)) Then
+		If Not ProperMessageA(0) = "?" Then
+			If bcpUsers.Exists(Username) Then bcpUsers.Item(Username).Language = ProperMessageA(0)
+			ProperMessage = ProperMessageA(1)
+			If (ProperMessageA(0) <> "English") Then
+				AddChat vbGreen, "[BCP] Translated " & ProperMessageA(0) & " message to English (" & ProperMessage & ")"
+			End If
+		Else
+			ProperMessage = Message
+		End If
+	Else
+		ProperMessage = Message
+	End If
+
+	'// BCP_ENABLED_CHECK (whisper)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	If Match(ProperMessage, "Your friend * has exited Battle.net.", True) Then
+		If bcpUsers.Exists(Username) Then
+			With bcpUsers.Item(Username)
+				If bcp_Get("Behavior", "LogoutOnExit") = True Then
+					If bcpIC.Exists(Username) Then bcpIC.Item(Username).HideLogMsg = True
+					AddQ "/f r " & Username
+				End If
+
+				If .InGame Then
+					AddChat vbRed, "[BCP] User logged off while in a game, run removed."
+					.InGame = False
+					Set .GameObject = Nothing
+					If .Runs > 10 Then .GDB_Update("")
+					Exit Sub
+				End If
+			End With
+		End If
+	End If
+
+	parts = Split(ProperMessage, " ")
+	If Match(ProperMessage, "Your friend * entered a * game called *.", True) Then
+		game = Split(ProperMessage, " game called ")(1)
+		game = Left(game, Len(game)-1)
+        If (InStr(game, " eingeklinkt") > 0) and bcp_Get("Translations", "GermanLanguageSupport") Then
+            game = Replace(game, " eingeklinkt", "")
+            AddChat vbYellow, "[BCP] German support is enabled, this game name was fixed automatically."
+        End If
+        
+        If (Len(bcp_Get("main", "filter")) = 0) Then
+            ok = True
+            m = game
+        Else
+            gf = Split( CStr(bcp_Get("main", "filter")), "|" )
+            ok = False
+            For i = 0 to UBound(gf)
+                If InStr(LCase(game), LCase(gf(i))) > 0 Then
+                    m = gf(i)
+                    ok = True
+                End If
+            Next
+        End If
+
+		For Each Key in bcpUsers.Keys
+			With bcpUsers.Item(Key)
+				If .InGame Then
+					If LCase(game) = LCase(.GameObject.Name) Then
+						If bcp_Get("Behavior", "LogoutOnPiggy") Then
+							If bcpIC.Exists(Username) Then
+								bcpIC.Item(Username).HideLogMsg = True
+								bcpIC.Item(Username).LastLog = DateAdd("n", 30, Now())
+							End If
+							AddQ "/f r " & Username
+							AddChat vbRed, "[BCP] This game already exists, removing " & Username & " from friends and restricting login for 30 minutes."
+							bcp_DebugMsg "User " & Username & " log action: game      result: error upon creation: piggy backing turned off by host; user removed; user barred for 30 minutes"
+						Else
+							AddChat vbRed, "[BCP] This game already exists, the bot will ignore it for this user."
+						End If
+						Exit Sub
+					End If
+				End If
+			End With
+		Next
+
+		If Not ok Then
+			If bcp_Get("Behavior", "LogoutInvalidFilter") Then
+				If bcpIC.Exists(Username) Then bcpIC.Item(Username).HideLogMsg = True
+				AddQ "/f r " & Username
+				bcp_DebugMsg "User " & Username & " log action: removal      result: automatic: user joined an untagged game"
+			Else
+				AddChat vbRed, "[BCP] Game name has no valid tag, it was ignored."
+				bcp_DebugMsg "User " & Username & " log action: game      result: error upon creation: game has no tags"
+			End If
+			Exit Sub
+		Else
+			m = game
+		End If
+
+		If bcpUsers.Exists(Username) Then
+			With bcpUsers.Item(Username)
+				If .InGame Then
+					AddChat vbRed, "[BCP] User is already in a game. Resetting game."
+					bcp_DebugMsg "User " & Username & " log action: game      result: automatic: user is doubling games, last game dropped"
+					.EmptyGame
+					Set .GameObject = New bcp_Game
+					.GameObject.Name = game
+					.GameObject.Host = Username
+						AddQ .FormatString(bcp_Get("Messages", "NewGame"))
+					.InGame = True
+					If .Runs > 10 Then .GDB_Update(m)
+					Exit Sub
+				End If
+
+				.InGame = True
+				Set .GameObject = New bcp_Game
+				.GameObject.Name = game
+				.GameObject.Host = Username
+				AddQ .FormatString(bcp_Get("Messages", "NewGame"))
+				If .Runs > 10 Then .GDB_Update(m)
+			End With
+		Else
+			AddChat vbYellow, "[BCP] User doesn't exist..."
+			If bcpIC.Exists(Username) Then
+				bcpUsers.Add Username, bcpIC.Item(Username)
+				With bcpUsers.Item(Username)
+					AddChat vbGreen, "[BCP] " & .Title & " " & .Character & " (level " & .Level & ", " & .CClass & ") added to database."
+					bcp_DebugMsg "User " & Username & " log action: added      result: automatic: user created game"
+				End With
+
+				With bcpUsers.Item(Username)
+					.InGame = True
+					Set .GameObject = New bcp_Game
+					.GameObject.Name = game
+					.GameObject.Host = Username
+					AddQ .FormatString(bcp_Get("Messages", "NewGame"))
+				End With
+			Else
+				AddChat vbRed, "[BCP] User was not in the database, and had no channel reference. The user couldn't be added properly."
+				bcp_DebugMsg "User " & Username & " log action: added      result: failure: user not found in internal channel"
+			End If
+		End If
+	End If
+
+End Sub
+
+Sub Event_UserJoins(Username, Flags, Message, Ping, Product, Level, OriginalStatString, Banned)
+	'// BCP_ENABLED_CHECK (user joins)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	If bcpUsers.Exists(Username) Then
+		With bcpUsers.Item(Username)
+			If .InGame Then
+				bcp_EagleMsg "User " & Username & " experiencing ephemeral transition, stats update soon"
+				d = .GameObject.Duration()
+				If Not .GameTimeOK() Then
+					AddQ "/w " & psD2 & Username & " Your game was too fast or too slow. (" & d & " seconds)"
+					.LastGameName = "Invalid"
+					Call .EmptyGame()
+					bcp_DebugMsg "User " & Username & " log action: game      result: failure: game too fast or too slow"
+				Else
+					AddChat vbGreen, "[BCP] " & .Character & " finished " & .GameObject.Name & " in " & d & " seconds."
+					Call .EmptyGame()
+					.Runs = .Runs + 1
+					.Time = .Time + d
+					If d < .Fastest or .Fastest = 0 Then
+						If .Fastest > 0 Then m = " This is your fastest game so far."
+						.Fastest = d
+					End If
+
+					AddQ "/w " & psD2 & Username & " Game #" & .Runs & " (" & .GameObject.Name & ") lasted " & bcp_FmtTime(d) & " (" & d & " seconds)." & m
+				End If
+				Set .GameObject = Nothing
+				Call .GDB_UpdateComp("", d)
+			End If
+
+			.StatString = Message
+			.Product = Product
+			.Level = Level
+			.Parse
+		End With
+	End If
+
+	If Not bcpIC.Exists(Username) Then
+		bcpIC.Add Username, new bcp_User
+	End If
+
+	With bcpIC.Item(Username)
+		.Username = Username
+		.Product = Product
+		.Level = Level
+		.StatString = Message
+		.Parse
+	End With
+End Sub
+
+Sub Event_UserLeaves(Username, Flags)
+	'// BCP_ENABLED_CHECK (leave)
+	If Not bcp_Get("Main", "BCPEnabled") Then Exit Sub
+	
+	'If bcpIC.Exists(Username) Then bcpIC.Remove Username
+End Sub
+
+Sub Event_UserInChannel(Username, Flags, Message, Ping, Product, StatUpdate)
+	If bcpIC.Exists(Username) Then bcpIC.Remove Username
+	bcpIC.Add Username, new bcp_User
+	With bcpIC.Item(Username)
+		.Username = Username
+		.Product = Product
+		.Level = Level
+		'// Fuck 2.6
+		.StatString = Split(Message, ")")
+		If UBound(.StatString) > 0 Then
+			.StatString = .StatString(UBound(.StatString)-1) & ")"
+		Else
+			.StatString = Message
+		End If
+		.Parse
+	End With
+	Message = ""
+End Sub
+
+Sub Event_PressedEnter(Text)
+
+    On Error Resume Next : Err.Clear
+	If Left(Text, 5) = "/bcp " Then
+		VetoThisMessage
+		cmd = Split(Mid(Text, 6), " ")
+		Select Case LCase(cmd(0))
+			Case "gdbinfo"
+				bcp_Set "GDB", "username", cmd(1), True
+				bcp_Set "GDB", "password", cmd(2), True
+				AddChat vbGreen, "[BCP] Global database username set to " & cmd(1) & _
+					" and password set to """ & cmd(2) & """."
+			Case "gdbloc"
+				bcp_Set "GDB", "location", cmd(1), True
+				AddChat vbGreen, "[BCP] Global database location set to: " & cmd(1)
+			Case "cfg", "config"
+				If UBound(cmd) >= 1 Then
+					Select Case LCase(cmd(1))
+						Case "get"
+							AddChat vbGreen, bcp_Get(cmd(2), cmd(3))
+						Case "set"
+							Call bcp_Set(cmd(2), cmd(3), Replace(cmd(4), "_", " "))
+							AddChat vbGreen, bcp_Get(cmd(2), cmd(3))
+						Case "open"
+							AddChat vbYellow, "[BCP] Attempting to open default BCP config..."
+							Set objShell = CreateObject("WScript.Shell")
+							objShell.Run BotPath() & "bcp_settings.ini"
+							Set objShell = Nothing
+					End Select
+				End If
+            Case "reset"
+                u = LCase(cmd(1))
+            	For Each Key in bcpUsers.Keys
+                    With bcpUsers.Item(Key)
+                        If LCase(.Username) = u Then
+                            .Runs = 0
+                            .Time = 0
+                            .Fastest = 0
+                            .Save
+                            AddChat vbYellow, "[BCP] Purge/Reset: " & .Username
+                            Exit Sub
+                        End If
+                    End With
+                Next
+                AddChat vbRed, "[BCP] That user was not found. Please make sure you typed their account name correctly."
+			Case "purge"
+                If (UBound(cmd) = 0) Then
+                    l = 100000
+                Else
+                    l = Int(cmd(1))
+                End If
+                
+                If Msgbox("Do you really want to remove every user with less than " & l & " runs?", vbYesNo, "Purge") <> vbYes Then
+                    Exit Sub
+                End If
+
+				AddChat vbYellow, "[BCP] Purging players with less than " & l & " runs."
+				bcp_PurgeList l
+				AddChat vbGreen, "[BCP] Purge complete."
+			Case "trans", "transtest"
+				text = ""
+				For i = 1 to UBound(cmd)
+					text = text & cmd(i) & " "
+				Next
+				text = Trim(text)
+				r = bcp_Translate(text)
+				AddChat vbCyan, "[BCP] From " & r(0) & " to English: " & r(1)
+			Case "version"
+				AddChat vbCyan, "[BCP] BCP Version " & Script("Major") & "." & Script("Revision") & "." & Script("Minor") & " version ID " & vID & " by vi[r]us -- http://toshley.net/bcp"
+				AddChat vbCyan, "[BCP] Translations markup last changed 2.0.2 (20210); file version " & bcp_Get("Translations", "Version") & ".0 last updated " & bcp_Get("Translations", "LastUpdate") & "."
+			Case "eagleeyes", "eagleyes", "eagleye", "eagleeye"
+				newsetting = False
+				If (cmd(1) = "disable") Then newsetting = False
+				If (cmd(1) = "enable") Then newsetting = True
+				bcp_Set "Debug", "EagleEyes", newsetting, True
+				AddChat vbGreen, "[BCP] Eagle Eye functionality turned on: " & newsetting
+			Case "disable", "enable", "toggle"
+				If LCase(cmd(0)) = "disable" Then
+					bcp_Set "Main", "BCPEnabled", "False", True
+					AddChat vbRed, "[BCP] Script disabled (only muted). You can type  /bcp enable  to restart the script. The bot will continue to run minor BCP functions in the background."
+				ElseIf LCase(cmd(0)) = "enable" Then
+					bcp_Set "Main", "BCPEnabled", "True", True
+					AddChat vbGreen, "[BCP] Script enabled."
+				ElseIf LCase(cmd(0)) = "toggle" Then
+					If (bcp_Get("Main", "BCPEnabled")) Then
+						bcp_Set "Main", "BCPEnabled", "False", True
+						AddChat vbRed, "[BCP] Script disabled (only muted). You can type  /bcp enable  to restart the script."
+					Else
+						bcp_Set "Main", "BCPEnabled", "True", True
+						AddChat vbGreen, "[BCP] Script enabled."
+					End If
+				End If
+			Case "update"
+				bcp_CheckScriptVersion
+			Case "transupdate"
+				bcp_CheckTranslations
+			Case "mutual"
+				If (bcp_Mutual(cmd(1))) Then
+					AddChat vbGreen, "[BCP] Mutual (" & cmd(1) & "): yes"
+				Else
+					AddChat vbGreen, "[BCP] Mutual (" & cmd(1) & "): no"
+				End If
+			Case "news", "checknews"
+				bcp_CheckNews
+			Case "setup"
+				bcp_RunSetup()
+			Case "find"
+				If UBound(cmd) = 0 Then
+					u = BotVars.Username
+				Else
+					u = LCase(cmd(1))
+					For Each Key in bcpIC.Keys
+						ou = LCase(bcpIC.Item(Key).Username)
+						oc = LCase(bcpIC.Item(Key).Character)
+						If (ou = u) or (oc = u) Then
+							u = Key
+							Exit For
+						End If
+
+						If (InStr(ou, u) > 0) or (InStr(oc, u) > 0) Then
+							u = Key
+						End If
+					Next
+				End If
+
+				If Not bcpIC.Exists(u) Then
+					AddChat vbRed, "[BCP] Error: the bot has not seen that user since it was started"
+				Else
+					With bcpIC.Item(u)
+						lastseen = "(last seen: " & bcp_FmtTime( DateDiff("s", .LastSeen, Now())) & ".)"
+						ladder = "non-Ladder"
+						If (.IsLadder) Then ladder = "Ladder"
+						If (.IsHardcore) Then ladder = "hardcore " & ladder
+						If (.Friend()) Then friend = " (mutual friend)"
+						d2game = "Diablo II Classic"
+						If (.IsExpansion) Then d2game = "Diablo II Expansion"
+						m = "User " & .Username & " "
+						If .IsDiablo() Then
+							If .IsOpenCharacter() Then
+								m = m & "is an open character " & lastseen
+							Else
+								m = m & "(aka " & .Title & " " & .Character & ") is a " & ladder & " level " & .Level & " " & .CClass & " using " & d2game & " " & lastseen
+							End If
+						Else
+							m = m & "is not using Diablo II " & lastseen
+						End If
+					End With
+
+					AddChat vbGreen, "[BCP] " & m
+				End If
+		End Select
+	End If
+
+    If (Err.Number <> 0) Then
+        AddChat vbRed, "[BCP] An error has occured processing commands: " & Err.Description
+    End If
+End Sub
+
+Sub Event_Close()
+	If bcp_Get("Behavior", "SaveOnExit") Then bcp_SaveAll
+	bcp_GDBStatus "Absent"
+End Sub
+
+Sub bcp_DebugMsg(Text)
+	If bcp_Get("Debug", "enable") Then AddChat vbRed, "[BCP] [DEBUG] " & Text
+End Sub
+
+Sub bcp_EagleMsg(Text)
+	If bcp_Get("Debug", "EagleEyes") Then AddChat vbWhite, "[BCP] [EAGLE] " & Text
+End Sub
+
+Sub bcp_RunSetup()
+
+	' question - cat - item - checknum - forcelcase - isquestion
+
+	stufflist = Array(Array("How much access should the bot require people to have to login and do runs?", "Commands", "login", True, False, False), _
+	Array("How much time, in seconds, should be the minimum time for a run to take in your channel?", "Main", "MinGame", True, False, False), _
+	Array("What about the maximum time a game can take? (seconds)", "Main", "MaxGame", True, False, False), _
+	Array("What is the minimum level required on a character to login? (1-99)", "Main", "MinLvl", True, False, False), _
+	Array("Should we allow non-ladder players to run games?", "Main", "AllowNonLadder", False, False, True), _
+	Array("Should we allow ladder players to run games?", "Main", "AllowLadder", False, False, True), _
+	Array("Should we allow hardcore players to run games?", "Main", "AllowHardcore", False, False, True), _
+	Array("What should the bot say when no games are available?", "Messages", "NoGames", False, False, False), _
+	Array("What text precedes the game list when they are available? (%i is used as the number of games)", "Messages", "GamePretext", False, False, False), _
+	Array("What should the bot say when a new game is created? (for a full list of variables, check out http://toshley.net/bcp/help.php and click Variables)", "Messages", "NewGame", False, False, False), _
+	Array("What kind of games do you run in your channel? These phrases will be used to determine such games. Use a line (|) to separate them." & vbCrLf & vbCrLf & "Example:  baal|chaos" & vbCrLf & "for chaos and baal games.", "Main", "Filter", False, True, False), _
+	Array("Should the games list repeat every 60 seconds, or should it be done by the .games command?", "Main", "MsgType", False, False, True))
+
+	AddChat vbYellow, "[BCP] Welcome to BCP setup. The bot will now ask you some questions to help you set up the configuration file."
+	
+	'InputBox(prompt[,title][,default][,xpos][,ypos][,helpfile,context])
+	
+	f = InputBox("Dialogs like this will follow asking you simple questions. You can answer with text, a number or with ""yes"" and ""no"".", "BCP 2.0 Setup", "Your answers will go here, when you're ready click OK.")
+	
+	For a = 0 to UBound(stufflist)
+		stuff = stufflist(a)
+		AddChat vbYellow, "[BCP] [" & stuff(1) & "]: " & stuff(2)
+		data = InputBox(stuff(0), "BCP 2.0 Setup", bcp_Get(stuff(1), stuff(2)))
+		If (stuff(3)) Then
+			If Not IsNumeric(data) Then data = bcp_Get(stuff(1), stuff(2))
+		End If
+		If (stuff(4)) Then
+			data = LCase(data)
+		End If
+		If (stuff(5)) Then
+			Select Case LCase(data)
+				Case "yes", "y", "true"
+					data = True
+				Case "no", "n", "false"
+					data = False
+				Case Else
+					data = "RESET"
+			End Select
+		End If
+		If data <> "RESET" Then
+			AddChat vbGreen, "[BCP] " & stuff(2) & " set to: " & data
+			bcp_Set stuff(1), stuff(2), data,True
+		Else
+			AddChat vbRed, "[BCP] " & stuff(2) & " was invalid and not set."
+		End If
+	Next
+	
+	data = InputBox("While we're here, do you have a GDB account to set up?", "BCP 2.0 Setup", "yes/no")
+	If (data = "yes") Then
+		name = InputBox("GDB Username", "BCP 2.0 GDB Setup", "")
+		pass = InputBox("GDB Password", "BCP 2.0 GDB Setup", "")
+		loc = "http://toshley.net/bcp/sys/commit.php"
+		If (name = "") or (pass = "") Then
+			AddChat vbRed, "[BCP] You must input data for this."
+		Else
+			bcp_Set "GDB", "username", name, True
+			bcp_Set "GDB", "password", pass, True
+			bcp_Set "GDB", "location", loc, True
+			AddChat vbGreen, "[BCP] Global database username set to " & name & _
+				" and password set to """ & pass & """."
+		End If
+	Else
+		AddChat vbRed, "[BCP] We're done here if you have no further information. Thanks for using BCP. If you change your mind about the GDB run this setup again."
+		AddChat vbRed, "[BCP] If you have any other questions, check out http://toshley.net/bcp for more information."
+	End If
+	
+	AddChat vbGreen, "[BCP] Setup complete."
+End Sub
