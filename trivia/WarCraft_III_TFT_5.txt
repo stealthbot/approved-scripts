@@ -1,0 +1,89 @@
+Who is the builder of the Orc?*peon
+Where do you train Grunts?*Barracks
+Where do you train troll headhunters?*Barracks
+Where do you train Peons?*Great Hall
+Where Do you build Demolishers?*Barracks
+What is the only research upgrade for the demolisher?*Burning Oil
+What is the only research upgrade for Grunts?*Berserker Strengh
+Which Research has the ability to transform Troll Headhunters to Troll Berserkers?*Berserker Upgrade
+Which Research Upgrade can increase The Regeneration Rate For All Trolls?*Troll Regeneration
+Which Unit can go inside a burrow to give it an attack?*Peon
+What is The Basic and only orc tower?*Watch Tower
+Where do you Train Orc Heroes?*Altar of Storms
+What is The Upgrade Structure for Orc called?*War Mill
+Where do you get the research to upgrade burrows and watch towers to fortified armor?*War Mill
+What is The Orc Item Shop called?*Voodoo Lounge
+What Do You need to make Stronghold?*nothing
+What Do you need to make watch tower?*War Mill
+What do you need to make a spirit lodge and a beastiary?*Stronghold
+What is The Most Powerful Melee Unit in the orc unit arsenal?*Tauren
+What is the most powerful Ranged Unit in the Orc unit arsenal*Wind Rider
+What is The Most powerful Anti-Air Unit in the orc unit arsenal?*Troll Batrider
+Which Unit Gives damage to all friendly units?*kodo beast
+Which Unit Can do xtra damage to structures and have the ability to get gold with each strike?*Raider
+Where do you research ensnare?*Beastiary
+Where do you upgrade war drums?*Beastairy
+Where do you research poison arrows?*Beastiary
+Where Do you research Liquid Flame*Beastiary
+What Can You upgrade in the Spirit Lodge?*Caster Training
+Which Orc Unit can cast bloodlust?*shaman
+Which Orc unit can cast purge?*shaman
+Which orc unit can cast lightning shield?*shaman
+Which Orc Unit can cast Sentry ward?*Troll witch doctor
+Which Orc Unit can cast Stasis Ward?*troll witch doctor
+Which Orc Unit can cast Healing Ward?*troll witch doctor
+What Does A Troll Witch Doctor Speacilize in?*Wards
+Which Orc Unit can cast Spirit Link?*Spirit Walker
+Which Orc Unit can cast Disenchant?*Spirit Walker
+Which Orc Unit can cast Ancestral Spirit?*Spirit Walker
+What Does Ancestral Spirit Revive?*Tauren
+Which Orc hero is used the most in ladder games?(its not a melee hero)*Far Seer
+Which Orc Hero Can Use Wind Walk?*Blademaster
+Which Orc Hero can use Mirror Image?*Blademaster
+Which Orc Hero can use critical strike?*Blademaster
+Which Orc Hero Can use Bladestorm?*Blademaster
+Which Orc Hero Can Use Chain Lightning?*Far Seer
+Which Orc Hero Can Use Far Sight?*Far Seer
+Which Orc Hero Can Use Feral Spirit?*Far Seer
+Which Orc Hero Can Use Earthquake?*Far Seer
+Which Orc Hero Can Use Healing Wave?*Shadow Hunter
+Which Orc Hero Can Use Hex?*Shadow Hunter
+Which Orc Hero Can Use Serpent Ward?*Shadow Hunter
+Which Orc Hero Can Use Big Bad Voodoo?*Shadow Hunter
+Which Orc Hero Can Use Shockwave?*Tauren Chieftain
+Which Orc Hero Can Use War Stomp?*Tauren Chieftain
+Which Orc Hero Can Learn Endurance Aura?*Tauren Chieftain
+Which Orc Hero Can Learn Ressurection?*Tauren Chieftain
+Where Do You Research Pillage?*Great Hall
+Where Do You Research Backpack?*Great Hall
+What Do You Need to research backpack?*Voodoo Lounge
+Whats The Armor Type For A Peon?*Medium
+Whats The Armor Type For A Grunt?*Heavy
+Whats The Armor Type for a Troll Headhunter/Berserker?*medium
+Whats The Armor Type For a Demolisher?*Heavy
+Whats The Armor Type for a Shaman?*Unarmored
+Whats The Armor Type for a Troll witch doctor?*unarmored
+Whats The armor type for a Spirit Walker?*Unarmored
+Whats The armor type for a Raider?*Medium
+Whats The Armor Type for a Kodo Beast?*Unarmored
+Whats The Armor Type for a wind rider?*Light
+Whats The Armor Type For a Troll Batrider?*Light
+Whats The Armor Type For a Tauren?*Heavy
+Whats The Attack Type For a Peon?*Normal
+WhatsThe Attack Type For a Grunt?*Normal
+Whats The Attack Type For a Troll Headhunter/Berserker?*Piercing
+Whats The Attack Type For a Demolisher?*Siege
+Whats The Attack Type For a Shaman?*Magic
+Whats The Attack Type For a Troll Witch Doctor?*Magic
+Whats The Attack Type For a Spirit Walker?*Magic
+Whats The Attack Type For a Raider?*Siege
+Whats The Attack Type For a Kodo Beast?*Piercing
+Whats The Attack Type For a Wind Rider?*Piercing
+Whats The Attack Type For a Troll Batrider?*Siege
+Whats The Attack Type For a Tauren?*Normal
+Which Research is available at the Tauren Totem?*Pulverize
+Which Orc Hero Can Cast Bear?*Beastmaster
+Which Orc Hero Can Cast Quillboar?*Beastmaster
+Which Orc Hero Can Cast Hawk?*Beastmaster
+Which Orc Hero Can Cast Stampede?*Beastmaster
+Which Neutral Hero is The Only Neutral Orc Hero?*Beastmaster

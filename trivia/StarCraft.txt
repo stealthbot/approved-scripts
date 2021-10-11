@@ -1,0 +1,172 @@
+StarCraft is most popular in this country.*Korea
+What was the original ESRB rating for StarCraft?*Mature
+The Dropship speeches made references to what movie?*Aliens
+What is Duran's first name?*Samir
+219XMS87632 was a Terran Marine that was dropped into where?*Abattoir
+What is the leader of the Protoss Templar?*Adun
+Judicator ____ was an advisor to Koprulu Expeditionary Force.*Aldaris
+TV host of the a sporting show on the Galactic Entertainment Network.*John Andrews
+Which Zerg Cerebrate commands the second largest Zerg brood?*Araq
+Who is the First Mate on the Recovery Vessel Starheaper?*Norris Bailey
+Who is the Cerebrate that commanded the largest Zerg Brood?*Daggoth
+Who is the Cerebrate that is the master of the Baelrog Brood?*Gorn
+Name Daggoth's modified Hyralisk.*Hunter Killer
+Name the Mutalisk hero.*Kukulza
+Who is the Cerebrate that commands the Fenris Brood?*Nargil
+Who is the master of the Zerg Swarms?*Overmind
+One of the eldest living Protoss. Martriarch of the Dark Templar tribes of Shakuras.*Raszagal
+Who is the commander in the Sons of Korhal?*Jim Raynor
+Who is the Vice Admiral of the UED's Expeditionary Force?*Alexei Stukov
+This Zerg hero can do 250% of the damage of a regular Ultralisk.*Torrasque
+Name the Praetor Mojo's reaver.*Warbringer
+Who is the Cerebrate that commands the Garm Brood?*Zasz
+This Overlord hero borrowed its name from Norse Mythology.*Yggdrasill
+The cheat "There Is No Cow Level" is a reference to what Blizzard game?*Diablo 2
+What does the "C" in "Operation CWAL" stand for?*Can't
+What does the "W" in "Operation CWAL" stand for?*Wait
+What does the "A" in "Operation CWAL" stand for?*Any
+What does the "L" in "Operation CWAL" stand for?*Longer
+Unit sizes: SCV*small
+Unit sizes: Marine*small
+Unit sizes: Firebat*small
+Unit sizes: Ghost*small
+Unit sizes: Vulture*medium
+Unit sizes: Siege Tank*large
+Unit sizes: Goliath*medium
+Unit sizes: Wraith*large
+Unit sizes: Dropship*large
+Unit sizes: Science Vessel*large
+Unit sizes: Battlecruiser*large
+Unit sizes: Medic*small
+Unit sizes: Valkyrie*large
+Unit sizes: Larva*small
+Unit sizes: Drone*small
+Unit sizes: Zergling*small
+Unit sizes: Hydralisk*medium
+Unit sizes: Ultralisk*large
+Unit sizes: Infested Terran*small
+Unit sizes: Broodling*small
+Unit sizes: Defiler*medium
+Unit sizes: Queen*medium
+Unit sizes: Overlord*large
+Unit sizes: Scourge*small
+Unit sizes: Mutalisk*small
+Unit sizes: Guardian*large
+Unit sizes: Lurker*large
+Unit sizes: Devourer*large
+Unit sizes: Probe*small
+Unit sizes: Zealot*medium
+Unit sizes: Dragoon*large
+Unit sizes: High Templar*small
+Unit sizes: Archon*large
+Unit sizes: Reaver*large
+Unit sizes: Shuttle*large
+Unit sizes: Observer*small
+Unit sizes: Scout*large
+Unit sizes: Carrier*large
+Unit sizes: Interceptor*small
+Unit sizes: Arbiter*large
+Unit sizes: Dark Archon*large
+Unit sizes: Dark Templar*medium
+Unit sizes: Corsair*medium
+Name the only Medium-sized Terran unit.*Vulture
+Name the Terran ground unit that does concussive damage to both ground and air units.*Ghost
+Name the Terran unit that can only attack air units.*Valkyrie
+Name the Terran ground unit that does exposive damage to air units.*Goliath
+Name the Terran worker.*SCV
+Name the Terran air unit that does splash damage.*Valkyrie
+Name the Zerg ground unit that does explosive damage.*Hydralisk
+Name the spawnable Zerg ground unit that cannot attack.*Larva
+Name the only large-sized Zerg ground unit.*Ultralisk
+Name the Zerg worker.*Drone
+Name the only small-sized Zerg unit with energy.*Broodling
+Name the only medium-sized Protoss unit.*Corsair
+Name the Protoss unit that can only attack air.*Corsair
+Name the Protoss air unit that is permanently cloaked.*Observer
+Name the Protoss ground unit that is permanently cloaked.*Dark Templar
+Name the large-sized Protoss air unit that cannot attack.*Shuttle
+Name the small-sized Protoss ground unit that cannot attack.*High Templar
+Name the large-sized Protoss ground unit that cannot attack.*Dark Archon
+Name the Protoss ground unit that does splash damage to both air and ground units.*Archon
+What are the chances a unit in cover have of being hit? __%*70
+What are the chances a unit on a cliff have of being hit? __%*70
+Hotkeys: Unit command "M"*move
+Hotkeys: Unit command "S"*stop
+Hotkeys: Unit command "A"*attack
+Hotkeys: Unit command "P"*patrol
+Hotkeys: Unit command "H"*hold position
+Hotkeys: Terran units "C" (Barracks)*Medic
+Hotkeys: Terran units "T" (Factory)*Siege Tank
+Hotkeys: Terran units "Y" (Starport)*Valkyrie
+Hotkeys: Terran buildings "T"*Missile Turret
+Hotkeys: Terran buildings "U"*Bunker
+Hotkeys: Terran advanced buildings "F"*Factory
+Hotkeys: Terran advanced buildings "I"*Science Facility
+Hotkeys: Protoss units "K" (Gateway)*Dark Templar
+Hotkeys: Protoss units "V" (Robotics Facility)*Reaver
+Hotkeys: Protoss units "C" (Stargate)*Carrier
+Hotkeys: Protoss buildings "A"*Assimilator
+Hotkeys: Protoss buildings "Y"*Cybernetics Core
+Hotkeys: Protoss advanced buildings "C"*Citadel of Adun
+Hotkeys: Protoss advanced buildings "B"*Robotics Support Bay
+Hotkeys: Zerg units "M" (Hatchery)*Mutalisk
+Hotkeys: Zerg units "F" (Hatchery)*Defiler
+Hotkeys: Zerg buildings "E"*Extractor
+Hotkeys: Zerg buildings "V"*Evolution Chamber
+Hotkeys: Zerg advanced buildings "N"*Nydus Canal
+Hotkeys: Zerg advanced buildings "D"*Defiler Mound
+Which spell has the highest range?*Parasite
+Which spell has the lowest range?*Consume
+Which spell has a variable range?*Nuke
+Which unit has the spell with the variable range?*Ghost
+Which spell has the lowest range of all Terran spells?*Heal
+Which spell has the lowest range of all Protoss spells?*Hallucination
+Which spell has the lowest range of all Zerg spells?*Consume
+Which spell has the highest range of all Zerg spells?*Parasite
+Cheats: Invincible units.*Power Overwhelming
+Cheats: Gives you 10,000 gas and minerals.*Show Me The Money
+Cheats: Speeds construction.*Operation CWAL
+Cheats: Unlimited energy.*The Gathering
+Cheats: Ends game with loss.*Game Over Man
+Cheats: Prevents mission from ending.*Staying Alive
+Cheats: Completes current mission.*There Is No Cow Level
+Cheats: Free Minerals.*Whats Mine Is Mine
+Cheats: Free Gas.*Breathe Deep
+Cheats: Gives all upgrades.*Something For Nothing
+Cheats: Shows Entire Map*Black Sheep Wall
+Cheats: Free upgrades to units.*Medieval Man
+Cheats: Ability to build all buildings.*Modify The Phase Variance
+Cheats: Disable fog of war.*War Aint What It Used To Be
+Cheats: Ability to build beyong the support limit.*Food For Thought
+Cheats: Level skipping cheat.*Ophelia
+Unit Speech: "I told 'em I was claustrophobic... I gotta get outta here!"*SCV
+Unit Speech: "We gotta move."*Marine
+Unit Speech: "Nothing like a good smoke."*Firebat
+Unit Speech: "He's dead Jim."*Medic
+Unit Speech: "You call down the thunder."*Ghost
+Unit Speech: "I dig."*Vulture
+Unit Speech: "What is your major malfunction?"*Siege Tank
+Unit Speech: "Checklist completed... SOB!"*Goliath
+Unit Speech: "I gotta get me one of these!"*Wraith
+Unit Speech: "Strap yourselves in boys!"*Dropship
+Unit Speech: "Ah, the ship, out of danger?"*Science Vessel
+Unit Speech: "Shields up, weapons online."*Battlecruiser
+Unit Speech: "This is very interesting, but stupid."*Valkyrie
+Unit Speech: "I am wretched."*Infested Terran
+Unit Speech: "Honor guide me."*Zealot
+Unit Speech: "Drop your weapons, you have 15 seconds to comply."*Dragoon
+Unit Speech: "Your thoughts betray you."*High Templar
+Unit Speech: "Power overwhelming!"*Archon
+Unit Speech: "You could no more evade my wrath."*Dark Templar
+Unit Speech: "Darkness overpowering."*Dark Archon
+Unit Speech: "One small step for man, one giant...STOP POKING ME!"*Observer
+Unit Speech: "Adjusting neural transmission."*Scout
+Unit Speech: "...and still you procrastinate!"*Carrier
+Unit Speech: "And now for your first lesson."*Arbiter
+Unit Speech: "Zephram Cochran, is that you? What did you do to your hair?"*Corsair
+Planets: Jungle world. Homeworld of the Protoss. Furious seas.*Aiur
+Planets: Remote ash world. Zerg base of operations.*Char
+Planets: In the Milky Way galaxy. Third planet in the solar system. Possesses one moon.*Earth
+Planets: In the Koprulu Sector. Second Terran planet.*Mar Sara
+Planets: Homeworld of the Dark Templar. Twilight world. Devoid of plant life.*Shakuras
+Planets: In the Koprulu Sector. Primary Confederate world. Infested Stukov's base.*Tarsonis

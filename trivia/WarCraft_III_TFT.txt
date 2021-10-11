@@ -1,0 +1,599 @@
+What Night Elf Building Regenerates night elf unit's mana when near?|Moon Well
+MAPS:What is the most classic map in warcraft 3 and TFT that makes your account level up?|Melee
+MAPS:What kind of map is when you snipe out opponent's unit|snipers
+MAPS:What kind of map is when you use towers do defend but you summon monsters to opponents|wars
+MAPS:What kind of map is when you need o run from certain players to not get stuck in mid?|tag
+MAPS:What kind of map is when you pick an hero and battle other heros for levels?|arena
+MAPS:What kind of map is an defense against another tram while you attack them?|AOS or DOTA
+MAPS:What kind of map is when you play as an fictional character?|RPG
+MAPS:What kind of map is an defense against monsters with towers?|TD
+Sentinel Campaign Question: What's the name of the first chapter?|Rise Of The Naga
+Sentinel Campaign Question: What's the name of the second chapter?|The Broken Isles
+Sentinel Campaign Question: What's the name of the third chapter?|The Tomb of Sargeras
+Sentinel Campaign Question: What's the name of the fourth chapter?|Wrath of the Betrayer
+Sentinel Campaign Question: What's the name of the fifth chapter?|Balancing The Scales
+Sentinel Campaign Question: What's the name of the sixth chapter?|Shards Of The Alliance
+Sentinel Campaign Question: What's the name of the seventh chapter?|The Ruins of Dalaran
+Sentinel Campaign Question: What's the name of the eighth chapter?|The Brothers Stormrage
+Alliance Campaign Question: What's the name of the first chapter?|Misconceptions
+Alliance Campaign Question: What's the name of the second chapter?|A Dark Covenant
+Alliance Campaign Question: What's the name of the third chapter?|The Dungeons of Dalaran
+Alliance Campaign Question: What's the name of the secret level after the third chapter?|The Crossing
+Alliance Campaign Question: What's the name of the fourth chapter?|The Search for Illidan
+Alliance Campaign Question: What's the name of the fifth chapter?|Gates of the Abyss
+Alliance Campaign Question: What's the name of the sixth chapter?|Lord of Outland
+Scourge Campaign Question: What's the name of the first chapter?|King Arthas
+Scourge Campaign Question: What's the name of the second chapter?|The Flight from Lordaeron
+Scourge Campaign Question: What's the name of the third chapter?|The Dark Lady
+Scourge Campaign Question: What's the name of the fourth chapter?|The Return to Northrend
+Scourge Campaign Question: What's the name of the fifth chapter?|Dreadlord's Fall
+Scourge Campaign Question: What's the name of the sixth chapter?|A New Power in Lordaeron
+Scourge Campaign Question: What's the name of the seventh chapter Part I?|Into the Shadow Web Caverns
+Scourge Campaign Question: What's the name of the seventh chapter Part II?|The Forgotten Ones
+Scourge Campaign Question: What's the name of the seventh chapter Part III?|Ascent to the Upper Kingdom
+Scourge Campaign Question: What's the name of the eighth chapter?|A symphony of Frost and Flame
+What Spell causes a powerful explosion that deals damage to nearby enemy units?|Unstable Concoction
+What Upgrade makes Orc Burrows and Watch Towers to have Fortified armor?|Reinforced Defenses
+Witch Ultimate Hero Spell Summons a heavy glying unit composed entirely of flame?|Phoenix
+What Tower has Magical Defense with the Reveal and Feedback abilities?|Arcane Tower
+This shop from witch any unit that has an inventory can purchase items?|Arcane Vault
+What Hero spell magically binds a target enemy air unit so that is cannot move or attack|Aerial Shackles
+What undead warrior unit is adept at summoning insect minions and crushing enemies?|Crypt Lord
+What Hero spell slams the ground shooting spikes out in a line and impaling enemy ground units?|Impale
+What Hero ability encloses the Crypt Lord in barbed layers?|Spiked Carapace
+This Hero Spell produces a Carrion Beetle from a target corpse?|Carrion Beetles
+Whitch Ultimate Hero Spell creates a swarm of angry locusts tat bite and tear at nearby enemy units?|Locust Swarm
+What Hero that is adept at entering and escaping combat?|Warden
+What Hero Spell enables the Warden to teleport to a short distance?|Blink
+Whitch Ultimate Hero Spell creates a powerful Avatar that summons invulnerable spirits from friendly corpses?|Vengeance
+What Neutral Naga Unit is adept at ranged combat?|Naga Sea Witch
+What Neutral Unit is exceptional at weakening enemies and melee combat?|Pit Lord
+What Ultimate Neural Hero Spell that robs a taget unit of its ability to cast spells and damages the unit overtime until it dies, and a powerful Demon will spawn from its corpse?|Doom
+Who is the builder of the Orc?|peon
+Where do you train Grunts?|Barracks
+Where do you train troll headhunters?|Barracks
+Where do you train Peons?|Great Hall
+Where Do you build Demolishers?|Barracks
+What is the only research upgrade for the demolisher?|Burning Oil
+What is the only research upgrade for Grunts?|Berserker Strengh
+Which Research has the ability to transform Troll Headhunters to Troll Berserkers?|Berserker Upgrade
+Which Research Upgrade can increase The Regeneration Rate For All Trolls?|Troll Regeneration
+Which Unit can go inside a burrow to give it an attack?|Peon
+What is The Basic and only orc tower?|Watch Tower
+Where do you Train Orc Heroes?|Altar of Storms
+What is The Upgrade Structure for Orc called?|War Mill
+Where do you get the research to upgrade burrows and watch towers to fortified armor?|War Mill
+What is The Orc Item Shop called?|Voodoo Lounge
+What Do You need to make Stronghold?|nothing
+What Do you need to make watch tower?|War Mill
+What do you need to make a spirit lodge and a beastiary?|Stronghold
+What is The Most Powerful Melee Unit in the orc unit arsenal?|Tauren
+What is the most powerful Ranged Unit in the Orc unit arsenal|Wind Rider
+What is The Most powerful Anti-Air Unit in the orc unit arsenal?|Troll Batrider
+Which Unit Gives damage to all friendly units?|kodo beast
+Which Unit Can do xtra damage to structures and have the ability to get gold with each strike?|Raider
+Where do you research ensnare?|Beastiary
+Where do you upgrade war drums?|Beastiary
+Where do you research poison arrows?|Beastiary
+Where Do you research Liquid Flame|Beastiary
+What Can You upgrade in the Spirit Lodge?|Caster Training
+Which Orc Unit can cast bloodlust?|shaman
+Which Orc unit can cast purge?|shaman
+Which orc unit can cast lightning shield?|shaman
+Which Orc Unit can cast Sentry ward?|Troll witch doctor
+Which Orc Unit can cast Stasis Ward?|troll witch doctor
+Which Orc Unit can cast Healing Ward?|troll witch doctor
+What Does A Troll Witch Doctor Speacilize in?|Wards
+Which Orc Unit can cast Spirit Link?|Spirit Walker
+Which Orc Unit can cast Disenchant?|Spirit Walker
+Which Orc Unit can cast Ancestral Spirit?|Spirit Walker
+What Does Ancestral Spirit Revive?|Tauren
+Which Orc hero is used the most in ladder games?(its not a melee hero)|Far Seer
+Which Orc Hero Can Use Wind Walk?|Blademaster
+Which Orc Hero can use Mirror Image?|Blademaster
+Which Orc Hero can use critical strike?|Blademaster
+Which Orc Hero Can use Bladestorm?|Blademaster
+Credits:Whos the Copyist for TFT?|Jeff Kurtenacker
+Credits:Whos the Recording Engineer/Music Mixer for TFT?|Dort Armarilio
+Credits:Who Recorded the Cinematic Music for TFT?|Steve Salani
+Credits:Whos the Voice Director for TFT?|Chris Metzen and Micky Neilson
+Credits:Whos the Voice Editor for TFT?|Tami Donner Harrison
+Credits:Whos the Technical Support Manager for TFT?|Thor Balfore
+Credits:Whos the Business Develepor for TFT?|Paul W Sams
+Which Orc Hero Can Use Chain Lightning?|Far Seer
+Which Orc Hero Can Use Far Sight?|Far Seer
+Which Orc Hero Can Use Feral Spirit?|Far Seer
+Which Orc Hero Can Use Earthquake?|Far Seer
+Which Orc Hero Can Use Healing Wave?|Shadow Hunter
+Which Orc Hero Can Use Hex?|Shadow Hunter
+Which Orc Hero Can Use Serpent Ward?|Shadow Hunter
+Which Orc Hero Can Use Big Bad Voodoo?|Shadow Hunter
+Which Orc Hero Can Use Shockwave?|Tauren Chieftain
+Which Orc Hero Can Use War Stomp?|Tauren Chieftain
+Which Orc Hero Can Learn Endurance Aura?|Tauren Chieftain
+Which Orc Hero Can Learn Ressurection?|Tauren Chieftain
+Where Do You Research Pillage?|Great Hall
+Where Do You Research Backpack?|Great Hall
+What Do You Need to research backpack?|Voodoo Lounge
+Whats The Armor Type For A Peon?|Medium
+Whats The Armor Type For A Grunt?|Heavy
+Whats The Armor Type for a Troll Headhunter/Berserker?|medium
+Whats The Armor Type For a Demolisher?|Heavy
+Whats The Armor Type for a Shaman?|Unarmored
+Whats The Armor Type for a Troll witch doctor?|unarmored
+Whats The armor type for a Spirit Walker?|Unarmored
+Whats The armor type for a Raider?|Medium
+Whats The Armor Type for a Kodo Beast?|Unarmored
+Whats The Armor Type for a wind rider?|Light
+Whats The Armor Type For a Troll Batrider?|Light
+Whats The Armor Type For a Tauren?|Heavy
+Whats The Attack Type For a Peon?|Normal
+WhatsThe Attack Type For a Grunt?|Normal
+Whats The Attack Type For a Troll Headhunter/Berserker?|Piercing
+Whats The Attack Type For a Demolisher?|Siege
+Whats The Attack Type For a Shaman?|Magic
+Whats The Attack Type For a Troll Witch Doctor?|Magic
+Whats The Attack Type For a Spirit Walker?|Magic
+Whats The Attack Type For a Raider?|Siege
+Whats The Attack Type For a Kodo Beast?|Piercing
+Whats The Attack Type For a Wind Rider?|Piercing
+Whats The Attack Type For a Troll Batrider?|Siege
+Whats The Attack Type For a Tauren?|Normal
+Which Research is available at the Tauren Totem?|Pulverize
+Which Orc Hero Can Cast Bear?|Beastmaster
+Which Orc Hero Can Cast Quillboar?|Beastmaster
+Which Orc Hero Can Cast Hawk?|Beastmaster
+Which Orc Hero Can Cast Stampede?|Beastmaster
+Which Neutral Hero is The Only Neutral Orc Hero?|Beastmaster
+The Undead King who has a map based around him|Duke Wintermaul
+Collectively, the orc clans are known as?|The Horde
+The conjurer, responsible for allowing orcs into the world of humans is known as?|Mediv
+The ruling Warchief of the orcs during the First War was?|Blackhand
+The gateway connecting the world of the humans and the world of the orcs was known as?|The Dark Portal
+The human kingdom invaded by the orcs during the First War was?|Azeroth
+Death Knights are created from the raised corpses of?|Knights
+The underwater vessel built by gnomes is a?|Gnomish Submarine
+Gryphons are ridden by?|Dwarves
+The King of Lordaeron is?|Terenas
+Gul'dan was a?|Warlock
+The spell used by humans to turn enemies into sheep is called?|Polymorph
+Which creatures are fitted with watertight canopies by the orcs and used as submersibles?|Giant Turtles
+Aside from dragons, goblins, and trolls, which other race has allied with the orcs?|Ogres
+The infamous cheiftan of the Warsong clan is called?|Grom Hellscream
+The dark, red world the orcs came from is called?|Draenor
+The hero, Mountain King is a?|Dwarf
+The undead plague is spread mainly through?|Grain
+The orcs turn to shamanistic magic during the Third War to escape thecorruption of?|Demons
+The druid of the claw can transform into a?|Bears
+King Terenas' son is named?|Arthas
+The winged creatures of Kalimdor, ridden by the orcs, are called?|Wyvern
+The large spiders-warriors employed by the undead are known as?|Crypt Fiends
+The new Warchief of the orcs in the Third War is called?|Thrall
+Collectively, the armies of the undead are called?|The Scourge
+The Elves of Kalimdor are called?|Night Elves
+Warcraft III is most popular in this country.|Korea
+What was the original ESRB rating for WarCraft III?|Mature
+What is an upgrade for Footmen that allows them to take less damage from piercing attacks?|Defend
+What is the name of the Flame ability of the Human Mage?|Flame Strike
+What is the name of the Mana stealing ability of the Human Mage?|Siphon Mana
+What is an upgrade for Riflemen that allows them to shoot further?|Long Rifles
+What is an upgrade for Knights and Gryphons that gives them more health?|Animal War Training
+The Human healer Hero is known as the|Paladin
+What type of damage orb can be bought at the Human Arcane Vault?|Fire
+The Human hero atop a Horse is known as an|Archmage
+What is the initial ability of a Sorceress?|Slow
+What is the initial ability of a Priest?|Heal
+What is the 2nd level ability of a Sorceress?|Invisibility
+What is the 2nd level ability of a Priest?|Dispel Magic
+What is the 3rd and final level ability of a Sorceress?|Polymorph
+What is the 3rd and final level ability of a Priest?|Inner Fire
+What is the initial ability of a Spellbreaker?|Spell Steal
+What is the 2nd and final ability of a Spellbreaker?|Control Magic
+What is a Dragonhawks range-stopping ability called?|Cloud
+What is an upgradeable ability for Gryphon Riders that allows them to attack several enemies at once?|Storm Hammers
+What is the upgrade of Flying Machines that allows them a splash attack to air units?|Flak Cannons
+What is the upgrade of Flying Machines that allows them to attack ground units?|Flying Machine
+What is the upgrade of Siege Tanks that allows them to attack air several air units at once?|Barrage
+What is the upgrade of Mortar Teams that allows them more damage to Unarmored and Medium armor units?|Fragmentation Shards
+What is the upgrade of Mortar Teams that allows them to reveal anywhere on the map?|Flare
+The Orc healer Hero is known as the|Shadow Hunter
+What is the upgrade of Grunts that gives them more damage and attack power?|Berserker Strength
+What is the upgrade of Troll Headhunters that transforms them into Berserkers?|Berserker Upgrade
+What is the upgrade of Troll Headhunters, Witchdoctors, and Batriders that increases their health regeneration rate?|Troll Regeneration
+What is the upgrade of Demolishers that makes their missles catch on fire?|Burning Oil
+Ultimate ability of the Orcish Shadow Hunter|Big Bad Voodoo
+What is the upgrade of Raiders that allows them to bind an enemy unit (even air) to the ground?|Ensnare
+What is the upgrade of Wyverns or Windriders that allows their missles to be poisonous?|Envenomed Spears
+What is the upgrade of Troll Batrides that allows their missles to have firey properties?|Liquid Fire
+What is the upgrade of Kodo Beasts that increases their attack boosting aura's power?|War Drums
+What type of damage orb can be bought at the Orcish Voodoo Lounge?|Lightning
+What is the upgrade of Taurens that allows them to have a chance to damage surrounding enemy units on striking?|Pulverize
+What is the initial ability of a Shaman?|Purge
+What is the initial ability of a Troll Witch Doctor?|Sentry Ward
+What is the initial ability of a Spirit Walker?|Spirit Link
+What is an initial ability of a Spirit Walker?|Etheral Form
+What is the 2nd level ability of a Shaman?|Lightning Shield
+What is the 2nd level ability of a Troll Witch Doctor?|Stasis Trap
+What is the 2nd level ability of a Spirit Walker?|Disenchant
+What is the 3rd and final level ability of a Shaman?|Bloodlust
+What is the 3rd and final level ability of a Troll Witch Doctor?|Healing Ward
+What is the 3rd and final level ability of a Spirit Walker?|Ancestral Spirit
+What is the upgrade that allows Peon's, Grunt's, and Raider's attacks on buildings to gain the owner gold?|Pillage
+What is the ability of a neutral Healer Hero that heals units with a spray of healing mists?|Healing Spray
+What is the ability of a neutral Dark Ranger that siphons life from a target?|Life Drain
+What is the ability of a neutral Healer Hero that turns a target unit into gold that is added to your current gold storage?|Transmute
+The Undead's healer hero's healing spell is known as|Death Coil
+What type of damage orb can be bought at the Undead's Tomb of Relics?|Corruption
+What is the upgrade of Frost Wyrms that allows them to freeze enemy units and stop a buildings actions temporarily?|Freezing Breath
+What is the upgrade of Meat Wagons that allows them to generate corpses and carry them around for future use?|Exhume Corpses
+What is the upgrade of Meat Wagons and Abominations that causes a poisonous feature to accompany them?|Disease Cloud
+What is the upgrade of Obsidian Statues that allows them to turn into a powerful flying form?|Destroyer Form
+What is the initial ability of Necromancers?|Raise
+What is the initial ability of Banshees?|Curse
+What is the 2nd level ability of Necromancers?|Unholy Frenzy
+What is the 2nd level ability of Banshees?|AntiMagic Shell
+What is the 3rd and final level ability of Necromancers?|Cripple
+Where are Gryphon Riders built?|Gryphon Aviary
+Where are Dragonhawk Riders built?|Gryphon Aviary
+Where can the upgrade "Cloud" be found?|Gryphon Aviary
+Where can the upgrade "Storm Hammers" be found?|Gryphon Aviary
+Where are Flying Machines built?|Workshop
+Where are Mortar Teams built?|Workshop
+Where are Siege Engines built?|Workshop
+Where can the upgrade "Flak Cannons" be found?|Workshop
+Where can the upgrade "Flying Machine      " be found?|Workshop
+Where can the upgrade "Fragmentation Shards" be found?|Workshop
+Where can the upgrade "Flare" be found?|Workshop
+Where can the upgrade "Barrage" be found?|Workshop
+Where are Sorceresses built?|Arcane Sanctum
+Where are Priests built?|Arcane Sanctum
+Where are Spellbreakers found?|Arcane Sanctum
+Where can the upgrades for Sorceress Adept and Mastery be found?|Arcane Sanctum
+Where can the upgrades for Priest Adept and Mastery be found?|Arcane Sanctum
+Where can the upgrade "Magic Senty" be found?|Arcane Sanctum
+Where can the upgrade "Control Magic" be found?|Arcane Sanctum
+Where are Riflemen built?|Barracks
+Where are Footment built?|Barracks
+Where are Knights built?|Barracks
+Where can the upgrade "Defend" be found?|Barracks
+Where can the upgrade "Long Rifles" be found?|Barracks
+Where can the upgrade "Animal War Training" be found?|Barracks
+Where are Taurens built?|Tauren Totem
+Where can the upgrade "Pulverize" be found?|Tauren Totem
+Where are Raiders built?|Beastiary
+Where are Wind Riders built?|Beastiary
+Where are Kodo Beasts built?|Beastiary
+Where are Troll Batriders built?|Beastiary
+Where can the upgrade "Ensnare" be found?|Beastiary
+Where can the upgrade "Envenomed Spears" be found?|Beastiary
+Where can the upgrade "Liquid Fire" be found?|Beastiary
+Where can the upgrade "War Drums" be found?|Beastiary
+Where are Shamans built?|Spirit Lodge
+Where are Troll WitchDoctors built?|Spirit Lodge
+Where are Spirit Walkers built?|Spirit Lodge
+Where can the upgrades for Shaman Adept and Mastery be found?|Spirit Lodge
+Where can the upgrades for Troll WitchDoctor Adept and Mastery be found?|Spirit Lodge
+Where can the upgrades for Spirit Walker Adept and Mastery be found?|Spirit Lodge
+Where are Demolishers built?|Barracks
+Where are Troll Headhunters built?|Barracks
+Where are Grunts built?|Barracks
+Where can the upgrade "Berserker Strength" be found?|Barracks
+Where can the upgrade "Troll Regeneration" be found?|Barracks
+Where can the upgrade "Buring Oil" be found?|Barracks
+Where can the upgrade "Berserker Upgrade" be found?|Barracks
+Where are Frost Wyrms built?|Boneyard
+Where can the upgrade "Freezing Breath" be found?|Boneyard
+Where are Necromancers built?|Temple of the Damned
+Where are Banshees built?|Temple of the Damned
+Where can the upgrades for Necromancer Adept and Mastery be found?|Temple of the Damned
+Where can the upgrades for Banshee Adept and Mastery be found?|Temple of the Damned
+Where can the upgrade "Skeletal Longevity" be found?|Temple of the Damned
+Where can the upgrade "Skeletal Mastery" be found?|Temple of the Damned
+Where are Meat Wagons built?|Slaughter House
+Where are Abominations built?|Slaughter House
+Where are Obsidian Statues built?|Slaughter House
+Where can the upgrade "Exhume Corpses" be found?|Slaughter House
+Where can the upgrade "Disease Cloud" be found?|Slaughter House
+Where can the upgrade "Destroyer Form" be found?|Slaughter House
+Where are Ghouls built?|Crypt
+Where are Crypt Fiends built?|Crypt
+Where are Gargoyles built?|Crypt
+Where can the upgrade "Ghoul Frenzy" be found?|Crypt
+Where can the upgrade "Cannibalize" be found?|Crypt
+Where can the upgrade "Web" be found?|Crypt
+Where can the upgrade "Burrow" be found?|Crypt
+Where can the upgrade "Stone Form" be found?|Crypt
+Where are Chimaeras built?|Chimaera Roost
+Where can the upgrade "Corrosive Breath" be found?|Chimaera Roost
+Where are Dryads built?|Ancient of Lore
+Where and Druids of the Claw built?|Ancient of Lore
+Where are Mountain Giants built?|Ancient of Lore
+Where can the upgrade "Abolish Magic" be found?|Ancient of Lore
+Where can the upgrades for Druids of the Claw Adept and Mastery be found?|Ancient of Lore
+Where can the upgrade "Resistant Skin" be found?|Ancient of Lore
+Where can the upgrade "Hardened Skin" be found?|Ancient of Lore
+Where can the upgrade "Mark of the Claw" be found?|Ancient of Lore
+Where are Faerie Dragons built?|Ancient of Wind
+Where are Hippogryphs built?|Ancient of Wind
+Where are Druids of the Talon built?|Ancient of Wind
+Where can the upgrade for Druids of the Talon Adept and Mastery be found?|Ancient of Wind
+Where can the upgrade "Hippogryph Training" be found?|Ancient of Wind
+Where can the upgrade "Mark of the Talon" be found?|Ancient of Wind
+Where are Archers built?|Ancient of War
+Where are Huntresses built?|Ancient of War
+Where are Glaive Throwers built?|Ancient of War
+Where can the upgrade "Improved Bows" be found?|Ancient of War
+Where can the upgrade "Marksmanship" be found?|Ancient of War
+Where can the upgrade "Sentinel" be found?|Ancient of War
+Where can the upgrade "Moon Glaive" be found?|Ancient of War
+Where can the upgrade "Vorpal Blades" be found?|Ancient of War
+What type of damage do Sorceresses have?|Magic
+What type of damage do Priests have?|Magic
+What type of damage do Footmen have?|Normal
+What type of damage do Knights have?|Normal
+What type of damage do SpellBreakers have?|Normal
+What type of damage do Gryphon Riders have?|Magic
+What type of damage do DragonHawk Riders have?|Piercing
+What is one type of damage Flying Machines have? Piercing and ___|Siege
+What is one type of damage Flying Machines have? Siege and ______|Piercing
+What is one type of damage Siege Tanks have? Siege and _____|Piercing
+What is one type of damage Siege Tanks have? Piercing and ____|Siege
+What type of damage do Mortar Teams have?|Siege
+What type of damage do Riflemen have?|Piercing
+What type of damage do Peasants have?|Normal
+What type of damage do Shamans have?|Magic
+What type of damage do Troll WitchDoctors have?|Magic
+What type of damage do Spirit Walkers have?|Magic
+What type of damage do Wind Riders have?|Piercing
+What type of damage do Kodo Beasts have?|Piercing
+What type of damage do HeadHunters/Berserkers have?|Piercing
+What type of damage do Demolishers have?|Siege
+What type of damage do Raiders have?|Siege
+What type of damage do Troll Batriders have?|Siege
+What type of damage do Grunts have?|Normal
+What type of damage do Taurens have?|Normal
+What type of damage do Peons have?|Normal
+What type of damage do Frost Wyrms have?|Magic
+What type of damage do Necromancers have?|Magic
+What type of damage do Banshees have?|Magic
+What type of damage do Abominations have?|Normal
+What type of damage do Ghouls have?|Normal
+What type of damage do Acolytes have?|Normal
+What type of damage do Meat Wagons have?|Siege
+What type of damage do Crypt Fiends have?|Piercing
+What type of damage do Obsidian Statues have?|Magic
+What is one type of damage Gargoyles have? Piercing and _____|Normal
+What is one type of damage Gargoyles have? Normal and _______|Piercing
+What type of damage do Huntresses have?|Normal
+What type of damage do Mountain Giants have?|Normal
+What type of damage do Druids of the Claw have?|Normal
+What type of damage do Faerie Dragons have?|Piercing
+What type of damage do Archers have?|Piercing
+What type of damage do Dryads have?|Piercing
+What type of damage do Glaive Throwers have?|Siege
+What type of damage do Hippogryphs have?|Normal
+What type of damage do Druids of the Talon have?|Magic
+What is one type of damage Chimaeras have? Magic and _____|Siege
+What is one type of damage Chimaeras have? Siege and _____|Magic
+What type of damage do Hippogryph Riders have?|Piercing
+What type of Armor do Gryphon Riders have?|Light
+What type of Armor do Dragonhawk Riders have?|Light
+What type of Armor do Flying Machines have?|Heavy
+What type of Armor do Knights have?|Heavy
+What type of Armor do Footmen have?|Heavy
+What type of Armor do Siege Tanks have?|Fortified
+What type of Armor do Priests have?|Unarmored
+What type of Armor do Sorceresses have?|Unarmored
+What type of Armor do Spell Breakers have?|Medium
+What type of Armor do Riflemen have?|Medium
+What type of Armor do Mortar Teams have?|Heavy
+What type of Armor do Peasants have?|Medium
+What type of Armor do Taurens have?|Heavy
+What type of Armor do Grunts have?|Heavy
+What type of Armor do Demolishers have?|Heavy
+What type of Armor do Head Hunters have?|Medium
+What type of Armor do Raiders have?|Medium
+What type of Armor do Troll Batriders have?|Light
+What type of Armor do Wind Riders have?|Light
+What type of Armor do Shamans have?|Unarmored
+What type of Armor do Kodo Beasts have?|Unarmored
+What type of Armor do Troll WitchDoctors have?|Unarmored
+What type of Armor do Spirit Walkers have?|Unarmored
+What type of Armor do Berserkers have?|Medium
+What type of Armor do Peons have?|Medium
+What type of Armor do Abominations have?|Heavy
+What type of Armor do Ghouls have?|Heavy
+What type of Armor do Obsidian Statues have?|Heavy
+What type of Armor do Meat Wagons have?|Heavy
+What type of Armor do Frost Wyrms have?|Light
+What type of Armor do Crypt Fiends have?|Medium
+What type of Armor do Nercromancers have?|Unarmored
+What type of Armor do Banshees have?|Unarmored
+What type of Armor do Summoned Skeletons have?|Heavy
+What type of Armor do Acolytes have?|Medium
+What type of Armor do Shades have?|Medium
+What type of Armor do Destroyers have?|Light
+What type of Armor do Gargoyles have?|Unarmored
+What type of Armor do Hippogryphs have?|Unarmored
+What type of Armor do Huntresses have?|Unarmored
+What type of Armor do Dryads have?|Unarmored
+What type of Armor do Archers have?|Medium
+What type of Armor do Mountain Giants have?|Medium
+What type of Armor do Glaive Throwers have?|Heavy
+What type of Armor do Druids of the Claw have?|Heavy
+What type of Armor do Druids of the Talon have?|Unarmored
+What type of Armor do Chimaeras have?|Light
+What type of Armor do Faerie Dragons have?|Light
+What type of Armor do Hippogryph Riders have?|Light
+What type of Armor do Druids of the Talon in Storm Crow Form have?|Unarmored
+What type of Armor do Druids of the Claw in Bear Form have?|Heavy
+What type of Armor do Wisps have?|Medium
+What is the hotkey to train a Footman?|F
+What is the hotkey to train a Rifleman?|R
+What is the hotkey to train a Knight?|K
+What is the hotkey to build a Barracks?|B
+What is the hotkey to build a Workshop?|W
+What is the hotkey to train a Mortar Team?|M
+What is the hotkey to train a Flying Machine?|F
+What is the hotkey to train a Siege Engine?|E
+What is the hotkey to build an Arcane Sanctum?|R
+What is the hotkey to train a Priest?|P
+What is the hotkey to train a Sorceress?|S
+What is the hotkey to train a Spell Breaker?|B
+What is the hotkey to build a Gryphon Aviary?|G
+What is the hotkey to train a Gryphon Rider?|G
+What is the hotkey to train a Dragonhawk Rider?|D
+What is the hotkey to build a Blacksmith?|B
+What is the hotkey to build a Farm?|F
+What is the hotkey to build a Scout Tower?|S
+What is the hotkey to build a Town Hall?|H
+What is the hotkey to build an Arcane Vault?|A
+What is the hotkey to research "Cloud"?|C
+What is the hotkey to research "Storm Hammers"|H
+What is the hotkey to research "Flak Cannons"?|C
+What is the hotkey to research "Fragmentation Shards"?|S
+What is the hotkey to research "Flare"?|R
+What is the hotkey to research "Barrage"?|G
+What is the hotkey to research "Flying Machine      "?|B
+What is the hotkey to research "Defend"?|D
+What is the hotkey to research "Long Rifles"?|L
+What is the hotkey to research "Animal War Training"?|A
+What is the hotkey to research "Priest Adept and Mastery" training?|T
+What is the hotkey to research "Sorceress Adept and Mastery" training?|O
+What is the hotkey to research "Control Magic"?|G
+What is the hotkey to research "Magic Sentry"?|M
+What is the hotkey to train a Peasant?|P
+What is the hotkey to train a Peon?|P
+What is the hotkey to train a Grunt?|G
+What is the hotkey to train a Troll Headhunter?|T
+What is the hotkey to train a Demolisher?|D
+What is the hotkey to train a Raider?|R
+What is the hotkey to train a Wind Rider?|W
+What is the hotkey to train a Kodo Beast?|K
+What is the hotkey to train a Troll Batrider?|B
+What is the hotkey to train a Tauren?|T
+What is the hotkey to train a Spirit Walker?|T
+What is the hotkey to train a Shaman?|S
+What is the hotkey to train a Troll Witch Doctor?|W
+What is the hotkey to research "Pulverize"?|P
+What is the hotkey to research "Shaman Adept and Mastery" training?|M
+What is the hotkey to research "Witch Doctor Adept and Mastery" training?|D
+What is the hotkey to research "Spirit Walker Adept and Mastery" training?|R
+What is the hotkey to research "Envenomed Spears"?|E
+What is the hotkey to research "Ensnare"?|N
+What is the hotkey to research "Liquid Fire"?|L
+What is the hotkey to research "War Drums"?|D
+What is the hotkey to research "Berserker Strength"?|B
+What is the hotkey to research "Berserker Upgrade"?|E
+What is the hotkey to research "Troll Regeneration"?|T
+What is the hotkey to research "Burning Oil"?|N
+What is the hotkey to research "Pillage"?|G
+What is the hotkey to research "Backpack"?|B
+What is the hotkey to build a Great Hall?|H
+What is the hotkey to build a Barracks?|B
+What is the hotkey to build a War Mill?|W
+What is the hotkey to build an Orc Burrow?|o
+What is the hotkey to build a Voodoo Lounge?|V
+What is the hotkey to build a Spirit Lodge?|S
+What is the hotkey to build a Tauren Totem?|T
+What is the hotkey to build a Beastiary?|E
+What is the hotkey to build a Watch Tower?|W
+What is the hotkey to build any Altar?|A
+What is the hotkey to train a Ghoul?|G
+What is the hotkey to train an Acolyte?|C
+What is the hotkey to train a Crypt Fiend?|F
+What is the hotkey to train a Gargoyle?|A
+What is the hotkey to train a Necromancer?|N
+What is the hotkey to train a Banshee?|B
+What is the hotkey to train a Frost Wyrm?|F
+What is the hotkey to train a Meat Wagon?|M
+What is the hotkey to train an Abomination?|A
+What is the hotkey to train an Obsidian Statue?|O
+What is the hotkey to research "Freezing Breath"?|B
+What is the hotkey to research "Exhume Corpses"?|E
+What is the hotkey to research "Disease Cloud"?|D
+What is the hotkey to research "Destroyer Form"?|T
+What is the hotkey to research "Ghoul Frenzy"?|Z
+What is the hotkey to research "Burrow"?|B
+What is the hotkey to research "Web"?|W
+What is the hotkey to research "Stone Form"?|S
+What is the hotkey to research "Skeletal Longevity"?|S
+What is the hotkey to research "Skeletal Mastery"?|M
+What is the hotkey to research "Necromancer Adept and Mastery" training?|E
+What is the hotkey to research "Banshee Adept and Mastery" training?|A
+What is the hotkey to sacrifice an Acolyte?|C
+What is the hotkey to research "cannibalize"?|C
+What is the hotkey to build a Necropolis?|N
+What is the hotkey to build a Ziggurat?|Z
+What is the hotkey to build a Graveyard?|V
+What is the hotkey to build a Tomb of Relics?|R
+What is the hotkey to build a Crypt?|C
+What is the hotkey to build a Slaughter House?|H
+What is the hotkey to build a Temple of the Damned?|T
+What is the hotkey to build a Sacrificial Pit?|S
+What is the hotkey to build a Boneyard?|B
+What is the hotkey to Haunt a Gold Mine?|G
+What is the hotkey to build a Tree of Life?|T
+What is the hotkey to build an Ancient of War?|R
+What is the hotkey to build a Hunters Hall?|H
+What is the hotkey to build a Moon Well?|W
+What is the hotkey to build an Ancient of Lore?|L
+What is the hotkey to build an Ancient of Wind?|W
+What is the hotkey to build an Ancient of Wonders?|D
+What is the hotkey to build a Chimaeras Roost?|C
+What is the hotkey to build an Ancient Protector?|P
+What is the hotkey to train a Dryad?|D
+What is the hotkey to train a Druid of the Claw?|C
+What is the hotkey to train a Mountain Giant?|G
+What is the hotkey to train a Chimaera?|C
+What is the hotkey to train a Druid of the Talon?|T
+What is the hotkey to train a Faerie Dragon?|F
+What is the hotkey to train a Hippogryph?|H
+What is the hotkey to train an Archer?|A
+What is the hotkey to train a Huntress?|H
+What is the hotkey to train a Glaive Thrower?|T
+What is the hotkey to train a Wisp?|W
+What is the hotkey to research "Corrossive Breath"?|B
+What is the hotkey to research "Hippogryph Taming"?|I
+What is the hotkey to research "Druid of the Claw Adept and Mastery" training?|L
+What is the hotkey to research "Druid of the Talon Adept and Mastery" training?|A
+What is the hotkey to research "Mark of the Talon"?|M
+What is the hotkey to research "Mark of the Claw"?|M
+What is the hotkey to research "Abolish Magic"?|S
+What is the hotkey to research "Resistant Skin"?|T
+What is the hotkey to research "Hardened Skin"?|M
+What is the hotkey to research "Improved Bows"?|I
+What is the hotkey to research 'Marksmanship"?|M
+What is the hotkey to research "Sentry"?|S
+What is the hotkey to research "Moon Glaive"?|G
+What is the hotkey to research "Vorpal Blades"?|P
+What is the hotkey to research "Nature's Blessing"?|N
+What is the 3rd and final level ability of Banshees?|Possession
+What is the upgrade that allows one of the skeletons summoned by a Necromancer to be a Skeletal Mage?|Skeletal Mastery
+What is the upgrade that allows the skeletons summoned by Necromancers to stay alive longer?|Skeletal Longevity
+What is the upgrade that allows Abominations and Ghouls to eat a corpse for health?|Cannibalize
+What is the upgrade that allows Ghouls to attack and run faster?|Ghoul Frenzy
+What is the upgrade of Crypt Fiends that allows them to go underground?|Burrow
+What is the upgrade of Crypt Fiends that allows them to bind enemy air units to the ground?|Web
+What is the upgrade of Gargoyles that allows them to turn into a statue to regenerate health faster?|Stone Form
+What is the ability of a Tinker to damage and stun enemy units in an area?|Cluster Rockets
+What is the Ultimate ability of the Firelord?|Volcano
+What is the upgrade of Chimeras that give them really sickly attacks?|Corrosive Breath
+What is the upgrade of Hippogryphs and Archers that allows Archers to mount Hippogryphs?|Hippogryph Training
+What is the initial ability of Druid's of the Talon?|Faerie Fire
+What is the 2nd level ability of Druid's of the Talon?|Storm Crow
+What is the 3rd and final level ability of Druid's of the Talon?|Cyclone
+What is the upgrade that allows Druid's of the Talon to cast Faerie Fire in Crow Form?|Mark of the Talon
+What is the upgrade of Mountain Giants that reduces the effect of melee damage dealt to them?|Hardened Skin
+What is the upgrade of Mountain Giants that reduces the effect of spells dealt to them?|Resistant Skin
+What is the intial ability of Druid's of the Claw?|Roar
+What is the 2nd level ability of Druid's of the Claw?|Rejuvination
+What is the 3rd and final level ability of Druid's of the Claw?|Bear Form
+What is the upgrade that allows Druid's of the Claw to cast Roar while in Bear Form?|Mark of the Claw
+What is the upgrade of Dryads that allows them to deal damage to summoned units and dispel an enemy's positive buffs?|Abolish Magic
+What type of damage orb can be bough at the Night Elvish Ancient of Wonders?|Venom
+What is the upgrade of Hippogryph Riders and Archers that allows them to have a greater attack range?|Improved Bows
+What is the upgrade of Hippogryph Riders and Archers that increases their base damage?|Marksmanship
+What is the upgrade of Huntresses that allows them to send their owl to a tree permanently?|Sentinel
+What is the upgrade of Huntresses that allows their attacks to bounce from enemy to enemy?|Moon Glaive
+What is the upgrade of Glaive Throwers that allows their attacks to go through an enemy and damage the ones behind it?|Vorpal Blades

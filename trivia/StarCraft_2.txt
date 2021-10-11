@@ -1,0 +1,1645 @@
+Attack Damages: What is the SCV Ground Attack Damage?*Five
+Attack Damages: What is the SCV Air Attack Damage?*Zero
+Attack Damages: What is the SCV Maximum Ground Attack Damage?*Five
+Attack Damages: What is the SCV Attack Damage Class?*Normal
+Attack Damages: What is the Marine Ground Attack Damage?*Six
+Attack Damages: What is the Marine Air Attack Damage?*Six
+Attack Damages: What is the Maximum Damage a Marine can inflict?*Nine
+Attack Damages: What is the Marine Ground Attack Damage Class?*Normal
+Attack Damages: What is the Marine Air Attack Damage Class?*Normal
+Attack Damages: What is the Firebat Ground Attack Damage?*Sixteen
+Attack Damages: What is the Firebat Air Attack Damage?*Zero
+Attack Damages: What is the Maximum Damage a Firebat can inflict?*Twenty Four
+Attack Damages: What is the Firebat Attack Damage Class?*Concussive
+Attack Damages: What is the Ghost Ground Attack Damage?*Ten
+Attack Damages: What is the Ghost Air Attack Damage?*Ten
+Attack Damages: What is the Maximum Damage a Ghost can inflict?*Thirteen
+Attack Damages: What is the Ghost Ground Attack Damage Class?*Concussive
+Attack Damages: What is the Ghost Air Attack Damage Class?*Concussive
+Attack Damages: What is the Ground Attack Damage of a Goliath?*Twelve
+Attack Damages: What is the Air Attack Damage of a Goliath?*Twenty
+Attack Damages: What is the Maximum Ground Damage a Goliath can inflict?*Fifteen
+Attack Damages: What is the Maximum Air Damage a Goliath can inflict?*Thirty Two
+Attack Damages: What is the Goliath Ground Attack Damage Class?*Normal
+Attack Damages: What is the Goliath Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of a Siege Tank in Tank Mode?*Thirty
+Attack Damages: What is the Ground Attack Damage of a Siege Tank in Siege Mode?*Seventy
+Attack Damages: What is the Air Attack Damage of a Siege Tank in Tank Mode?*Zero
+Attack Damages: What is the Air Attack Damage of a Siege Tank in Siege Mode?*Zero
+Attack Damages: What is the Maximum Damage a Siege Tank in Siege Mode can inflict?*Eighty Five
+Attack Damages: What is the Maximum Damage a Siege Tank in Tank Mode can inflict?*Thirty Nine
+Attack Damages: What is the Siege Tank Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of the Vulture?*Twenty
+Attack Damages: What is the Air Attack Damage of the Vulture?*Zero
+Attack Damages: What is the Maximum Damage a Vulture can inflict?*Twenty Six
+Attack Damages: What is the Vulture Ground Attack Damage Class?*Concussive
+Attack Damages: What is the Ground Attack Damage of a Wraith?*Eight
+Attack Damages: What is the Air Attack Damage of the Wraith?*Twenty
+Attack Damages: What is the Maximum Ground Damage a Wraith can inflict?*Twelve
+Attack Damages: What is the Maximum Air Damage a Wraith can inflict?*Twenty Six
+Attack Damages: What is the Wraith Ground Attack Damage Class?*Normal
+Attack Damages: What is the Wraith Air Attack Damage Class?*Explosive
+Attack Damages: What is the Air Damage of a Valkyrie H.A.L.O. Missile inflict?*Five
+Attack Damages: What is the Maximum Damage a Valkyrie can inflict?*Seventy Two
+Attack Damages: What is the Valkyrie Air Attack Damage Class?*Explosive
+Attack Damages: What is the Air Attack Damage of the Battlecruiser?*Twenty Five
+Attack Damages: What is the Ground Attack Damage of the Battlecruiser?*Twenty Five
+Attack Damages: What is the Maximum Air Damage a Battlecruiser can inflict?*Thirty Four
+Attack Damages: What is the Maximum Ground Damage a Battlecruiser can inflict?*Thirty Four
+Attack Damages: What is the Battlecruiser Ground Attack Damage Class?*Normal
+Attack Damages: What is the Battlecruiser Air Attack Damage Class?*Normal
+Attack Damages: What is the Air Attack Damage a Missile Turret inflict?*Twenty
+Attack Damages: What is the Ground Attack Damage a Missile Turret inflict?*Zero
+Attack Damages: What is the Missile Turret Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of a Drone?*Five
+Attack Damages: What is the Air Attack Damage of the Drone?*Zero
+Attack Damages: What is the Maximum Damage a Drone can inflict?*Five
+Attack Damages: What is the Drone Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Zergling?*Five
+Attack Damages: What is the Air Attack Damage of a Zergling?*Zero
+Attack Damages: What is the Maximum Damage a Zergling can inflict?*Eight
+Attack Damages: What is the Zergling Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Broodling do?*Four
+Attack Damages: What is the Air Attack Damage of a Broodling do?*Zero
+Attack Damages: What is the Broodling Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage for a Hydralisk?*Ten
+Attack Damages: What is the Air Attack Damage for a Hydralisk?*Nine
+Attack Damages: What is the Maximum Damage a Hydralisk can inflict?*Twelve
+Attack Damages: What is the Hydralisk Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Hydralisk Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage that a Lurker does?*Twenty
+Attack Damages: What is the Air Attack Damage that a Lurker can inflict?*Zero
+Attack Damages: What is the Maximum Damage a Lurker can inflict?*Twenty Six
+Attack Damages: What is the Lurker Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of the Ultralisk?*Twenty
+Attack Damages: What is the Air Attack Damage of the Ultralisk?*Zero
+Attack Damages: What is the Maximum Damage an Ultralisk can inflict?*Twenty Nine
+Attack Damages: What is the Ultralisk Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of an Infested Terran?*Five Hundred
+Attack Damages: What is the Air Attack Damage of the Infested Terran?*Zero
+Attack Damages: What is the Infested Terran Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Spore Colony Ground Attack Damage?*Zero
+Attack Damages: What is the Spore Colony Air Attack Damage?*Fifteen
+Attack Damages: What is the Spore Colony Air Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Sunken Colony?*Forty
+Attack Damages: What is the Air Attack Damage of a Sunken Colony?*Zero
+Attack Damages: What is the Sunken Colony Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Air Attack Damage of a Devourer?*Twenty Five
+Attack Damages: What is the Ground Attack Damage of a Devourer?*Zero
+Attack Damages: What is the Maximum Damage a Devourer can inflict?*Thirty One
+Attack Damages: What is the Devourer Air Attack Damage Class?*Explosive
+Attack Damages: What is the Air Attack Damage of a Mutalisk?*Nine
+Attack Damages: What is the Ground Attack Damage of a Mutalisk?*Nine
+Attack Damages: What is the Maximum Damage a Mutalisk can inflict?*Twelve
+Attack Damages: What is the Mutalisk Ground Attack Damage Class?*Normal
+Attack Damages: What is the Mutalisk Air Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of the Guardian?*Twenty
+Attack Damages: What is the Air Attack Damage of the Guardian?*Zero
+Attack Damages: What is the Maximum Damage a Guardian can inflict?*Twenty Six
+Attack Damages: What is the Guardian Ground Attack Damage Class?*Normal
+Attack Damages: What is the Scourge Air Attack Damage?*One Hundred and Ten
+Attack Damages: What is the Scourge Ground Attack Damage?*Zero
+Attack Damages: What is the Scourge Air Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Zealot?*Sixteen
+Attack Damages: What is the Air Attack Damage of a Zealot?*Zero
+Attack Damages: What is the Maximum Damage a Zealot can inflict?*Twenty Two
+Attack Damages: What is the Zealot Ground Attack Damage Class?*Normal
+Attack Damages: What is the Air Attack Damage of a Dragoon?*Twenty
+Attack Damages: What is the Ground Attack Damage of a Dragoon?*Twenty
+Attack Damages: What is the Maximum Damage a Dragoon can inflict?*Twenty Six
+Attack Damages: What is the Dragoon Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Dragoon Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of a High Templar?*Zero
+Attack Damages: What is the Air Attack Damage of a High Templar?*Zero
+Attack Damages: What is the Ground Attack Damage of a Archon?*Thirty
+Attack Damages: What is the Air Attack Damage of a Archon?*Thirty
+Attack Damages: What is the Maximum Damage an Archon can inflict?*Thirty Nine
+Attack Damages: What is the Archon Ground Attack Damage Class?*Normal
+Attack Damages: What is the Archon Air Attack Damage Class?*Normal
+Attack Damages: What is the Air Attack Damage of the Reaver?*Zero
+Attack Damages: What is the Ground Attack Damage of the Reaver?*Zero
+Attack Damages: What is the Ground Attack Damage of a Scarab Drone?*One Hundred
+Attack Damages: What is the Air Attack Damage of a Scarab Drone?*Zero
+Attack Damages: What is the Maximum Damage that a Scarab Drone inflict?*One Hundred and Twenty Five
+Attack Damages: What is the Scarab Drone Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Dark Templar?*Forty
+Attack Damages: What is the Air Attack Damage of a Dark Templar?*Zero
+Attack Damages: What is the Maximum Damage a Dark Templar can inflict?*Forty Nine
+Attack Damages: What is the Dark Templar Ground Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of a Photon Cannon?*Twenty
+Attack Damages: What is the Air Attack Damage of a Photon Cannon?*Twenty
+Attack Damages: What is the Photon Cannon Ground Attack Damage Class?*Normal
+Attack Damages: What is the Photon Cannon Air Attack Damage Class?*Normal
+Attack Damages: What is the Ground Attack Damage of the Scout?*Eight
+Attack Damages: What is the Air Attack Damage of the Scout?*Twenty Eight
+Attack Damages: What is the Maximum Damage a Scout Air Attack Damage can inflict?*Thirty Four
+Attack Damages: What is the Maximum Damage a Scout Ground Attack Damage can inflict?*Eleven
+Attack Damages: What is the Scout Ground Attack Damage Class?*Normal
+Attack Damages: What is the Scout Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of the Corsair?*Zero
+Attack Damages: What is the Air Attack Damage of the Corsair?*Five
+Attack Damages: What is the Maximum Damage a Corsair can inflict?*Eight
+Attack Damages: What is the Corsair Air Attack Damage Class?*Explosive
+Attack Damages: What is the Air Attack Damage of a Interceptor?*Six
+Attack Damages: What is the Ground Attack Damage of a Interceptor?*Six
+Attack Damages: What is the Maximum Damage a Interceptor can inflict?*Nine
+Attack Damages: What is the Interceptor Ground Attack Damage Class?*Normal
+Attack Damages: What is the Interceptor Air Attack Damage Class?*Normal
+Attack Damages: What is the Attack Damage of a Carrier?*Zero
+Attack Damages: What is the Air Attack Damage of an Arbiter?*Ten
+Attack Damages: What is the Ground Attack Damage of an Arbiter?*Ten
+Attack Damages: What is the Maximum Damage a Arbiter can inflict?*Thirteen
+Attack Damages: What is the Arbiter Ground Attack Damage Class?*Explosive
+Attack Damages: What is the Arbiter Air Attack Damage Class?*Explosive
+Attack Damages: What is the Ground Attack Damage of a Probe?*Five
+Attack Damages: What is the Air Attack Damage of a Probe?*Zero
+Attack Damages: What is the Maximum Damage a Probe can inflict?*Five
+Attack Damages: What is the Probe Ground Attack Damage Class?*Normal
+Attack Damages: Explosive Attack does ___% damage to Small Units, 75% damage to Medium Units, and 100% damage to Large Units.*Fifty
+Attack Damages: Explosive Attack does 50% damage to Small Units, ___% damage to Medium Units, and 100% damage to Large Units.*Seventy Five
+Attack Damages: Explosive Attack does 50% damage to Small Units, 75% damage to Medium Units, and ___% damage to Large Units.*Hundred
+Attack Damages: Concussive Attack does ___% damage to Small Units, 50% damage to Medium Units, and 25% damage to Large Units.*Hundred
+Attack Damages: Concussive Attack does 100% damage to Small Units, ___% damage to Medium Units, and 25% damage to Large Units.*Fifty
+Attack Damages: Concussive Attack does 100% damage to Small Units, 50% damage to Medium Units, and ___% damage to Large Units.*Twenty Five
+Attack Ranges: What is the Attack Range of a SCV?*One
+Attack Ranges: What is the Attack Range of a Marine?*Four
+Attack Ranges: What is the Attack Range of a Marine upgraded with U-238 Shells?*Five
+Attack Ranges: What is the Attack Range of a Firebat?*Two
+Attack Ranges: What is the Attack Range of a Ghost?*Six
+Attack Ranges: What is the Attack Range of a Goliath?*Five
+Attack Ranges: What is the Air Attack Range of a Goliath upgraded with Charon Boosters?*Eight
+Attack Ranges: What is the Attack Range of a Siege Tank in Tank Mode?*Six
+Attack Ranges: What is the Attack Range of a Siege Tank in Siege Mode?*Twelve
+Attack Ranges: What is the Attack Range of a Vulture?*Five
+Attack Ranges: What is the Attack Range of a Missile Turret?*Seven
+Attack Ranges: What is the Attack Range of a Wraith?*Five
+Attack Ranges: What is the Attack Range of a Valkyrie?*Six
+Attack Ranges: What is the Attack Range of a Battlecruiser?*Six
+Attack Ranges: What is the Attack Range of a Drone?*One
+Attack Ranges: What is the Attack Range of a Zergling?*One
+Attack Ranges: What is the Attack Range of a Broodling?*One
+Attack Ranges: What is the Attack Range of a Hydralisk?*Four
+Attack Ranges: What is the Attack Range of a Hydralisk upgraded with Grooved Spines?*Five
+Attack Ranges: What is the Attack Range of a Lurker*Six
+Attack Ranges: What is the Attack Range of a Spore Colony?*Seven
+Attack Ranges: What is the Attack Range of a Sunken Colony?*Seven
+Attack Ranges: What is the Attack Range of a Devourer?*Six
+Attack Ranges: What is the Attack Range of the Mutalisk?*Three
+Attack Ranges: What is the Attack Range of the Guardian?*Eight
+Attack Ranges: What is the Attack Range of a Probe?*One
+Attack Ranges: What is the Attack Range of a Zealot?*One
+Attack Ranges: What is the Attack Range of a Dragoon?*Four
+Attack Ranges: What is the Attack Range of a Dragoon upgraded with Singularity Charge?*Six
+Attack Ranges: What is the Attack Range of a Reaver?*Eight
+Attack Ranges: What is the Attack Range of an Archon?*Three
+Attack Ranges: What is the Attack Range of a Corsair?*Five
+Attack Ranges: What is the Attack Range of a Scout?*Four
+Attack Ranges: What is the Attack Range of a Carrier?*Eight
+Attack Ranges: What is the Attack Range of an Arbiter?*Five
+Attack Ranges: What is the Attack Range of a Photon Cannon?*Seven
+Campaign: At the start of Starcraft, what Terran confederacy outpost was destroyed by the Protoss?*Chau Sara
+Campaign: After the lost of the Terran outpost Chau Sara, Jim raynor is ordered to relocate what Terran out post?*Mar Sara
+Campaign: In Starcraft General Duke of the Confederate security forces is in what squadron?*Alpha Squadron
+Campaign: Who is the Local Marshal on Mar Sara?*James raynor
+Campaign: In Starcraft what was the name of the Extremist Fraction?*The Sons of Korhal
+Campaign: The Sons of Korhal are led by who?*Arcturus Mengsk
+Campaign: Who is second in command in The Sons of Korhal?*Sarah Kerrigan
+Campaign: What city openly revolts against the Terran Confederacy?*Antiga Prime
+Campaign: What is the name of the Confederate Command Ship?*Norad II
+Campaign: What does the Psi Emitters transmit?*A Neural Imprint of a Ghost
+Campaign: What is the name of the Protoss Command Ship?*Gantrithor
+Campaign: What do Protoss keep there prisoners in?*Stasis Cell
+Campaign: Who kills the Overmind on Auir?*Tassadar
+Campaign: Who incinerate the Terran planets infested by Zerg?*Tassadar
+Campaign: What Two squadrons protect the Confederate world Tarsonis?*Omega and Delta
+Campaign: What planet is Kerrigan reborn on?*Char
+Campaign: Who was the first Cerebrate killed?*Zasz
+Campaign: When Zasz is killed, whose mind touches out to the Overmind?*Zeratul
+Campaign: Xel'naga made the Zerg in the purity of _______.*Essence
+Campaign: Xel'naga made the Protoss in the purity of _____.*Form
+Campaign: Who are the "Fallen Ones"?*Dark Templar
+Campaign: What Protoss city was Fenix guarding when he was first slain?*Antioch
+Campaign: In Brood War who rules the Terran Dominion?*Emperor Mengsk I
+Campaign: What does UED stand for?*United Earth Directorate
+Campaign: What is the capitol city of Braxis?*Boralis
+Campaign: What is Admiral Dugalle's first name?*Gerard
+Campaign: What rank is Duran?*Lieutenant
+Campaign: What is the name of the flagship of the Terran Dominion?*Norad 
+Campaign: Who Commands Norad?*Duke
+Campaign: What does Mengsk use to attract the Zerg?*Psi Emitter
+Campaign: What is Duran's first name?*Samir
+Campaign: What is the name of the Dominion throne world?*Korhal
+Campaign: What is the capitol city of Korhal?*Augustgrad
+Campaign: Who commanded the Hyperion?*Jim Raynor
+Campaign: Where is the new Overmind in Brood War reborn at?*Char
+Campaign: Who suggest destroying the Psi Disruptor?*Duran
+Campaign: Who secretly rebuilds the Psi Disruptor?*Vice-Admiral Stukov
+Campaign: What are the colors of the UED flag?*black and red
+Campaign: For the Zerg missions what are you?*Cerebrate
+Campaign: For the Terran missions what rank are you?*Captain
+Campaign: What is Kerrigan first name?*Sarah
+Campaign: Who left Kerrigan behind to Zerg swarm?*Mengsk
+Campaign: What is Mengsk first name?*Arcturus
+Campaign: What is the name of the biggest resource node?*Kel-Morian Combine
+Campaign: What is General Dukeís first name?*Edmund
+Campaign: What is the name the Protoss base that protects the Matriarch?*Talematros
+Campaign: Who does Admiral Dugalle blame for the death of his Life long friend Stukov?*Himself
+Campaign: Who banishes the Dark Templar from Auir?*Conclave
+Campaign: In Brood War who replaces Aassader?*Artanis
+Campaign: Who is the UED tactical advisor?*Vice-Admiral Stukov
+Campaign: Uraj crystal is comprised of ______ energy.*templar
+Campaign: Khalis crystal is comprised of ____ _______ energy.* Dark Templar
+Campaign: Cerebrates can be harmed only by the energies of the ___ ______.*Dark Templar
+Campaign: What is the name of the UED Flagship?*Aleksander
+Campaign: Who killed the Xel'Naga?*Zerg
+Campaign: Artanis appears as what unit?*Scout
+Campaign: Raszagal, Matriarch of the ____ ________.*Dark Templar
+Campaign: Zeratul is what unit in Starcraft?*Dark Templar
+Campaign: What is the name of the homeland of the proud Protoss?*Aiur
+Campaign: What is the name of the homeland of the Dark Templar?*Shakuras
+Campaign: Aldaris appears in Starcraft as what unit?*High Templar
+Campaign: Who kills the traitor Aldaris?*kerrigan
+Campaign: When ordered to kill Aldaris, how many hallusions does he make of himself?*Two
+Campaign: Duran appears several times though out the game as what unit?*Ghost
+Campaign: The UED finds the Psi Disrupter on what planet?*Tarsonis
+Campaign: What was the name of the two crystals that the Protoss search for in order to free Shakuras?*Uraj and Khalis
+Campaign: Kerrigan uses her influences to take control over who?*Raszagal
+Campaign: Who first finds out that Raszagal is under Kerrigan's control?*Aldaris
+Campaign: Where is the Khalis crystal found at?*Char
+Campaign: On their search for the Uraj crystal, who has made an outpost on the planet the crystal is on?*Terran
+Campaign: On their search for the Khalis crystal, who do they find surrounding the crystal?*Zerg
+Campaign: Who takes the Khalis and Uraj crystal to the Xel'Naga temple?*Artanis and Zeratul
+Campaign: Where does Duran purposes on stealing Battlecruisers for the UED?*Dylaria Shipyards
+Campaign: Who disobey orders from Admiral Dugalle?*Vice-Admiral Stukov
+Campaign: Who is Admiral Dugalle Life long friend?*Vice-Admiral Stukov
+Campaign: Who kills Vice-Admiral Stukov?*Duran
+Campaign: The Psi Disrupter is used to stop the __________ control over the Zerg hordes.*Overmind
+Campaign: Vice-Admiral Stukov does not destroy what?*Psi Disrupter
+Campaign: Who betrays Admiral Dugalle?*Duran
+Campaign: Fenix and Raynor work with Kerrigan to fight who?*UED
+Campaign: Who kills Fenix?*Kerrigan
+Campaign: Who kills Duke?*kerrigan
+Campaign: Duke dies in what?*Battlecruiser
+Campaign: Fenix dies in Brood War as what unit?*Dragoon
+Campaign: Fenix is killed in Starcraft as what unit?*Zealot
+Campaign: What is Fenix returned to Life as?*Dragoon
+Campaign: Who kills Raszagal?*Zeratul
+Cheats: Invincible units.*Power Overwhelming
+Cheats: Gives you 10,000 ¡RGas ¡Pand ¡VMinerals¡P.*Show Me The Money
+Cheats: Speeds construction.*Operation CWAL
+Cheats: Unlimited energy.*The Gathering
+Cheats: Ends game with loss.*Game Over Man
+Cheats: Prevents mission from ending.*Staying Alive
+Cheats: Completes current mission.*There Is No Cow Level
+Cheats: Free ¡VMinerals¡P.*Whats Mine Is Mine
+Cheats: Free Gas.*Breathe Deep
+Cheats: Gives all upgrades.*Something For Nothing
+Cheats: Shows Entire Map*Black Sheep Wall
+Cheats: Free upgrades to units.*Medieval Man
+Cheats: Ability to build all buildings.*Modify The Phase Variance
+Cheats: Disable fog of war.*War Aint What It Used To Be
+Cheats: Ability to build beyond the support limit.*Food For Thought
+Cheats: Level skipping cheat.*Ophelia
+Hotkeys: What is the Hotkey to Build a SCV?*S
+Hotkeys: What is the Hotkey to Build a Marine?*M
+Hotkeys: What is the Hotkey to Build a Firebat?*F
+Hotkeys: What is the Hotkey to Build a Medic?*C
+Hotkeys: What is the Hotkey to Build a Ghost?*G
+Hotkeys: What is the Hotkey to Build a Vulture?*V
+Hotkeys: What is the Hotkey to Build a Siege Tank?*T
+Hotkeys: What is the Hotkey to Build a Goliath?*G
+Hotkeys: What is the Hotkey to Build a Wraith?*W
+Hotkeys: What is the Hotkey to Build a Dropship?*D
+Hotkeys: What is the Hotkey to Build a Science Vessel?*V
+Hotkeys: What is the Hotkey to Build a Valkyrie?*Y
+Hotkeys: What is the Hotkey to Build a Battlecruiser?*B
+Hotkeys: What is the Hotkey to Build a Command Center?*C
+Hotkeys: What is the Hotkey to Build a Comsat Station?*C
+Hotkeys: What is the Hotkey to use Scanner Sweep?*S
+Hotkeys: What is the Hotkey to Build a Nuclear Silo?*N
+Hotkeys: What is the Hotkey to Arm Nuclear Silo?*N
+Hotkeys: What is the Hotkey to Build a Supply Depot?*S
+Hotkeys: What is the Hotkey to Build a Refinery?*R
+Hotkeys: What is the Hotkey to Build a Engineering Bay?*E
+Hotkeys: What is the Hotkey to Build a Missile Turret?*T
+Hotkeys: What is the Hotkey to Build a Barrack?*B
+Hotkeys: What is the Hotkey to Build a Academy?*A
+Hotkeys: What is the Hotkey to Build a Bunker?*U
+Hotkeys: What is the Hotkey to Build a Factory?*F
+Hotkeys: What is the Hotkey to Build a Machine Shop?*C
+Hotkeys: What is the Hotkey to Build a Armory?*A
+Hotkeys: What is the Hotkey to Build a Starport?*S
+Hotkeys: What is the Hotkey to Build a Control Tower?*C
+Hotkeys: What is the Hotkey to Build a Science Facility?*I
+Hotkeys: What is the Hotkey to Build a Covert Ops?*C
+Hotkeys: What is the Hotkey to Build a Physics Lab?*P
+Hotkeys: Both the Vulture and the ________ have the same Hotkey.*Science Vessel
+Hotkeys: Both the ________ and the Science Vessel have the same Hotkey.*Vulture
+Hotkeys: Both the Ghost and the ________ have the same Hotkey.*Goliath
+Hotkeys: Both the ________ and the Goliath have the same Hotkey.*Ghost
+Hotkeys: Both the Firebat and the ________ have the same Hotkey.*Factory
+Hotkeys: Both the ________ and the Factory have the same Hotkey.*Firebat
+Hotkeys: Both the Siege Tank and the ________ have the same Hotkey.*Missile Turret
+Hotkeys: Both the ________ and the Missile Turret have the same Hotkey.*Siege Tank
+Hotkeys: Both the Armory and the ________ have the same Hotkey.*Academy
+Hotkeys: Both the ________ and the Academy have the same Hotkey.*Armory
+Hotkeys: Both the Barrack and the ________ have the same Hotkey.*Battlecruiser
+Hotkeys: Both the ________ and the Battlecruiser have the same Hotkey.*Barrack
+Hotkeys: What is the Hotkey to use Defensive Matrix?*D
+Hotkeys: What is the Hotkey to learn EMP Shockwave?*E
+Hotkeys: What is the Hotkey to use EMP Shockwave?*E
+Hotkeys: What is the Hotkey to learn Irradiate?*I
+Hotkeys: What is the Hotkey to use Irradiate?*I
+Hotkeys: What is the Hotkey to learn Titian Reactor?*T
+Hotkeys: What is the Hotkey to learn Yamato Gun?*Y
+Hotkeys: What is the Hotkey to use Yamato Gun?*Y
+Hotkeys: What is the Hotkey to learn Colossus Reactor?*C
+Hotkeys: What is the Hotkey to learn Cloaking Field?*C
+Hotkeys: What is the Hotkey to use Cloaking Field?*C
+Hotkeys: What is the Hotkey to learn Apollo Reactor?*A
+Hotkeys: What is the Hotkey to learn Ion Thrusters?*I
+Hotkeys: What is the Hotkey to learn Spider Mines?*M
+Hotkeys: What is the Hotkey to use Spider Mines?*I
+Hotkeys: What is the Hotkey to learn Siege Tech?*S
+Hotkeys: What is the Hotkey to use Siege Tech?*O
+Hotkeys: What is the Hotkey to learn Charon Boosters?*C
+Hotkeys: What is the Hotkey to learn U-238 Shells?*U
+Hotkeys: What is the Hotkey to learn Stimpack Tech?*T
+Hotkeys: What is the Hotkey to use Stimpack Tech?*T
+Hotkeys: What is the Hotkey to use Heal?*A
+Hotkeys: What is the Hotkey to learn Restoration?*R
+Hotkeys: What is the Hotkey to use Restoration?*R
+Hotkeys: What is the Hotkey to learn Optical Flare?*F
+Hotkeys: What is the Hotkey to use Optical Flare?*F
+Hotkeys: What is the Hotkey to learn Caduceus Reactor?*D
+Hotkeys: What is the Hotkey to learn Lockdown?*L
+Hotkeys: What is the Hotkey to use Lockdown?*L
+Hotkeys: What is the Hotkey to learn Personnel Cloaking?*C
+Hotkeys: What is the Hotkey to use Personnel Cloaking?*C
+Hotkeys: What is the Hotkey to learn Ocular Implants?*O
+Hotkeys: What is the Hotkey to use Nuclear Strike?*N
+Hotkeys: What is the Hotkey to learn Moebius Reactor?*M
+Hotkeys: What is the Hotkey to Upgrade Ship Weapons?*S
+Hotkeys: What is the Hotkey to Upgrade Ship Armor?*H
+Hotkeys: What is the Hotkey to Upgrade Vehicle Weapons?*W
+Hotkeys: What is the Hotkey to Upgrade Vehicle Armor?*P
+Hotkeys: What is the Hotkey to Upgrade Infantry Weapons?*W
+Hotkeys: What is the Hotkey to Upgrade Infantry Armor?*A
+Hotkeys: What is the Hotkey to Lift?*L
+Hotkeys: What is the Hotkey to Land?*L
+Hotkeys: What is the Hotkey to Build a Probe?*P
+Hotkeys: What is the Hotkey to Build a Zealot?*Z
+Hotkeys: What is the Hotkey to Build a Dragoon?*D
+Hotkeys: What is the Hotkey to Build a High Templar?*T
+Hotkeys: What is the Hotkey to Build a Dark Templar?*K
+Hotkeys: What is the Hotkey to Build a Shuttle?*S
+Hotkeys: What is the Hotkey to Build a Reaver?*V
+Hotkeys: What is the Hotkey to Build a Scarab Drone?*R
+Hotkeys: What is the Hotkey to Build a Observer?*O
+Hotkeys: What is the Hotkey to Build a Scout?*S
+Hotkeys: What is the Hotkey to Build a Carrier?*C
+Hotkeys: What is the Hotkey to Build a Interceptor?*I
+Hotkeys: What is the Hotkey to Build a Corsair?*O
+Hotkeys: What is the Hotkey to Build a Arbiter?*A
+Hotkeys: What is the Hotkey to Warp in a Nexus?*N
+Hotkeys: What is the Hotkey to Warp in a Assimilator?*A
+Hotkeys: What is the Hotkey to Warp in a Pylon?*P
+Hotkeys: What is the Hotkey to Warp in a Gateway?*G
+Hotkeys: What is the Hotkey to Warp in a Forge?*F
+Hotkeys: What is the Hotkey to Warp in a Photon Cannon?*C
+Hotkeys: What is the Hotkey to Warp in a Shield Battery?*B
+Hotkeys: What is the Hotkey to Warp in a Cybernetics Core?*Y
+Hotkeys: What is the Hotkey to Warp in a Citadel of Adun?*C
+Hotkeys: What is the Hotkey to Warp in a Templar Archives?*T
+Hotkeys: What is the Hotkey to Warp in a Stargate?*S
+Hotkeys: What is the Hotkey to Warp in a Fleet Beacon?*F
+Hotkeys: What is the Hotkey to Warp in a Arbiter Tribunal?*A
+Hotkeys: What is the Hotkey to Warp in a Robotics Facility?*R
+Hotkeys: What is the Hotkey to Warp in a Robotics Support?*B
+Hotkeys: What is the Hotkey to Warp in a Observatory?*O
+Hotkeys: Both the Probe and the ________ have the same Hotkey.*Pylon
+Hotkeys: Both the ________ and the Pylon have the same Hotkey.*Probe
+Hotkeys: Both the High Templar and the ________ have the same Hotkey.*Templar Archives
+Hotkeys: Both the ________ and the Templar Archives have the same Hotkey.*High Templar
+Hotkeys: Both the Scout and the ________ have the same Hotkey.*Stargate
+Hotkeys: Both the ________ and the Stargate have the same Hotkey.*Scout
+Hotkeys: Both the Carrier and the ________ have the same Hotkey.*Photon Cannon
+Hotkeys: Both the ________ and the Photon Cannon have the same Hotkey.*Carrier
+Hotkeys: Both the Corsair and the ________ have the same Hotkey.*Observatory
+Hotkeys: Both the ________ and the Observatory have the same Hotkey.*Corsair
+Hotkeys: Both the Scarab Drone and the ________ have the same Hotkey.*Robotics Facility
+Hotkeys: Both the ________ and the Robotics Facility have the same Hotkey.*Scarab Drone
+Hotkeys: What is the Hotkey to use Recharge Shields?*R
+Hotkeys: What is the Hotkey to learn Singularity Charge?*S
+Hotkeys: What is the Hotkey to learn Leg Enhancements?*L
+Hotkeys: What is the Hotkey to learn Apical Sensors?*A
+Hotkeys: What is the Hotkey to learn Gravitic Thrusters?*G
+Hotkeys: What is the Hotkey to learn Increase Carrier Capacity?*C
+Hotkeys: What is the Hotkey to learn Disruption Web?*D
+Hotkeys: What is the Hotkey to use Disruption Web?*D
+Hotkeys: What is the Hotkey to learn Argus Jewel?*J
+Hotkeys: What is the Hotkey to learn Psionic Storm?*P
+Hotkeys: What is the Hotkey to use Psionic Storm?*T
+Hotkeys: What is the Hotkey to learn Hallucination?*H
+Hotkeys: What is the Hotkey to use Hallucination?*L
+Hotkeys: What is the Hotkey to learn Khaydarin Amulet?*K
+Hotkeys: What is the Hotkey to use Archon Warp?*R
+Hotkeys: What is the Hotkey to use Dark Archon Meld?*R
+Hotkeys: What is the Hotkey to learn Mind Control?*M
+Hotkeys: What is the Hotkey to use Mind Control?*C
+Hotkeys: What is the Hotkey to learn Maelstrom?*E
+Hotkeys: What is the Hotkey to use Maelstrom?*E
+Hotkeys: What is the Hotkey to use Feedback?*F
+Hotkeys: What is the Hotkey to learn Argus Talisman?*T
+Hotkeys: What is the Hotkey to learn Gravitic Booster?*G
+Hotkeys: What is the Hotkey to learn Sensor Array?*S
+Hotkeys: What is the Hotkey to learn Upgrade Scarab Damage?*S
+Hotkeys: What is the Hotkey to learn Reaver Capacity?*C
+Hotkeys: What is the Hotkey to learn Gravitic Drive?*G
+Hotkeys: What is the Hotkey to learn Recall?*R
+Hotkeys: What is the Hotkey to use Recall?*R
+Hotkeys: What is the Hotkey to learn Stasis Field?*S
+Hotkeys: What is the Hotkey to use Stasis Field?*T
+Hotkeys: What is the Hotkey to learn Khayadarin Core?*K
+Hotkeys: What is the Hotkey to Upgrade Air Weapons?*W
+Hotkeys: What is the Hotkey to Upgrade Air Armor?*A
+Hotkeys: What is the Hotkey to Upgrade Ground Weapons?*W
+Hotkeys: What is the Hotkey to Upgrade Ground Armor?*A
+Hotkeys: What is the Hotkey to Upgrade Plasma Shields?*S
+Hotkeys: What is the Hotkey to Morph to a Drone?*D
+Hotkeys: What is the Hotkey to Morph to a Overlord?*O
+Hotkeys: What is the Hotkey to Morph to a Zergling?*Z
+Hotkeys: What is the Hotkey to Morph to a Hydralisk?*H
+Hotkeys: What is the Hotkey to Morph to a Lurker?*L
+Hotkeys: What is the Hotkey to Morph to a Queen?*Q
+Hotkeys: What is the Hotkey to Morph to a Mutalisk?*M
+Hotkeys: What is the Hotkey to Morph to a Guardian?*G
+Hotkeys: What is the Hotkey to Morph to a Devourer?*D
+Hotkeys: What is the Hotkey to Morph to a Scourge?*S
+Hotkeys: What is the Hotkey to Morph to a Ultralisk?*U
+Hotkeys: What is the Hotkey to Morph to a Defiler?*F
+Hotkeys: What is the Hotkey to Mutate into a Hatchery?*H
+Hotkeys: What is the Hotkey to Mutate into a Lair?*L
+Hotkeys: What is the Hotkey to Mutate into a Hive?*H
+Hotkeys: What is the Hotkey to Mutate into a Extractor?*E
+Hotkeys: What is the Hotkey to Mutate into a Creep Colony?*C
+Hotkeys: What is the Hotkey to Mutate into a Spore Colony?*S
+Hotkeys: What is the Hotkey to Mutate into a Sunken Colony?*U
+Hotkeys: What is the Hotkey to Mutate into a Spawning Pool?*S
+Hotkeys: What is the Hotkey to Mutate into a Evolution Chamber?*V
+Hotkeys: What is the Hotkey to Mutate into a Hydralisk Den?*D
+Hotkeys: What is the Hotkey to Mutate into a Spire?*S
+Hotkeys: What is the Hotkey to Mutate into a Greater Spire?*G
+Hotkeys: What is the Hotkey to Mutate into a Queen's Nest?*Q
+Hotkeys: What is the Hotkey to Mutate into a Ultralisk Cavern?*U
+Hotkeys: What is the Hotkey to Mutate into a Defiler Mound?*D
+Hotkeys: What is the Hotkey to Mutate into a Nydus Canal?*N
+Hotkeys: Both the Lurker and the ________ have the same Hotkey.*Lair
+Hotkeys: Both the ________ and the Lair have the same Hotkey.*Lurker
+Hotkeys: Both the Queen and the ________ have the same Hotkey.*Queen's Nest
+Hotkeys: Both the ________ and the Queen's Nest have the same Hotkey.*Queen
+Hotkeys: Both the Guardian and the ________ have the same Hotkey.*Greater Spire
+Hotkeys: Both the ________ and the Greater Spire have the same Hotkey.*Guardian
+Hotkeys: What is the Hotkey to learn Burrow?*B
+Hotkeys: What is the Hotkey to use Burrow?*U
+Hotkeys: What is the Hotkey to learn Ventral Sac?*V
+Hotkeys: What is the Hotkey to learn Antennae?*A
+Hotkeys: What is the Hotkey to learn Pneumatized Carapace?*P
+Hotkeys: What is the Hotkey to learn Faster Zergling Movement?*M
+Hotkeys: What is the Hotkey to learn Adrenal Glands?*A
+Hotkeys: What is the Hotkey to learn Muscular Augments?*M
+Hotkeys: What is the Hotkey to learn Grooved Spines?*G
+Hotkeys: What is the Hotkey to learn Lurker Aspect?*L
+Hotkeys: What is the Hotkey to use Lurker Aspect?*L
+Hotkeys: What is the Hotkey to use Parasite?*R
+Hotkeys: What is the Hotkey to learn Spawn Broodlings?*B
+Hotkeys: What is the Hotkey to use Spawn Broodlings?*B
+Hotkeys: What is the Hotkey to learn Ensnare?*E
+Hotkeys: What is the Hotkey to use Ensnare?*E
+Hotkeys: What is the Hotkey to learn Gamete Meiosis?*G
+Hotkeys: What is the Hotkey to learn Anabolic Synthesis?*A
+Hotkeys: What is the Hotkey to learn Chitinous Plating?*C
+Hotkeys: What is the Hotkey to use Dark Swarm?*W
+Hotkeys: What is the Hotkey to learn Plague?*G
+Hotkeys: What is the Hotkey to use Plague?*G
+Hotkeys: What is the Hotkey to learn Consume?*C
+Hotkeys: What is the Hotkey to use Consume?*C
+Hotkeys: What is the Hotkey to learn Metasynaptic node?*M
+Hotkeys: What is the Hotkey to Upgrade Melee Attacks?*M
+Hotkeys: What is the Hotkey to Upgrade Missile Attacks?*A
+Hotkeys: What is the Hotkey to Upgrade Carapace?*C
+Hotkeys: What is the Hotkey to Upgrade Flyer Attacks?*A
+Hotkeys: What is the Hotkey to Upgrade Flyer Carapace?*C
+Hotkeys: What is the Hotkey to Move?*M
+Hotkeys: What is the Hotkey to Stop?*S
+Hotkeys: What is the Hotkey to Attack and Attack-Move?*A
+Hotkeys: What is the Hotkey to Patrol?*P
+Hotkeys: What is the Hotkey to Hold Position?*H
+Hotkeys: What is the Hotkey to Gather?*G
+Hotkeys: What is the Hotkey to Repair?*R
+Hotkeys: What is the Hotkey to Return Cargo?*C
+Misc: What is the base unit for Terran'?*Marine
+Misc: What is the base unit for Zerg?*Zergling
+Misc: What is the base unit for Protoss?*Zealot
+Misc: What new ground unit is introduced in Brood War for Protoss?*Dark Templar
+Misc: What new air unit is introduced in Brood War for Protoss?*Corsair
+Misc: What new ground unit is introduce in Brood War for Terran?*Medic
+Misc: What new air unit is introduced in Brood War for Terran?*Valkyrie
+Misc: What new ground unit is introduced in Brood War for Zerg?*Lurker
+Misc: What new air unit is introduced in Brood War for Zerg?*Devourer
+Misc: What unit is a Flying Kamikaze?*Scourge
+Misc: What unit is a Ground Kamikaze?*Infested Terran
+Misc: What unit was once called "Carrier Killers"?*Scourge
+Misc: What is called a "Ground Carrier?"*Reaver
+Misc: "Strong," "Powerful," "Fast," and "Expensive" all describe the _________ ground arsenal.*Protoss
+Misc: Zerg rely heavily on mass quantities of _________ units.*Cheap
+Misc: Veteran Protoss warriors who have been crippled or mortally wounded in combat become a  
+_______.*Dragoon
+Misc: What is the slowest moving unit in Starcraft?*Reaver
+Misc: The crew of a Siege Tank consists of a _____, Gunner, and a Commander.*Driver
+Misc: The crew of a Siege Tank consists of a Driver, _____, and a Commander.*Gunner
+Misc: The crew of a Siege Tank consists of a Driver, Gunner, and a _____.*Commander
+Misc: The Wraith was designed by ______ technicians to combat large capitol ships and medium gun ships.*Tarsonian
+Misc: Who pilots the Corsair?*Dark Templar
+Misc: Who pilots the Arbiter?*Judicators
+Misc: The tiny Probe was designed by the _____ to lay the foundation for Protoss colonies.*Khalai
+Ranks: What is the Rank of a SCV?*Private
+Ranks: What is the Rank of a Marine?*Private
+Ranks: What is the Rank of a Firebat?*Corporal
+Ranks: Who has the Rank of Corporal?*Firebat
+Ranks: What is the Rank of a Medic?*First Lieutenant
+Ranks: Who has the Rank of First Lieutenant?*Medic
+Ranks: What is the Rank of a Ghost?*Specialist
+Ranks: Who has the Rank of Specialist?*Ghost
+Ranks: What is the Rank of a Vulture?*Sergeant
+Ranks: Who has the Rank of Sergeant?*Vulture
+Ranks: What is the Rank of a Siege Tank?*Master Sergeant
+Ranks: Who has the Rank of Master Sergeant?*Siege Tank
+Ranks: What is the Rank of a Goliath?*First Sergeant
+Ranks: Who has the Rank of First Sergeant?*Goliath
+Ranks: What is the Rank of a Wraith?*Captain
+Ranks: Who has the Rank of Captain?*Wraith
+Ranks: What is the Rank of a Dropship?*Warrant Officer
+Ranks: Who has the Rank of Warrant Officer?*Dropship
+Ranks: What is the Rank of a Valkyrie?*Lieutenant Commander
+Ranks: Who has the Rank of Lieutenant Commander?*Valkyrie
+Ranks: What is the Rank of a Battlecruiser?*Commodore
+Ranks: Who has the Rank of Commodore?*Battlecruiser
+Ranks: What Terran unit has no Rank?*Science Vessel
+Ranks: Both the Marine and _____ have the same Rank.*SCV
+Ranks: Both the _____ and SCV have the same Rank.*Marine
+Sight Ranges: What is the sight range of a SCV?*Seven
+Sight Ranges: What is the sight range of a Marine?*Seven
+Sight Ranges: What is the sight range of a Firebat?*Seven
+Sight Ranges: What is the sight range of a Ghost?*Nine
+Sight Ranges: What is the sight range of a Ghost upgraded with Ocular Implants?*Eleven
+Sight Ranges: What is the sight range of a Medic?*Nine
+Sight Ranges: What is the sight range of a Vulture?*Eight
+Sight Ranges: What is the sight range of a Spider Mines?*Three
+Sight Ranges: What is the sight range of a Siege Tank?*Ten
+Sight Ranges: What is the sight range of a Goliath?*Eight
+Sight Ranges: What is the sight range of a Wraith?*Seven
+Sight Ranges: What is the sight range of a Battlecruiser?*eleven
+Sight Ranges: What is the sight range of a Dropship?*Eight
+Sight Ranges: What is the sight range of a Science Vessel?*Ten
+Sight Ranges: What is the sight range of a Valkyrie?*Eight
+Sight Ranges: What is the sight range of a Missile Turret?*Eleven
+Sight Ranges: What is the sight range of a Probe?*Eight
+Sight Ranges: What is the sight range of a Zealot?*Seven
+Sight Ranges: What is the sight range of a Dragoon?*Eight
+Sight Ranges: What is the sight range of a High Templar?*Seven
+Sight Ranges: What is the sight range of a Dark Templar?*Seven
+Sight Ranges: What is the sight range of an Archon?*Eight
+Sight Ranges: What is the sight range of a Dark Archon?*Ten
+Sight Ranges: What is the sight range of a Reaver?*Ten
+Sight Ranges: What is the sight range of a Shuttle?*Eight
+Sight Ranges: What is the sight range of an Observer?*Nine
+Sight Ranges: What is the sight range of an Observer upgraded with Sensor Array?*Eleven
+Sight Ranges: What is the sight range of a Scout?*Eight
+Sight Ranges: What is the sight range of a Scout upgraded with Apical Sensors?*Ten
+Sight Ranges: What is the sight range of a Corsair?*Nine
+Sight Ranges: What is the sight range of a Carrier?*Eleven
+Sight Ranges: What is the sight range of an Arbiter?*Nine
+Sight Ranges: What is the sight range of a Photon Cannon?*Eleven
+Sight Ranges: What is the sight range of a Larva?*Four
+Sight Ranges: What is the sight range of an Egg?*Four
+Sight Ranges: What is the sight range of a Drone?*Seven
+Sight Ranges: What is the sight range of a Broodling?*Five
+Sight Ranges: What is the sight range of a Zergling?*Five
+Sight Ranges: What is the sight range of a Hydralisk?*Six
+Sight Ranges: What is the sight range of a Lurker?*Eight
+Sight Ranges: What is the sight range of a Infested Terran?*Five
+Sight Ranges: What is the sight range of an Ultralisk?*Seven
+Sight Ranges: What is the sight range of a Defiler?*Ten
+Sight Ranges: What is the sight range of an Overlord?*Nine
+Sight Ranges: What is the sight range of an Overlord upgraded with Antennae?*Eleven
+Sight Ranges: What is the sight range of a Queen?*Ten
+Sight Ranges: What is the sight range of a Mutalisk?*Seven
+Sight Ranges: What is the sight range of a Guardian?*Eleven
+Sight Ranges: What is the sight range of a Devourer?*Ten
+Sight Ranges: What is the sight range of a Scourge?*Five
+Sight Ranges: What is the sight range of a Spore Colony?*Ten
+Sight Ranges: What is the sight range of a Sunken Colony?*Ten
+Spells: What cost Life to use?*Stimpack
+Spells: How much Life is lost each time Stimpack is used?*Ten
+Spells: How much ¡VMinerals ¡Pdoes Stimpack Tech cost?*One Hundred
+Spells: How much ¡RGas ¡Pdoes Stimpack Tech cost?*One Hundred
+Spells: Stimpacks increases the Attack Damage and Attack ____ when used.*Rate
+Spells: Stimpacks increases the Attack ______ and Attack Rate when used.*Damage
+Spells: ________ increases the Attack Damage and Attack Rate when used.*Stimpacks
+Spells: What is the only counter to Plague?*Restoration
+Spells: What is the only counter to Parasite?*Restoration
+Spells: What is the only counter to Lockdown?*Restoration
+Spells: What is the only counter to Optical Flare?*Restoration
+Spells: What is the only counter to Acid Spores?*Restoration
+Spells: What spell blinds an unit?*Optical Flare
+Spells: What spell is an unit under affect when it's been blinded?*Optical Flare
+Spells: What spell does a Medic come learn with?*heal
+Spells: How much energy does heal use?*One
+Spells: What is the range of heal?*Two
+Spells: How much ¡VMinerals ¡Pdoes Restoration cost?*One Hundred
+Spells: How much ¡RGas ¡Pdoes Restoration cost?*One Hundred
+Spells: How much energy does Restoration use?*Fifty
+Spells: What is the range of Restoration?*Six
+Spells: How much ¡VMinerals ¡Pdoes Optical Flare cost?*One Hundred
+Spells: How much ¡RGas ¡Pdoes Optical Flare cost?*One Hundred
+Spells: How much energy does Optical Flare use?*Seventy Five
+Spells: What is the range of Optical Flare?*Nine
+Spells: Who uses Optical Flare?*Medic
+Spells: Who uses Restoration?*Medic
+Spells: Who uses heal?*Medic
+Spells: What is the only unit that has access to Nuclear Strike?*Ghost
+Spells: What spell uses a red laser-sighting dot?*Nuclear Strike
+Spells: How long does it take for a Nuclear Strike to occur?*Ten seconds
+Spells: What skill does a Ghost have access to?*Nuclear Strike
+Spells: What does Nuclear Strike require for use?*an Armed Nuclear Silo
+Spells: Lockdown works on what type of units?*mechanical
+Spells: How much ¡VMinerals ¡Pdoes Lockdown cost?*Two Hundred
+Spells: How much ¡RGas ¡Pdoes Lockdown cost?*Two Hundred
+Spells: How much energy does Lockdown use?*One Hundred
+Spells: What is the range of Lockdown?*Eight
+Spells: How much ¡VMinerals ¡Pdoes Personnel Cloaking cost?*One Hundred
+Spells: How much ¡RGas ¡Pdoes Personnel Cloaking cost?*One Hundred
+Spells: How much energy does Personnel Cloaking use?*Twenty Five
+Spells: Who uses Lockdown?*Ghost
+Spells: Who uses Personnel Cloaking?*Ghost
+Spells: Who uses Nuclear Strike?*Ghost
+Spells: How much ¡VMinerals ¡Pdoes Cloaking Field cost?*One Hundred and Fifty
+Spells: How much ¡RGas ¡Pdoes Cloaking Field cost?*One Hundred and Fifty
+Spells: How much energy does Cloaking Field use?*Twenty Five
+Spells: Who uses Cloaking Field?*Wraith
+Spells: What is the Battlecruiser's special attack?*Yamato Gun
+Spells: How much ¡VMinerals ¡Pdoes Yamato Gun cost?*One Hundred
+Spells: How much ¡RGas ¡Pdoes Yamato Gun cost?*One Hundred
+Spells: How much energy does Yamato Gun use?*One Hundred and Fifty
+Spells: Who uses Yamato Gun?*Battlecruiser
+Spells: What is the range of Yamato Gun?*Ten
+Spells: How much damage does Yamato Gun do?*Two Hundred and Sixty
+Spells: What spell does a Science Vessel come with?*Defensive Matrix
+Spells: How much energy does Defensive Matrix use?*One Hundred
+Spells: Can a Science Vessel cast Defensive Matrix on itself?*No
+Spells: What is the maximum amount of damage Defensive Matrix can absorb? Two Hundred and Fifty
+Spells: What is the range of Defensive Matrix?*Ten
+Spells: How long will Defensive Matrix last?*Thirty Seconds
+Spells: What spell drains Shields and energy within its targeted area?*EMP Shockwave
+Spells: How much Life would an Archon have, if exposed to an EMP Shockwave?*Ten
+Spells: How much ¡VMinerals ¡Pdoes EMP Shockwave cost?*Two Hundred
+Spells: How much ¡RGas ¡Pdoes EMP Shockwave cost?*Two Hundred
+Spells: How much energy does EMP Shockwave use?*One Hundred
+Spells: EMP Shockwave is most effective against which race?*Protoss
+Spells: What is the range of EMP Shockwave?*Eight
+Spells: How much ¡VMinerals ¡Pdoes Irradiate cost?*Two Hundred
+Spells: How much ¡RGas ¡Pdoes Irradiate cost?*Two Hundred
+Spells: How much energy does Irradiate use?*Seventy Five
+Spells: Irradiate is most effective against which race?*Zerg
+Spells: Irradiate effects only what type of units?*Biological
+Spells: What is the maximum amount of damage Irradiate can inflict?*Two Hundred and Fifty
+Spells: What is the range of Irradiate?*Nine
+Spells: How long will Irradiate last?*Thirty Seconds
+Spells: Who uses Defensive Matrix?*Science Vessel
+Spells: Who uses EMP Shockwave?*Science Vessel
+Spells: Who uses Irradiate?*Science Vessel
+Spells: What is the High Templar most powerful skill?*Psionic Storm
+Spells: What is the maximum amount of damage Psionic Storm can inflict?*One Hundred and Ten
+Spells: How much energy does Psionic Storm use?*Seventy Five
+Spells: How much ¡VMinerals ¡Pdoes Psionic Storm cost?*Two Hundred
+Spells: How much ¡RGas ¡Pdoes Psionic Storm cost?*Two Hundred
+Spells: Who uses Psionic Storm?*High Templar
+Spells: What Protoss spell can cancel Hallucination?*Psionic Storm
+Spells: What is the range of Psionic Storm?*Nine
+Spells: Who uses Hallucination?*High Templar
+Spells: How much ¡VMinerals ¡Pdoes Hallucination cost?*One Hundred and Fifty
+Spells: How much ¡RGas ¡Pdoes Hallucination cost?*One Hundred and Fifty
+Spells: How much energy does Hallucination use?*One Hundred
+Spells: What is the range of Hallucination?*Seven
+Spells: How long does Hallucination last?*one hundred and eighty seconds
+Spells: How many copies is created when Hallucination is used?*Two
+Spells: What skill does a High Templar come with?*Archon warp
+Spells: What does Archon warp require in order to be used?*Two High Templar
+Spells: What does Archon warp creates?*An Archon
+Spells: What does Dark Archon warp require in order to be used?*Two Dark Templar
+Spells: What does Dark Archon warp creates?*A Dark Archon
+Spells: Mind Control drains both energy and _______.*Shields
+Spells: Mind Control drains both _______ and Shields.*energy
+Spells: How much ¡VMinerals ¡Pdoes Mind Control cost?*Two Hundred
+Spells: How much ¡RGas ¡Pdoes Mind Control cost?*Two Hundred
+Spells: How much energy does Mind Control use?*One Hundred and Fifty
+Spells: Who uses Mind Control?*Dark Archon
+Spells: What spell forces enemy units to join your side?*Mind Control
+Spells: A Dark Archon that has used Mind Control has the over all Life of what?*Twenty Five
+Spells: What is the range of Mind Control?*Eight
+Spells: What is a biological Lockdown?*Maelstrom
+Spells: How much ¡VMinerals ¡Pdoes Maelstrom cost?*One Hundred
+Spells: How much ¡RGas ¡PMaelstrom cost?*One Hundred
+Spells: How much energy does Maelstrom use?*One Hundred
+Spells: Maelstrom affects what type of units?*Biological
+Spells: Who uses Maelstrom?*Dark Archon
+Spells: What is the range of Maelstrom?*Ten
+Spells: How long does Maelstrom last?*Twelve Seconds
+Spells: Feedback's damage is based on what? *Energy
+Spells: Feedback harms units with what?*Energy
+Spells: What spell does a Dark Archon already have?*Feedback
+Spells: How much energy does Feedback use?*Fifty
+Spells: Who uses Feedback?*Dark Archon
+Spells: Can Feedback kill a Defiler?*Yes
+Spells: What is the range of Feedback?*Ten
+Spells: What spell causes units or Structures under it to stop attacking?*Disruption Web
+Spells: What skill protects air units from ground units?*Disruption Web
+Spells: How much ¡VMinerals ¡Pdoes Disruption Web cost?*Two Hundred
+Spells: How much ¡RGas ¡PDisruption Web cost?*Two Hundred
+Spells: How much energy does Disruption Web use?*One Hundred and Twenty Five
+Spells: Who uses Disruption Web?*Corsair
+Spells: What is the range of Disruption Web?*Nine
+Spells: What spell can move units across a map?*Recall
+Spells: How much ¡VMinerals ¡Pdoes Recall cost?*One Hundred and Fifty
+Spells: How much ¡RGas ¡PRecall cost?*One Hundred and Fifty
+Spells: How much energy does Recall use?*One Hundred and Fifty
+Spells: Who uses Recall?*Arbiter
+Spells: What spell can freezes units trapping them?*Stasis Field
+Spells: Can units trapped in Stasis Field be harmed?*No
+Spells: How much ¡VMinerals ¡Pdoes Stasis Field cost?*One Hundred and Fifty
+Spells: How much ¡RGas ¡PStasis Field cost?*One Hundred and Fifty
+Spells: How much energy does Stasis Field use?*One Hundred
+Spells: Who uses Stasis Field?*Arbiter
+Spells: What is the range of Stasis Field?*Nine
+Spells: How longs does Stasis Field last?*Forty Seconds
+Spells: All Zerg ground forces are able to Burrow but Broodlings and _________.*Ultralisks
+Spells: All Zerg ground forces are able to Burrow but ________ and Ultralisks.*Broodlings
+Spells: What unit comes with Burrow as an innate ability?*Lurker
+Spells: Who can Spawn Broodlings?*Queen
+Spells: How much ¡VMinerals ¡Pdoes Spawn Broodlings cost?*One Hundred
+Spells: How much ¡RGas ¡PSpawn Broodlings cost?*One Hundred
+Spells: How much energy does Spawn Broodlings use?*One Hundred and Fifty
+Spells: How many Broodlings are spawned at One time?*Two
+Spells: What type of units can spawn Broodling infect?*Biological
+Spells: What is the range of spawn Broodling?*Nine
+Spells: Once a Broodling is spawned, its lifespan is controlled by Hit Points and _______.*Energy
+Spells: What skill does a Queen come with besides Infest Command Center?*Parasite
+Spells: How much energy does Parasite use?*Seventy Five
+Spells: Who uses Parasite?*Queen
+Spells: What is the range of Parasite?*Twelve
+Spells: A Queen can infest what?*Command Center
+Spells: How much Life must a Command Center have in order for it to become Infested?* Seven Hundred and Fifty
+Spells: Can an infested Command Center still Lift up off the ground?*Yes
+Spells: How much ¡VMinerals ¡Pdoes Ensnare cost?*One Hundred
+Spells: How much ¡RGas ¡PEnsnare cost?*One Hundred
+Spells: How much energy does Ensnare use?*Seventy Five
+Spells: What Zerg spell can cancel Hallucination?*Ensnare
+Spells: What spell cause units to move slower?*Ensnare
+Spells: Who uses Ensnare?*Queen
+Spells: What is the range of Ensnare?*Nine
+Spells: What skill does a Defiler come already learned?*Dark Swarm
+Spells: What skill protects ground units from airborne units?*Dark Swarm
+Spells: How much energy does Dark Swarm use?*One Hundred
+Spells: Who uses Dark Swarm?*Defiler
+Spells: What is the range of Dark Swarm?*Nine
+Spells: When a Defiler Consumes an unit, what does it restore?*Energy
+Spells: Who uses Consume?*Defiler
+Spells: What is the range of Consume?*One
+Spells: What unit is capable of restoring its energy?*Defiler
+Spells: How much ¡VMinerals ¡Pdoes Consume cost?*One Hundred
+Spells: How much ¡RGas ¡PConsume cost?*One Hundred
+Spells: How much damage does Plague inflicts on an Archon?*Nine
+Spells: Plague lowers what on infected units?*Health
+Spells: Who uses Plague?*Defiler
+Spells: How much ¡VMinerals ¡Pdoes Plague cost?*Two Hundred
+Spells: How much ¡RGas ¡PPlague cost?*Two Hundred
+Spells: How much energy does Plague use?*One Hundred and Fifty
+Spells: What is the maximum amount of damage Plague can inflict?*Three Hundred
+Spells: Cloaked units affected by Plague are still undetectable?*No
+Spells: What is the range of Plague?*Nine
+Structures: How much ¡VMinerals ¡Pdoes Command Center cost?*Four Hundred
+Structures: How much ¡RGas ¡Pdoes Command Center cost?*Zero
+Structures: How many Hit Points does a Command Center have?*One Thousand Five Hundred
+Structures: How many supplies does a Command Center provide?*Ten
+Structures: How much ¡VMinerals ¡Pdoes Refinery cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Refinery cost?*Zero
+Structures: How many Hit Points does a Refinery have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Supply Depot cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Supply Depot cost?*Zero
+Structures: How many Hit Points does a Supply Depot have?*Five Hundred
+Structures: How many supplies does a Supply Depot provide?*Eight
+Structures: How much ¡VMinerals ¡Pdoes Barrack cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Barrack cost?*Zero
+Structures: How many Hit Points does a Barrack have?*One Thousand
+Structures: How much ¡VMinerals ¡Pdoes Academy cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Academy cost?*Zero
+Structures: How many Hit Points does a Academy have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Engineering Bay cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Engineering Bay cost?*Zero
+Structures: How many Hit Points does a Engineering Bay have?*Eight Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Missile Turret cost?*Seventy Five
+Structures: How much ¡RGas ¡Pdoes Missile Turret cost?*Zero
+Structures: How many Hit Points does a Missile Turret have?*Two Hundred
+Structures: How much ¡VMinerals ¡Pdoes Bunker cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Bunker cost?*Zero
+Structures: How many Hit Points does a Bunker have?*Three Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Factory cost?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes Factory cost?*One Hundred
+Structures: How many Hit Points does a Factory have?*One Thousand Two Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Machine Shop cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Machine Shop cost?*Fifty
+Structures: How many Hit Points does a Machine Shop have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Armory cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Armory cost?*Fifty
+Structures: How many Hit Points does a Armory have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Starport cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Starport cost?*One Hundred
+Structures: How many Hit Points does a Starport have?*One Thousand Three Hundred
+Structures: How much ¡VMinerals ¡Pdoes Control Tower cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Control Tower cost?*Fifty
+Structures: How many Hit Points does a Control Tower have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Science Facility cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Science Facility cost?*One Hundred and Fifty
+Structures: How many Hit Points does a Science Facility have?*Eight Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Covert Ops cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Covert Ops cost?*Fifty
+Structures: How many Hit Points does a Covert Ops have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Physics Lab cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Physics Lab cost?*Fifty
+Structures: How many Hit Points does a Physics Lab have?*Six Hundred
+Structures: How much ¡VMinerals ¡Pdoes Comsat Station cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Comsat Station cost?*Fifty
+Structures: How many Hit Points does a Comsat Station have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Nuclear Silo cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Nuclear Silo cost?*One Hundred
+Structures: How many Hit Points does a Nuclear Silo have?*Six Hundred
+Structures: How much ¡VMinerals ¡Pdoes Nexus cost?*Four Hundred
+Structures: How much ¡RGas ¡Pdoes Nexus cost?*Zero
+Structures: How many Shields does a Nexus have?*Seven Hundred and Fifty
+Structures: How many Hit Points does a Nexus have?*Seven Hundred and Fifty
+Structures: How many supplies does a Nexus provide?*Nine
+Structures: How much ¡VMinerals ¡Pdoes Assimilator cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Assimilator cost?*Zero
+Structures: How many Shields does a Assimilator have?*Four Hundred and Fifty
+Structures: How many Hit Points does a Assimilator have?*Four Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Pylon cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Pylon cost?*Zero
+Structures: How many Shields does a Pylon have?*Three Hundred
+Structures: How many Hit Points does a Pylon have?*Three Hundred
+Structures: How many supplies does a Pylon provide?*Eight
+Structures: How much ¡VMinerals ¡Pdoes Forge cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Forge cost?*Zero
+Structures: How many Shields does a Forge have?*Five Hundred and Fifty
+Structures: How many Hit Points does a Forge have?*Five Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Photon Cannon cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Photon Cannon cost?*Zero
+Structures: How many Shields does a Photon Cannon have?*One Hundred
+Structures: How many Hit Points does a Photon Cannon have?*One Hundred
+Structures: How much ¡VMinerals ¡Pdoes Shield Battery cost?*One Hundred
+Structures: How much ¡RGas ¡Pdoes Shield Battery cost?*Zero
+Structures: How many Shields does a Shield Battery have?*Two Hundred
+Structures: How many Hit Points does a Shield Battery have?*Two Hundred
+Structures: How much ¡VMinerals ¡Pdoes Gateway cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Gateway cost?*Zero
+Structures: How many Shields does a Gateway have?*Five Hundred
+Structures: How many Hit Points does a Gateway have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Cybernetics Core cost?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes Cybernetics Core cost?*Zero
+Structures: How many Shields does a Cybernetics Core have?*Five Hundred
+Structures: How many Hit Points does a Cybernetics Core have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Robotics Facility cost?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes Robotics Facility cost?*Two Hundred
+Structures: How many Shields does a Robotics Facility have?*Five Hundred
+Structures: How many Hit Points does a Robotics Facility have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Robotics Support cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Robotics Support cost?*One Hundred
+Structures: How many Shields does a Robotics Support have?*Four Hundred and Fifty
+Structures: How many Hit Points does a Robotics Support have?*Four Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Observatory cost?*Fifty
+Structures: How much ¡RGas ¡Pdoes Observatory cost?*One Hundred
+Structures: How many Shields does a Observatory have?*Two Hundred and Fifty
+Structures: How many Hit Points does a Observatory have?*Two Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Stargate cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Stargate cost?*One Hundred and Fifty
+Structures: How many Shields does a Stargate have?*Six Hundred
+Structures: How many Hit Points does a Stargate have?*Six Hundred
+Structures: How much ¡VMinerals ¡Pdoes Fleet Beacon cost?*Three Hundred
+Structures: How much ¡RGas ¡Pdoes Fleet Beacon cost?*Two Hundred
+Structures: How many Shields does a Fleet Beacon have?*Five Hundred
+Structures: How many Hit Points does a Fleet Beacon have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Arbiter Tribunal cost?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes Arbiter Tribunal cost?*One Hundred and Fifty
+Structures: How many Shields does a Arbiter Tribunal have?*Five Hundred
+Structures: How many Hit Points does a Arbiter Tribunal have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes Citadel of Adun cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Citadel of Adun cost?*One Hundred
+Structures: How many Shields does a Citadel of Adun have?*Four Hundred and Fifty
+Structures: How many Hit Points does a Citadel of Adun have?*Four Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes Templar Archives cost?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes Templar Archives cost?*Two Hundred
+Structures: How many Shields does a Templar Archives have?*Five Hundred
+Structures: How many Hit Points does a Templar Archives have?*Five Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Hatchery?*Three Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Hatchery?*Three Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Hatchery?*Zero
+Structures: What is the total cost of ¡RGas ¡Pfor a Hatchery?*Zero
+Structures: How many Hit Points does a Hatchery have?*One Thousand Two Hundred and Fifty
+Structures: How many supplies does a Hatchery provide?*One
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Lair?*One Hundred and Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Lair?*Five Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Lair?*One Hundred
+Structures: What is the total cost of ¡RGas ¡Pfor a Lair?*One Hundred
+Structures: How many Hit Points does a Lair have?*One Thousand Eight Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Hive?*Two Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Hive?*Seven Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Hive?*One Hundred and Fifty
+Structures: What is the total cost of ¡RGas ¡Pfor a Hive?*Two Hundred and Fifty
+Structures: How many Hit Points does a Hive have?*Two Thousand Five Hundred
+Structures: How many supplies does a Hive provide?*One
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Spawning Pool?*Two Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Spawning Pool?*Two Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Spawning Pool?*Zero
+Structures: How many Hit Points does a Spawning Pool have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Extractor?*Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Extractor?*One Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Extractor?*Zero
+Structures: How many Hit Points does a Extractor have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Creep Colony?*Seventy Five
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Creep Colony?*One Hundred and Twenty Five
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Creep Colony?*Zero
+Structures: How many Hit Points does a Creep Colony have?*Four Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Spore Colony?*Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Spore Colony?*One Hundred Seventy Five
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Spore Colony?*Zero
+Structures: How many Hit Points does a Spore Colony have?*Four Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Sunken Colony?*Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Sunken Colony?*One Hundred and Seventy Five
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Sunken Colony?*Zero
+Structures: How many Hit Points does a Sunken Colony have?*Three Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Evolution Chamber?*Seventy Five
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Evolution Chamber?*One Hundred and Twenty Five
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Evolution Chamber?*Zero
+Structures: How many Hit Points does a Evolution Chamber have?*Seven Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Hydralisk Den?*One Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Hydralisk Den?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Hydralisk Den?*Fifty
+Structures: How many Hit Points does a Hydralisk Den have?*Eight Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Queen's Nest?*One Hundred and Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Queen's Nest?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Queen's Nest?*One Hundred
+Structures: How many Hit Points does a Queen's Nest have?*Eight Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Spire?*Two Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Spire?*Two Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Spire?*One Hundred and Fifty
+Structures: How many Hit Points does a Spire have?*Six Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Greater Spire?*One Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Greater Spire?*Three Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Greater Spire?*One Hundred and Fifty
+Structures: What is the total cost of ¡RGas ¡Pfor a Greater Spire?*Three Hundred
+Structures: How many Hit Points does a Greater Spire have?*One Thousand
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Ultralisk Cavern?*One Hundred and Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Ultralisk Cavern?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Ultralisk Cavern?*Two Hundred
+Structures: How many Hit Points does a Ultralisk Cavern have?*Six Hundred
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Defiler Mound?*One Hundred
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Defiler Mound?*One Hundred and Fifty
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Defiler Mound?*One Hundred
+Structures: How many Hit Points does a Defiler Mound have?*Eight Hundred and Fifty
+Structures: How much ¡VMinerals ¡Pdoes it cost to Mutate into a Nydus Canal?*One Hundred and Fifty
+Structures: What is the total cost in ¡VMinerals ¡Pfor a Nydus Canal?*Two Hundred
+Structures: How much ¡RGas ¡Pdoes it cost to Mutate into a Nydus Canal?*Zero
+Structures: How many Hit Points does a Nydus Canal have?*Two Hundred and Fifty
+Structures: How many Hit Points does a infested Command Center have?*One Thousand Five Hundred
+Structures: Which structure has the least amount of Hit Points?*Photon Cannon
+Structures: Which structure has the most amounts of Hit Points?*Hive
+Structures: Which structure cost the least amount of ¡VMinerals¡P?*Missile Turret
+Structures: Which structure cost the most amount of ¡VMinerals¡P?*Hive
+Structures: Which structure cost the most amount of gas?*Hive
+Structures: Which structure restores Protoss Shields?*Shield Battery
+Structures: A Bunker holds up to how many Infantry Units in it?*Four
+Structures: Can the infested Ghost Duran go into a Bunker?*No
+Structures: What race can literally burn to the ground?*Terran
+Structures: What race can move an entire base with ease?*Terran
+Structures: Almost all of Terran Structures have the ability to do what?*lift
+Structures: What percent of remaining Life, will Terran Structures begin to burn down?*Thirty Four
+Structures: How many Hit Points must a Command Center have in order for a Queen to infest it?*Seven Hundred and Fifty
+Structures: Who can use a "Moving City" tactic?*Terran
+Structures: Protoss must build Structures around what?*Pylons
+Structures: Zerg can build only on what?*Creep
+Structures: What produces Larva, going from low tech to high tech?*Hatchery, Lair, and Hive
+Structures: What structure provides the most supply?*Command Center
+Structures: The Zerg race is entirely composed of biological units and Structures, so over time they can _____.*heal
+Structures: Can a Shield Battery restore the Shields of another structure?*No
+Structures: Which race can restore their Structures to perfect condition in the least amount of time?*Terran
+Structures: Which race can't restore their Structures to perfect condition?*Protoss
+Structures: What is the Comsat primary function?*Scanner Sweep
+Structures: Aside from Science Vessels, Missile Turrets can be used as _________.*Detectors
+Structures: Aside from Overlords, Spore Colonies can be used as _________.*Detectors
+Structures: Asides from Observers, Photon Cannons can be used as _________.*Detectors
+Supply Cost: What is the supply cost of a SCV?*One
+Supply Cost: What is the supply cost of a Marine?*One
+Supply Cost: What is the supply cost of a Firebat?*One
+Supply Cost: What is the supply cost of a Medic?*One
+Supply Cost: What is the supply cost of a Ghost?*One
+Supply Cost: What is the supply cost of a Vulture?*Two
+Supply Cost: What is the supply cost of a Siege Tank?*Two
+Supply Cost: What is the supply cost of a Goliath?*Two
+Supply Cost: What is the supply cost of a Wraith?*Two
+Supply Cost: What is the supply cost of a Battlecruiser?*Six
+Supply Cost: What is the supply cost of a Dropship?*Two
+Supply Cost: What is the supply cost of a Science Vessel?*Two
+Supply Cost: What is the supply cost of a Valkyrie?*Three
+Supply Cost: What is the supply cost of a Nuclear Missile?*Eight
+Supply Cost: What is the supply cost of a Probe?*One
+Supply Cost: What is the supply cost of a Zealot?*Two
+Supply Cost: What is the supply cost of a Dragoon?*Two
+Supply Cost: What is the supply cost of a High Templar?*Two
+Supply Cost: What is the supply cost of a Dark Templar?*Two
+Supply Cost: What is the supply cost of an Archon?*Four
+Supply Cost: What is the supply cost of a Dark Archon?*Four
+Supply Cost: What is the supply cost of a Reaver?*Four
+Supply Cost: What is the supply cost of a Shuttle?*Two
+Supply Cost: What is the supply cost of an Observer?*One
+Supply Cost: What is the supply cost of a Carrier?*Six
+Supply Cost: What is the supply cost of a Scout?*Three
+Supply Cost: What is the supply cost of an Arbiter?*Four
+Supply Cost: What is the supply cost of a Corsair?*Two
+Supply Cost: What is the supply cost of a Drone?*One
+Supply Cost: What is the supply cost of a Zergling?*.Five
+Supply Cost: What is the supply cost of a Hydralisk?*One
+Supply Cost: What is the supply cost of a Lurker?*Two
+Supply Cost: What is the supply cost of an Ultralisk?*Four
+Supply Cost: What is the supply cost of a Defiler?*Two
+Supply Cost: What is the supply cost of an Infested Terran?*One
+Supply Cost: What is the supply cost of a Mutalisk?*Two
+Supply Cost: What is the supply cost of a Guardian?*Two
+Supply Cost: What is the supply cost of a Devourer?*Two
+Supply Cost: What is the supply cost of a Scourge?*.Five
+Supply Cost: What is the supply cost of a Queen?*Two
+Supply Cost: What is the supply cost of a SCV?*One
+Supply Cost: What is the supply cost of a Marine?*One
+Supply Cost: What is the supply cost of a Firebat?*One
+Supply Cost: What is the supply cost of a Medic?*One
+Supply Cost: What is the supply cost of a Ghost?*One
+Supply Cost: What is the supply cost of a Vulture?*Two
+Supply Cost: What is the supply cost of a Siege Tank?*Two
+Supply Cost: What is the supply cost of a Goliath?*Two
+Supply Cost: What is the supply cost of a Wraith?*Two
+Supply Cost: What is the supply cost of a Battlecruiser?*Six
+Supply Cost: What is the supply cost of a Dropship?*Two
+Supply Cost: What is the supply cost of a Science Vessel?*Two
+Supply Cost: What is the supply cost of a Valkyrie?*Three
+Supply Cost: What is the supply cost of a Nuclear Missile?*
+Supply Cost: What is the supply cost of a Probe?*One
+Supply Cost: What is the supply cost of a Zealot?*Two
+Supply Cost: What is the supply cost of a Dragoon?*Two
+Supply Cost: What is the supply cost of a High Templar?*Two
+Supply Cost: What is the supply cost of a Dark Templar?*Two
+Supply Cost: What is the supply cost of an Archon?*Four
+Supply Cost: What is the supply cost of a Dark Archon?*Four
+Supply Cost: What is the supply cost of a Reaver?*Four
+Supply Cost: What is the supply cost of a Shuttle?*Two
+Supply Cost: What is the supply cost of an Observer?*One
+Supply Cost: What is the supply cost of a Carrier?*Six
+Supply Cost: What is the supply cost of a Scout?*Three
+Supply Cost: What is the supply cost of an Arbiter?*Four
+Supply Cost: What is the supply cost of a Corsair?*Two
+Supply Cost: What is the supply cost of a Broodling?*Zero
+Supply Cost: What is the supply cost of a Drone?*One
+Supply Cost: What is the supply cost of a Zergling?*.Five
+Supply Cost: What is the supply cost of a Hydralisk?*One
+Supply Cost: What is the supply cost of a Lurker?*Two
+Supply Cost: What is the supply cost of an Ultralisk?*Four
+Supply Cost: What is the supply cost of a Defiler?*Two
+Supply Cost: What is the supply cost of an Infested Terran?*One
+Supply Cost: What is the supply cost of a Mutalisk?*Two
+Supply Cost: What is the supply cost of a Guardian?*Two
+Supply Cost: What is the supply cost of a Devourer?*Two
+Supply Cost: What is the supply cost of a Scourge?*.Five
+Supply Cost: What is the supply cost of a Queen?*Two
+Unit Costs: How much ¡VMinerals ¡Pdoes a SCV cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a SCV cost?*Zero
+Unit Costs: How much ¡VMinerals ¡Pdoes a Marine cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Marine cost?*Zero
+Unit Costs: How much ¡VMinerals ¡Pdoes a Firebat cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Firebat cost?*Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Medic cost?*Sixty
+Unit Costs: How much ¡RGas ¡Pdoes a Medic cost?*Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Ghost cost?*Twenty Five
+Unit Costs: How much ¡RGas ¡Pdoes a Ghost cost? *Seventy Five
+Unit Costs: How much ¡VMinerals ¡Pdo a Goliath cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Goliath cost?*Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Siege Tank cost?*One Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Siege Tank cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Vulture cost?*Seventy Five
+Unit Costs: How much ¡RGas ¡Pdoes a Vulture cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes a Wraith cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Wraith cost?*One Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Valkyrie cost?*One Hundred and Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Valkyrie cost?*Two Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Battlecruiser cost?*Three Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Battlecruiser cost?*Four Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Science Vessel cost?*Two Hundred and Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Science Vessel cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Dropship cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Dropship cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Nuclear Missile cost?*Two Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Nuclear Missile cost?*Two Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Zergling cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Zergling cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes a Hydralisk cost?*Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Hydralisk cost?*Seventy Five
+Unit Costs: How much ¡RGas ¡Pdoes it cost to Morph into a Lurker?*One Hundred
+Unit Costs: What is the total cost of ¡RGas ¡Pfor a Lurker?*One Hundred and Twenty Five
+Unit Costs: How much ¡VMinerals¡P it cost to Morph into a Lurker?*Fifty
+Unit Costs: What is the total cost of ¡VMinerals ¡Pfor a Lurker?*One Hundred and Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Drone cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Drone cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes an Ultralisk cost?*Two Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes an Ultralisk cost?*Two Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Defiler cost?*One Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Defiler cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes an Infested Terran cost?*Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes an Infested Terran cost?*One Hundred
+Unit Costs: What is the cost of ¡RGas ¡Pto Morph into a Devourer?*Fifty
+Unit Costs: What is the cost of ¡VMinerals ¡Pto Morph into a Devourer?*One Hundred and Fifty
+Unit Costs: What is the total cost of ¡RGas ¡Pto make a Devourer?*One Hundred and Fifty
+Unit Costs: What is the total cost of ¡VMinerals ¡Pto make a Devourer?*Two Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Mutalisk cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Mutalisk cost?*One Hundred
+Unit Costs: What is the cost of ¡RGas ¡Pto Morph into a Guardian?*One Hundred
+Unit Costs: What is the cost of ¡VMinerals ¡Pto Morph into a Guardian?*Fifty
+Unit Costs: What is the total cost in ¡RGas ¡Pfor a Guardian?*Two Hundred
+Unit Costs: What is the total cost in ¡VMinerals ¡Pfor a Guardian?*One Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Queen cost?*One Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Queen cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Scourge cost?*Seventy Five
+Unit Costs: How much ¡VMinerals ¡Pdoes a Scourge cost?*Twenty Five
+Unit Costs: How much ¡VMinerals ¡Pdoes an Overlord cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes an Overlord cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes a Zealot cost?*Zero
+Unit Costs: How much ¡VMinerals ¡Pdoes a Zealot cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Dragoon cost?*Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Dragoon cost?*One Hundred and Twenty Five
+Unit Costs: How much ¡RGas ¡Pdoes a Reaver cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Reaver cost?*Two Hundred
+Unit Costs: How much does a Scarab Drone cost?*Fifteen
+Unit Costs: How much ¡RGas ¡Pdoes a High Templar cost?*One Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a High Templar cost?*Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Dark Templar cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Dark Templar cost?*One Hundred and Twenty Five.
+Unit Costs: What is the total cost in ¡RGas ¡Pfor an Archon?*Three Hundred
+Unit Costs: What is the total cost in ¡VMinerals ¡Pfor an Archon?*One Hundred
+Unit Costs: What is the total cost of ¡RGas ¡Pfor a Dark Archon?*Two Hundred
+Unit Costs: What is the total cost of ¡VMinerals ¡Pfor a Dark Archon?*Two Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Probe cost?*Zero
+Unit Costs: How much ¡VMinerals ¡Pdoes a Probe cost?*Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Shuttle cost?*Two Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Shuttle cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes a Scout cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Scout cost?*Two Hundred and Seventy Five
+Unit Costs: How much ¡RGas ¡Pdoes a Corsair cost?*One Hundred
+Unit Costs: How much ¡VMinerals ¡Pdoes a Corsair cost?*One Hundred and Fifty
+Unit Costs: How much ¡RGas ¡Pdoes a Carrier cost?*Two Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Carrier cost?*Three Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes a Interceptor cost?*Twenty Five
+Unit Costs: How much ¡RGas ¡Pdoes a Interceptor cost?*Zero
+Unit Costs: How much ¡RGas ¡Pdoes an Arbiter cost?*Three Hundred and Fifty
+Unit Costs: How much ¡VMinerals ¡Pdoes an Arbiter cost?*One Hundred
+Unit Costs: How much ¡RGas ¡Pdoes a Observer cost?*Seventy Five
+Unit Costs: How much ¡VMinerals ¡Pdoes an Observer cost?*Twenty Five
+Unit Sizes: What is the Unit Size of a Marine?*Small
+Unit Sizes: What is the Unit Size of a Firebat?*Small
+Unit Sizes: What is the Unit Size of a Medic?*Small
+Unit Sizes: What is the Unit Size of a Ghost?*Small
+Unit Sizes: What is the Unit Size of a Goliath?*Large
+Unit Sizes: What is the Unit Size of a SCV?*Small
+Unit Sizes: What is the Unit Size of a Siege Tank?*Large
+Unit Sizes: What is the Unit Size of a Vulture?*Medium
+Unit Sizes: What is the Unit Size of a Wraith?*Large
+Unit Sizes: What is the Unit Size of a Valkyrie?*Medium
+Unit Sizes: What is the Unit Size of a Battlecruiser?*Large
+Unit Sizes: What is the Unit Size of a Dropship?*Large
+Unit Sizes: What is the Unit Size of a Science Vessel?*Large
+Unit Sizes: What is the Unit Size of a Zergling?*Small
+Unit Sizes: What is the Unit Size of a Broodling?*Small
+Unit Sizes: What is the Unit Size of a Hydralisk?*Medium
+Unit Sizes: What is the Unit Size of a Lurker?*Small
+Unit Sizes: What is the Unit Size of a Drone?*Small
+Unit Sizes: What is the Unit Size of an Ultralisk?*Large
+Unit Sizes: What is the Unit Size of a Defiler?*Medium
+Unit Sizes: What is the Unit Size of an Infested Terran?*Small
+Unit Sizes: What is the Unit Size of a Devourer?*Medium
+Unit Sizes: What is the Unit Size of an Egg?*Large
+Unit Sizes: What is the Unit Size of a Mutalisk?*Small
+Unit Sizes: What is the Unit Size of a Guardian.*Large
+Unit Sizes: What is the Unit Size of a Queen?*Medium
+Unit Sizes: What is the Unit Size of a Scourge?*Small
+Unit Sizes: What is the Unit Size of an Overlord?*Large
+Unit Sizes: What is the Unit Size of a Zealot?*Small
+Unit Sizes: What is the Unit Size of a Dragoon?*Large
+Unit Sizes: What is the Unit Size of a High Templar?*Small
+Unit Sizes: What is the Unit Size of a Dark Templar?*Small
+Unit Sizes: What is the Unit Size of an Archon?*Large
+Unit Sizes: What is the Unit Size of a Dark Archon?*Small
+Unit Sizes: What is the Unit Size of a Reaver?*Large
+Unit Sizes: What is the Unit Size of a Photon Cannon?*Large
+Unit Sizes: What is the Unit Size of a Shuttle?*Large
+Unit Sizes: What is the Unit Size of a Scout?*Large
+Unit Sizes: What is the Unit Size of a Corsair?*Large
+Unit Sizes: What is the Unit Size of a Carrier?*Large
+Unit Sizes: What is the Unit Size of an Arbiter?*Large
+Unit Sizes: What is the Unit Size of an Observer?*Small
+Unit Sizes: What is the Unit Size of a Probe?*Small
+Unit Speech: "I told them I was claustrophobic... I got to get out of here!"*SCV
+Unit Speech: "Iím not reading you clearly."*SCV
+Unit Speech: "I canít believe they put me in one of these things and now I got to put up with this!"*SCV
+Unit Speech: "We got to move."*Marine
+Unit Speech: "Jacked up and good to go."*Marine
+Unit Speech: "Give me something to shoot."*Marine
+Unit Speech: "Are you going to give me orders."*Marine
+Unit Speech: "Oh my god he's whacko."*Marine
+Unit Speech: "I vote we frag this commander."*Marine
+Unit Speech: "How do I get out of this chicken shit outfit?"*Marine
+Unit Speech: "You want a piece of me boy."*Marine
+Unit Speech: "If it werenít for these neural implants you would be a smoking crater by now."*Marine
+Unit Speech: "nothing like a good smoke."*Firebat
+Unit Speech: "Want to turn up the heat."*Firebat
+Unit Speech: "I love the smell of napalm."*Firebat
+Unit Speech: "Are you trying to get invited to my next BBQ?"*Firebat
+Unit Speech: "Got any questions about propane or propane accessories?"*Firebat
+Unit Speech: "Did someone page me?"*Medic
+Unit Speech: "I already checked you out commander."*Medic
+Unit Speech: "He's dead Jim."*Medic
+Unit Speech: "You call down the thunder, now reap the whirlwind."*Ghost
+Unit Speech: "Iím about to overload my aggression inhibitors."*Ghost
+Unit Speech: "I donít have time to fuck around!"*Vulture
+Unit Speech: "You keep pushing me boy and Iíll scrap you along with the aliens!"*Vulture
+Unit Speech: "I dig."*Vulture
+Unit Speech: "What is your major malfunction?"*Siege Tank
+Unit Speech: "Iím about the drop the hammer and dispense some indiscriminate justice"*Siege Tank
+Unit Speech: "Checklist completed... SOB!"*Goliath
+Unit Speech: "I gotta get me one of these!"*Wraith
+Unit Speech: "Iím just curious, why am I so good?"*Wraith
+Unit Speech: "You know who the best star fighter in the fleet is? Yours truly."*Wraith
+Unit Speech: "I am invincible, thatís right."*Wraith
+Unit Speech: "Strap yourselves in boys!"*Dropship
+Unit Speech: "When removing your overhead luggage please be careful."*Dropship
+Unit Speech: "In case of water landing you may be used as a floatation device."*Dropship
+Unit Speech: "Keep your arms and legs inside until this ride comes to a full and complete stop."*Dropship
+Unit Speech: "Ah, the ship, out of danger?"*Science Vessel
+Unit Speech: "E=mc oh let me get my notepad."*Science Vessel
+Unit Speech: "Who set all these lab monkeys free?"*Science Vessel
+Unit Speech: "Do you fools know how to shut off these infernal contraptions?"*Science Vessel
+Unit Speech: "Shields up, weapons online."*Battlecruiser
+Unit Speech: "not equipped with ShieldsÖwell then buckle up. We are getting way behind schedule."*Battlecruiser
+Unit Speech: "I really have to goÖnumber One."*Battlecruiser
+Unit Speech: "This is very interesting, but stupid."*Valkyrie
+Unit Speech: "I have ways of blowing things up."*Valkyrie
+Unit Speech: "Whoís your mommy?"*Valkyrie
+Unit Speech: "You are being very naughty."*Valkyrie
+Unit Speech: "I am wretched."*Infested Terran
+Unit Speech: "Honor guides me."*Zealot
+Unit Speech: "All for the Empire!"*Zealot
+Unit Speech: "Doom to all that threaten the home world!"*Zealot
+Unit Speech: "Drop your weapon; you have 15 seconds to comply."*Dragoon
+Unit Speech: "Your thoughts betray you."*High Templar
+Unit Speech: "I see u have an appetite for destruction."*High Templar
+Unit Speech: "Power overwhelming!"*Archon
+Unit Speech: "You all look different on this side."*Archon
+Unit Speech: "You could no more evade my wrath, than you could your own shadow."*Dark Templar
+Unit Speech: "Your taunts are ill-advised templar."*Dark Templar
+Unit Speech: "Do not provoke me to violence."*Dark Templar
+Unit Speech: "Darkness overpowering."*Dark Archon
+Unit Speech: "Must Consume or oblivion will take us."*Dark Archon
+Unit Speech: "Adun save me!"*Dark Archon
+Unit Speech: "One small step for man, one giant...STOP POKING ME!"*Observer
+Unit Speech: "Adjusting neural transmission."*Scout
+Unit Speech: "Our enemies are legion...and still you procrastinate!"*Carrier
+Unit Speech: "Command or you will be relieved, this isnít an idle threat."*Carrier
+Unit Speech: "And now for your first lesson."*Arbiter
+Unit Speech: "Do you seek knowledge of time travel?"*Arbiter
+Unit Speech: "Zephram Cochran, is that you? What did you do to your hair?"*Corsair
+Upgrades: What unit is U-238 Shells for?*Marine
+Upgrades: What do U-238 Shells do?*Increase Marine Attack Range
+Upgrades: How much ¡VMinerals ¡Pdoes U-238 cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes U-238 cost?*One Hundred and Fifty
+Upgrades: What unit is Caduceus Reactor for?*Medic
+Upgrades: What does Caduceus Reactor do?*+50 Medic Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Caduceus Reactor cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Caduceus Reactor cost?*One Hundred and Fifty
+Upgrades: What unit is Ocular Implants for?*Ghost
+Upgrades: What do Ocular Implants do?*Increase Ghost Sight Range
+Upgrades: How much ¡VMinerals ¡Pdoes Ocular Implants cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Ocular Implants cost?*One Hundred
+Upgrades: What unit is Moebius Reactor for?*Ghost
+Upgrades: What does Moebius Reactor do?*+50 Ghost Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Moebius Reactor cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Moebius Reactor cost?*One Hundred and Fifty
+Upgrades: What unit is Ion Thrusters for?*Vulture
+Upgrades: What does Ion Thrusters do?*Faster Vulture Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Ion Thrusters cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Ion Thrusters cost?*One Hundred
+Upgrades: How much ¡VMinerals ¡Pdoes Spider Mines cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Spider Mines cost?*One Hundred
+Upgrades: What unit is Siege Tech for?*Siege Tank
+Upgrades: How much ¡VMinerals ¡Pdoes Siege Tech cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Siege Tech cost?*One Hundred and Fifty
+Upgrades: What unit is Charon Boosters for?*Goliath
+Upgrades: What does Charon Boosters do?*Increased Goliath Missile Range
+Upgrades: How much ¡VMinerals ¡Pdoes Charon Boosters cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Charon Boosters cost?*One Hundred
+Upgrades: What unit is Apollo Reactor for?*Wraith
+Upgrades: What does Apollo Reactor do?*+50 Wraith Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Apollo Reactor cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Apollo Reactor cost?*Two Hundred
+Upgrades: What unit is Titian Reactor for?*Science Vessel
+Upgrades: What does Titian Reactor do?*+50 Science Vessel Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Titian Reactor cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Titian Reactor cost?*One Hundred and Fifty
+Upgrades: What unit is Colossus Reactor for?*Battlecruiser
+Upgrades: What does Colossus Reactor do?*+50 Battlecruiser Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Colossus Reactor cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Colossus Reactor cost?*One Hundred and Fifty
+Upgrades: What does Leg Enhancements do?*Faster Zealot Movement
+Upgrades: What unit is Leg Enhancements for?*Zealot
+Upgrades: How much ¡VMinerals ¡Pdoes Leg Enhancements cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Leg Enhancements cost?*One Hundred and Fifty
+Upgrades: What does Singularity Charge do?*Increase Dragoon Attack Range
+Upgrades: What unit is Singularity Charge for?*Dragoon
+Upgrades: How much ¡VMinerals ¡Pdoes Singularity Charge cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Singularity Charge cost?*One Hundred and Fifty
+Upgrades: What does Khaydarin Amulet do?*+50 High Templar Energy
+Upgrades: What unit is Khaydarin Amulet for?*High Templar
+Upgrades: How much ¡VMinerals ¡Pdoes Khaydarin Amulet cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Khaydarin Amulet cost?*One Hundred and Fifty
+Upgrades: What unit is Argus Talisman for?*Dark Archon
+Upgrades: What does Argus Talisman do?*+50 Dark Archon Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Argus Talisman cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Argus Talisman cost?*One Hundred and Fifty
+Upgrades: How much ¡VMinerals ¡Pdoes Upgrade Scarab Damage cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Upgrade Scarab Damage cost?*Two Hundred
+Upgrades: How much does Upgrade Scarab Damage increases damage by?*Twenty Five
+Upgrades: How much ¡VMinerals ¡Pdoes Reaver Capacity cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Reaver Capacity cost?*Two Hundred
+Upgrades: How many more Scarabs can a Reaver hold when its capacity is increased?*Five
+Upgrades: What unit is Gravitic Drive for?*Shuttle
+Upgrades: What does Gravitic Drive do?*Faster Shuttle Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Gravitic Drive cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Gravitic Drive cost?*Two Hundred
+Upgrades: What unit is Gravitic Booster for?*Observer
+Upgrades: What does Gravitic Booster do?*Faster Observer Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Gravitic Booster cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Gravitic Booster cost?*One Hundred and Fifty
+Upgrades: What does Sensor Array do?*Increase Observer Sight Range
+Upgrades: What unit is Sensor Array for?*Observer
+Upgrades: How much ¡VMinerals ¡Pdoes Sensor Array cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Sensor Array cost?*One Hundred and Fifty
+Upgrades: What unit is Apical Sensors for?*Scout
+Upgrades: What do Apical Sensors do?*Increase Scout Sight Range
+Upgrades: How much ¡VMinerals ¡Pdoes Apical Sensors cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Apical Sensors cost?*One Hundred
+Upgrades: What unit is Gravitic Thrusters for?*Scout
+Upgrades: What do Gravitic Thrusters do?*Faster Scout Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Gravitic Thrusters cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Gravitic Thrusters cost?*Two Hundred
+Upgrades: What unit is Argus Jewel for?*Corsair
+Upgrades: What does Argus Jewel do?*+50 Corsair Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Argus Jewel cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Argus Jewel cost?*One Hundred
+Upgrades: What is the only upgrade for a Carrier?*Increase Carrier Capacity
+Upgrades: How many more Interceptors can a Carrier hold when its capacity is increased?*Four
+Upgrades: What unit is Khayadarin Core for?*Arbiter
+Upgrades: What does Khayadarin Core do?*+50 Arbiter Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Khayadarin Core cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Khayadarin Core cost?*One Hundred and Fifty
+Upgrades: How much ¡VMinerals ¡Pdoes Burrow cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Burrow cost?*One Hundred
+Upgrades: What unit is the Faster Zergling Movement for?*Zergling
+Upgrades: What does Faster Zergling Movement do?*faster Zergling movement
+Upgrades: How much ¡VMinerals ¡Pdoes Faster Zergling Movement cost?*One Hundred
+Upgrades: How much ¡RGas ¡Pdoes Faster Zergling Movement cost?*One Hundred
+Upgrades: What unit is the Adrenal Glands for?*Zergling
+Upgrades: What does Adrenal Glands do?*Faster Zergling Attack
+Upgrades: How much ¡VMinerals ¡Pdoes Adrenal Glands cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Adrenal Glands cost?*Two Hundred
+Upgrades: What unit is Muscular Augments for?*Hydralisk
+Upgrades: What does Muscular Augments do?*Faster Hydralisk Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Muscular Augments cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Muscular Augments cost?*One Hundred and Fifty
+Upgrades: What unit is Grooved Spines for?*Hydralisk
+Upgrades: What does Grooved Spines do?*Increase Hydralisk Attack Range
+Upgrades: How much ¡VMinerals ¡Pdoes Grooved Spines cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Grooved Spines cost?*One Hundred and Fifty
+Upgrades: How much ¡VMinerals ¡Pdoes Lurker Aspect cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Lurker Aspect cost?*Two Hundred
+Upgrades: What unit is Gamete Meiosis for?*Queen
+Upgrades: What does Gamete Meiosis do?*+50 Queen Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Gamete Meiosis cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Gamete Meiosis cost?*One Hundred and Fifty
+Upgrades: What unit is Anabolic Synthesis for?*Ultralisk
+Upgrades: What does Anabolic Synthesis do?*Faster Ultralisk Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Anabolic Synthesis cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Anabolic Synthesis cost?*Two Hundred
+Upgrades: What unit is Chitinous Plating for?*Ultralisk
+Upgrades: What does Chitinous Plating do?*Improved Ultralisk Armor
+Upgrades: How much does Chitinous Plating improves the Ultralisk's armor?*Two
+Upgrades: How much ¡VMinerals ¡Pdoes Chitinous Plating cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Chitinous Plating cost?*One Hundred and Fifty
+Upgrades: What unit is Metasynaptic node for?*Defiler
+Upgrades: What does Metasynaptic node do?*+50 Defiler Energy
+Upgrades: How much ¡VMinerals ¡Pdoes Metasynaptic node cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Metasynaptic node cost?*One Hundred and Fifty
+Upgrades: What unit is Ventral Sac for?*Overlord
+Upgrades: What does Ventral Sac do?*Transporting For Overlord
+Upgrades: How much ¡VMinerals ¡Pdoes Ventral Sac cost?*Two Hundred
+Upgrades: How much ¡RGas ¡Pdoes Ventral Sac cost?*Two Hundred
+Upgrades: What unit is Antennae for?*Overlord
+Upgrades: What do Antennae do?*Increase Overlord Sight Range
+Upgrades: How much ¡VMinerals ¡Pdoes Antennae cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Antennae cost?*One Hundred and Fifty
+Upgrades: What unit is Pneumatized Carapace for?*Overlord
+Upgrades: What does Pneumatized Carapace do?*Faster Overlord Movement
+Upgrades: How much ¡VMinerals ¡Pdoes Pneumatized Carapace cost?*One Hundred and Fifty
+Upgrades: How much ¡RGas ¡Pdoes Pneumatized Carapace cost?*One Hundred and Fifty
+Upgrades: How much does a Zergling Attack Damage increases by, per an upgrade?*One 
+Upgrades: How much does a Hydralisk Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Lurker Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Mutalisk Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Devourer Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Guardian Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Ultralisk Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much armor does a fully upgraded Ultralisk have?*Six
+Upgrades: How much does a Zealot Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Dragoon Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Dark Templar Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much does an Archon Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much does a Scout Ground Attack Damage increases by, per an upgrade?*
+Upgrades: How much does a Scout Air Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Corsair Air Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Arbiter Air Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Marine Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Firebat Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Ghost Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Vulture Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Goliath Air Attack Damage increases by, per an upgrade?*Four
+Upgrades: How much does a Goliath Ground Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Siege Tank, Siege Mode Attack Damage increases by, per an upgrade?*Five
+Upgrades: How much does a Siege Tank, Tank Mode Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much does a Wraith Ground Attack Damage increases by, per an upgrade?*One
+Upgrades: How much does a Wraith Air Attack Damage increases by, per an upgrade?*Two
+Upgrades: How much does a Battlecruiser Ground Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much does a Battlecruiser Air Attack Damage increases by, per an upgrade?*Three
+Upgrades: How much does a Valkyrie Attack Damage increases by, per an upgrade, per each missile?*One
+Upgrades: What air unit when fully upgraded, has the most armor?*Battlecruiser
+Upgrades: What ground unit when fully upgraded, has the most armor?*Ultralisk
+Vitality: How many Hit Points does a Marine have?*Forty
+Vitality: How many Hit Points does a Firebat have?*Fifty
+Vitality: How many Hit Points does a Medic have?*Sixty
+Vitality: How many Hit Points does a Ghost have?*Forty Five
+Vitality: How many Hit Points does a Goliath have?*One Hundred and Twenty Five
+Vitality: How many Hit Points does a SCV have?*Sixty
+Vitality: How many Hit Points does a Siege Tank have?*One Hundred and Fifty
+Vitality: How many Hit Points does a Vulture have?*Eighty
+Vitality: How many Hit Points does a Spider Mine have?*Twenty Five
+Vitality: How many Hit Points does a Wraith have?*One Hundred and Twenty
+Vitality: How many Hit Points does a Valkyrie have?*Two Hundred
+Vitality: How many Hit Points does a Battlecruiser have?*Five Hundred
+Vitality: How many Hit Points does a Science Vessel have?*Two Hundred
+Vitality: How many Hit Points does a Dropship have?*One Hundred and Fifty
+Vitality: How many Hit Points does a Zergling have?*Thirty Five
+Vitality: How many Hit Points does a Broodling have?*Thirty
+Vitality: How many Hit Points does a Hydralisk have?*Eighty
+Vitality: How many Hit Points does a Lurker have?*One Hundred and Twenty Five
+Vitality: How many Hit Points does a Drone have?*Forty
+Vitality: How many Hit Points does an Ultralisk have?*Four Hundred
+Vitality: How many Hit Points does a Defiler have?*Eighty
+Vitality: How many Hit Points does an Infested Terran have?*Sixty
+Vitality: How many Hit Points does an Egg have?*Two Hundred
+Vitality: How many Hit Points does a Devourer have?*Two Hundred and Fifty
+Vitality: How many Hit Points does a Mutalisk have?*One Hundred and Twenty
+Vitality: How many Hit Points does a Guardian have?*One Hundred and Fifty
+Vitality: How many Hit Points does a Queen have?*One Hundred and Twenty
+Vitality: How many Hit Points does a Scourge have?*Twenty Five
+Vitality: How many Hit Points does an Overlord have?*Two Hundred
+Vitality: How many Shields does a Zealot have?*Eighty
+Vitality: How many Hit Points does a Zealot have?*Eighty
+Vitality: How many Shields does a Dragoon have?*Eighty
+Vitality: How many Hit Points does a Dragoon have?*One Hundred
+Vitality: How many Shields does a Reaver have?*Eighty
+Vitality: How many Hit Points does a Reaver have?*One Hundred
+Vitality: How many Shields does a High Templar have?*Forty
+Vitality: How many Hit Points does a High Templar have?*Forty
+Vitality: How many Shields does a Dark Templar have?*Forty
+Vitality: How many Hit Points does a Dark Templar have?*Eighty
+Vitality: How many Shields does an Archon have?*Three Hundred and Fifty
+Vitality: How many Hit Points does an Archon have?*Ten
+Vitality: How many Shields does a Dark Archon have?*Two Hundred
+Vitality: How many Hit Points does a Dark Archon have?* Twenty Five
+Vitality: How many Shields does a Probe have?*Twenty
+Vitality: How many Hit Points does a Probe have?*Twenty
+Vitality: How many Shields does a Scout have?*One Hundred
+Vitality: How many Hit Points does a Scout have?*One Hundred and Fifty
+Vitality: How many Shields does a Corsair have?*Eighty
+Vitality: How many Hit Points does a Corsair have?*One Hundred
+Vitality: How many Shields does a Carrier have?*One Hundred and Fifty
+Vitality: How many Hit Points does a Carrier have?*Three Hundred
+Vitality: How many Shields does an Interceptor have?*Forty
+Vitality: How many Hit Points does an Interceptor have?*Forty
+Vitality: How many Shields does an Arbiter have?*One Hundred and Fifty
+Vitality: How many Hit Points does an Arbiter have?*Two Hundred
+Vitality: How many Shields does an Observer have?*Twenty
+Vitality: How many Hit Points does an Observer have?*Forty
+Vitality: How many Shields does a Shuttle have?*Sixty
+Vitality: How many Hit Points does a Shuttle have?*Eighty
+Weapon Systems: What unit attacks with Fusion Cutter?*SCV
+Weapon Systems: What does a SCV attack with?*Fusion Cutter
+Weapon Systems: What unit attacks with Gauss Rifle?*Marine
+Weapon Systems: What does a Marine attack with?*Gauss Rifle
+Weapon Systems: What does a Firebat attack with?*Flame Thrower
+Weapon Systems: What unit attacks with a Flame Thrower?*Firebat
+Weapon Systems: What unit attacks with a C-10 Canister Rifle?*Ghost
+Weapon Systems: What does a Ghost attack with?*C-10 Canister Rifle
+Weapon Systems: What unit attacks with Fragmentation Grenade?*Vulture
+Weapon Systems: What does a Vulture attack with?*Fragmentation Grenade
+Weapon Systems: What unit carries Spider Mines?*Vulture
+Weapon Systems: How many Spider Mines can a Vulture carry?*Three
+Weapon Systems: Can Spider Mines be replaces once used?*No
+Weapon Systems: What unit attacks with Arclite Cannon?*Siege Tank
+Weapon Systems: What does a Siege Tank in Tank Mode, attack with?*Arclite Cannon
+Weapon Systems: What does a Siege Tank in Siege Mode, attack with?*Arclite Shock Cannon
+Weapon Systems: What does a Goliath attack with, against ground units?*Twin Auto Cannons
+Weapon Systems: What does a Goliath attack with, against air units?*Hellfire Missile Pack
+Weapon Systems: What unit attacks with Twin Auto Cannons?*Goliath
+Weapon Systems: What unit attacks with Hellfire Missile Pack?*Goliath
+Weapon Systems: What does a Wraith attack with, against ground units?*Burst Lasers
+Weapon Systems: What unit attacks with Burst Lasers?*Wraith
+Weapon Systems: What does a Wraith attack with, against air units?*Gemini Missiles
+Weapon Systems: What unit attacks with Gemini Missiles?*Wraith
+Weapon Systems: What does a Valkyrie attack with?*H.A.L.O. Rockets
+Weapon Systems: What unit attacks with H.A.L.O. Rockets?*Valkyrie
+Weapon Systems: Each Salvo fired by a Valkyrie contains ______ missiles.*Eight
+Weapon Systems: What does a Battlecruiser attack with, against ground units?*ATG Laser Battery
+Weapon Systems: What unit attacks with ATG Laser Battery?*Battlecruiser
+Weapon Systems: What does a Battlecruiser attack with, against air units?*ATA Laser Battery
+Weapon Systems: What unit attacks with ATA Laser Battery?*Battlecruiser
+Weapon Systems: What does a Drone attack with?*Spines
+Weapon Systems: What unit attacks with Spines?*Drone
+Weapon Systems: What does a Zergling attack with?*Claws
+Weapon Systems: What unit attacks with Claws?*Zergling
+Weapon Systems: What does a Hydralisk attack with?*Needle Spines
+Weapon Systems: What unit attacks with Needle Spines?*Hydralisk
+Weapon Systems: What does a Lurker attack with?*Subterranean Spines
+Weapon Systems: What unit attacks with Subterranean Spines?*Lurker
+Weapon Systems: What does an Infested Terran attack with?*Suicide
+Weapon Systems: What ground unit attacks with Suicide?*Infested Terran
+Weapon Systems: What unit attacks with Glave Worm?*Mutalisk
+Weapon Systems: What does a Mutalisk attack with?*Glave Worm
+Weapon Systems: Each time a Glave Wurm breaks, its damage is reduced by how much?*1/3
+Weapon Systems: A Mutalisk can attack how many targets at once?*Three
+Weapon Systems: What unit attacks with Corrosive Acid?*Devourer
+Weapon Systems: What does a Devourer attack with?*Corrosive Acid
+Weapon Systems: What is the maximum number of Acid Spores that a unit can have?*Nine
+Weapon Systems: Acid Spores lowers Attack Rate and increases the amount of _____ taken.*Damage
+Weapon Systems: Acid Spores lowers ______ and increases the amount of damage taken.*Attack Rate
+Weapon Systems: What unit attacks with Acid Spore?*Guardian
+Weapon Systems: What does a Guardian attack with?*Acid Spore
+Weapon Systems: What does an Ultralisk attack with?*Kaiser Blades
+Weapon Systems: What unit attacks with Kaiser Blades?*Ultralisk
+Weapon Systems: What does an Scourge attack with?*Suicide
+Weapon Systems: What air unit attacks with Suicide?*Scourge
+Weapon Systems: What does an Probe attack with?*Particle Beam
+Weapon Systems: What unit attacks with Particle Beam?*Probe
+Weapon Systems: What does an Zealot attack with?*Psi Blades
+Weapon Systems: What unit attacks with Psi Blades?*Zealot
+Weapon Systems: What does a Dragoon attack with?*Phase Disruptor
+Weapon Systems: What unit attacks with a Phase Disruptor?*Dragoon
+Weapon Systems: What unit attacks with Warp Blades?*Dark Templar
+Weapon Systems: What does a Dark Templar attack with?*Warp Blades
+Weapon Systems: What does a Archon attack with?*Psionic Shockwave
+Weapon Systems: What unit attacks with a Psionic Shockwave?*Archon
+Weapon Systems: What unit attacks with a Neutron Flare?*Corsair
+Weapon Systems: What does a Corsair Attack Damage with?*Neutron Flare
+Weapon Systems: What unit attacks with Dual Photon Blasters?*Scout
+Weapon Systems: What unit attacks with Anti-Matter Missiles?*Scout
+Weapon Systems: What does a Scout attack with, against ground units?*Dual Photon Blasters
+Weapon Systems: What does a Scout attack with, against air units?*Anti-Matter Missiles
+Weapon Systems: What does an Arbiter attack with?*Phase Disruptor Cannon
+Weapon Systems: What unit attacks with a Phase Disruptor Cannon?*Arbiter
+Weapon Systems: What ground Zerg unit has a splash on its attack?*Lurker
+Weapon Systems: With just its own innate abilities, what Terran unit has a splash damaging attack?*Firebat
+Weapon Systems: What Terran unit requires an upgrade in order for it to deal splash damage?*Siege Tank
+Weapon Systems: What ground Protoss unit has no natural attacking capabilities, but can unleash ranged attackers dealing splash damage?*Reaver
+Weapon Systems: What Protoss melee unit has splash damage on its attack?*Archon
+Weapon Systems: What Protoss air unit has splash damage on its attack?*Corsair

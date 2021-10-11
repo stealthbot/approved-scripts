@@ -1,0 +1,140 @@
+What is the hotkey to train a Footman?*F
+What is the hotkey to train a Rifleman?*R
+What is the hotkey to train a Knight?*K
+What is the hotkey to build a Barracks?*B
+What is the hotkey to build a Workshop?*W
+What is the hotkey to train a Mortar Team?*M
+What is the hotkey to train a Flying Machine?*F
+What is the hotkey to train a Siege Engine?*E
+What is the hotkey to build an Arcane Sanctum?*R
+What is the hotkey to train a Priest?*P
+What is the hotkey to train a Sorceress?*S
+What is the hotkey to train a Spell Breaker?*B
+What is the hotkey to build a Gryphon Aviary?*G
+What is the hotkey to train a Gryphon Rider?*G
+What is the hotkey to train a Dragonhawk Rider?*D
+What is the hotkey to build a Blacksmith?*B
+What is the hotkey to build a Farm?*F
+What is the hotkey to build a Scout Tower?*S
+What is the hotkey to build a Town Hall?*H
+What is the hotkey to build an Arcane Vault?*A
+What is the hotkey to research "Cloud"?*C
+What is the hotkey to research "Storm Hammers"*H
+What is the hotkey to research "Flak Cannons"?*C
+What is the hotkey to research "Fragmentation Shards"?*S
+What is the hotkey to research "Flare"?*R
+What is the hotkey to research "Barrage"?*G
+What is the hotkey to research "Flying Machine      "?*B
+What is the hotkey to research "Defend"?*D
+What is the hotkey to research "Long Rifles"?*L
+What is the hotkey to research "Animal War Training"?*A
+What is the hotkey to research "Priest Adept and Mastery" training?*T
+What is the hotkey to research "Sorceress Adept and Mastery" training?*O
+What is the hotkey to research "Control Magic"?*G
+What is the hotkey to research "Magic Sentry"?*M
+What is the hotkey to train a Peasant?*P
+What is the hotkey to train a Peon?*P
+What is the hotkey to train a Grunt?*G
+What is the hotkey to train a Troll Headhunter?*T
+What is the hotkey to train a Demolisher?*D
+What is the hotkey to train a Raider?*R
+What is the hotkey to train a Wind Rider?*W
+What is the hotkey to train a Kodo Beast?*K
+What is the hotkey to train a Troll Batrider?*B
+What is the hotkey to train a Tauren?*T
+What is the hotkey to train a Spirit Walker?*T
+What is the hotkey to train a Shaman?*S
+What is the hotkey to train a Troll Witch Doctor?*W
+What is the hotkey to research "Pulverize"?*P
+What is the hotkey to research "Shaman Adept and Mastery" training?*M
+What is the hotkey to research "Witch Doctor Adept and Mastery" training?*D
+What is the hotkey to research "Spirit Walker Adept and Mastery" training?*R
+What is the hotkey to research "Envenomed Spears"?*E
+What is the hotkey to research "Ensnare"?*N
+What is the hotkey to research "Liquid Fire"?*L
+What is the hotkey to research "War Drums"?*D
+What is the hotkey to research "Berserker Strength"?*B
+What is the hotkey to research "Berserker Upgrade"?*E
+What is the hotkey to research "Troll Regeneration"?*T
+What is the hotkey to research "Burning Oil"?*N
+What is the hotkey to research "Pillage"?*G
+What is the hotkey to research "Backpack"?*B
+What is the hotkey to build a Great Hall?*H
+What is the hotkey to build a Barracks?*B
+What is the hotkey to build a War Mill?*W
+What is the hotkey to build an Orc Burrow?*o
+What is the hotkey to build a Voodoo Lounge?*V
+What is the hotkey to build a Spirit Lodge?*S
+What is the hotkey to build a Tauren Totem?*T
+What is the hotkey to build a Beastiary?*E
+What is the hotkey to build a Watch Tower?*W
+What is the hotkey to build any Altar?*A
+What is the hotkey to train a Ghoul?*G
+What is the hotkey to train an Acolyte?*C
+What is the hotkey to train a Crypt Fiend?*F
+What is the hotkey to train a Gargoyle?*A
+What is the hotkey to train a Necromancer?*N
+What is the hotkey to train a Banshee?*B
+What is the hotkey to train a Frost Wyrm?*F
+What is the hotkey to train a Meat Wagon?*M
+What is the hotkey to train an Abomination?*A
+What is the hotkey to train an Obsidian Statue?*O
+What is the hotkey to research "Freezing Breath"?*B
+What is the hotkey to research "Exhume Corpses"?*E
+What is the hotkey to research "Disease Cloud"?*D
+What is the hotkey to research "Destroyer Form"?*T
+What is the hotkey to research "Ghoul Frenzy"?*Z
+What is the hotkey to research "Burrow"?*B
+What is the hotkey to research "Web"?*W
+What is the hotkey to research "Stone Form"?*S
+What is the hotkey to research "Skeletal Longevity"?*S
+What is the hotkey to research "Skeletal Mastery"?*M
+What is the hotkey to research "Necromancer Adept and Mastery" training?*E
+What is the hotkey to research "Banshee Adept and Mastery" training?*A
+What is the hotkey to sacrifice an Acolyte?*C
+What is the hotkey to research "cannibalize"?*C
+What is the hotkey to build a Necropolis?*N
+What is the hotkey to build a Ziggurat?*Z
+What is the hotkey to build a Graveyard?*V
+What is the hotkey to build a Tomb of Relics?*R
+What is the hotkey to build a Crypt?*C
+What is the hotkey to build a Slaughter House?*H
+What is the hotkey to build a Temple of the Damned?*T
+What is the hotkey to build a Sacrificial Pit?*S
+What is the hotkey to build a Boneyard?*B
+What is the hotkey to Haunt a Gold Mine?*G
+What is the hotkey to build a Tree of Life?*T
+What is the hotkey to build an Ancient of War?*R
+What is the hotkey to build a Hunters Hall?*H
+What is the hotkey to build a Moon Well?*W
+What is the hotkey to build an Ancient of Lore?*L
+What is the hotkey to build an Ancient of Wind?*W
+What is the hotkey to build an Ancient of Wonders?*D
+What is the hotkey to build a Chimaeras Roost?*C
+What is the hotkey to build an Ancient Protector?*P
+What is the hotkey to train a Dryad?*D
+What is the hotkey to train a Druid of the Claw?*C
+What is the hotkey to train a Mountain Giant?*G
+What is the hotkey to train a Chimaera?*C
+What is the hotkey to train a Druid of the Talon?*T
+What is the hotkey to train a Faerie Dragon?*F
+What is the hotkey to train a Hippogryph?*H
+What is the hotkey to train an Archer?*A
+What is the hotkey to train a Huntress?*H
+What is the hotkey to train a Glaive Thrower?*T
+What is the hotkey to train a Wisp?*W
+What is the hotkey to research "Corrossive Breath"?*B
+What is the hotkey to research "Hippogryph Taming"?*I
+What is the hotkey to research "Druid of the Claw Adept and Mastery" training?*L
+What is the hotkey to research "Druid of the Talon Adept and Mastery" training?*A
+What is the hotkey to research "Mark of the Talon"?*M
+What is the hotkey to research "Mark of the Claw"?*M
+What is the hotkey to research "Abolish Magic"?*S
+What is the hotkey to research "Resistant Skin"?*T
+What is the hotkey to research "Hardened Skin"?*M
+What is the hotkey to research "Improved Bows"?*I
+What is the hotkey to research 'Marksmanship"?*M
+What is the hotkey to research "Sentry"?*S
+What is the hotkey to research "Moon Glaive"?*G
+What is the hotkey to research "Vorpal Blades"?*P
+What is the hotkey to research "Nature's Blessing"?*N
