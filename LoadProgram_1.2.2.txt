@@ -1,0 +1,93 @@
+Script("Name") = "LoadProgram"
+Script("Author") = "7thAce"
+Script("Major") = 1
+Script("Minor") = 2
+Script("Revision") = 2
+Script("Description") = "Loads a specified program."
+
+'Changelog
+'1.2.2:
+'Commands can now be whispered by users with 200 access.  Whisper only.  Thanks Sandyman
+
+'1.2.1:
+'Quick fix on program names that hadn't been defined yet
+
+'1.2.0:
+'Rewrote everything.  Notice the difference.
+'Still can use multiple words in a name. (Thanks SugarD-x for the much better way)
+'Use the command /load <program> "<filepath>"
+'Your filepath should be in quotes.
+
+'Future ideas:
+'Multiload - Loads multiple programs at once with a command.
+'Ex. /load Stealthbots
+'The script then loads your 3 bots (or whatever).
+'Please - Reply on the topic if you think this is a good (or bad) idea.
+
+'Sub Event_load()
+'Call refresh_timer()
+'End Sub
+
+Sub Event_whisperfromuser(Username, flags, message, ping)
+If left(lcase(message), len(botvars.trigger) + 5) = botvars.trigger & "load " Then
+ If GetDBEntry(Username).Rank = 200 Then
+  Ending = split(message, " ", 2)(1)
+  Text = "/load " & ending
+  Call Event_Pressedenter(Text)
+ End If
+End If
+End Sub
+
+Sub Event_Pressedenter(Text)
+If left(lcase(text), 6) = "/load " Then
+ Vetothismessage()
+ Args = Split(text, """")
+ Prgmname = trim(Split(Args(0), " ", 2)(1))
+ If instr(text, """") > 0 Then
+  Filepath = args(1)
+  WriteConfigEntry Prgmname, "Filepath", Filepath, "Load paths.ini"
+  Addchat vbgreen, "Created entry for " & Prgmname & ". (" & Filepath & ")"
+ End If
+Filepath = Getconfigentry(Prgmname, "Filepath", "Load paths.ini")
+If filepath = vbnullstring Then
+ Addchat vbred, "You have not defined a filepath for " & prgmname & "."
+ Exit Sub 
+End If
+Set wshShell = CreateObject("WScript.Shell")
+Addchat vbgreen, "Loading " & Prgmname & "..."
+Call wshShell.Exec(Filepath)
+End If
+End Sub
+
+'Sub refresh_timer()
+'// Loop through ini file, add a menu for each one.
+'Set FSO = CreateObject("Scripting.FileSystemObject")
+'Set File = FSO.OpenTextFile(Botpath & "Load Paths.ini")
+'Lines = Split(File.readall, vbnewline)
+'For i = 0 to ubound(lines)
+' Cline = lines(i)
+' If left(Cline, 1) = "[" Then
+'  Filename = Mid(Cline, 2, len(cline) - 2)
+'  Addchat vbgreen, filename
+' End If
+' Filename = replace(filename, " ", vbnullstring)
+'CreateObj "Menu", Filename
+'ExecuteGlobal StringFormat("{0}.Caption = {1}{0}{1}", Filename, Chr(34))
+'Next
+'End Sub
+
+'Sub CreateMenu(MenuPath, MenuCaption, MenuCallback) '// <3 Ribose
+'    Dim PathParts, Name, Parent
+'    PathParts = Split(MenuPath, "/")
+'    Name = PathParts(UBound(PathParts))
+'    Addchat vbgreen, "Name: " & Name
+'    With CreateObj("Menu", Name)
+'        If UBound(PathParts) > 0 Then
+'            Parent = PathParts(UBound(PathParts) - 1)
+'            Execute ".Parent = " & Parent
+'        Else
+'            .Parent = BlockExec
+'        End If
+'        .Caption = MenuCaption
+'    End With
+'End Sub

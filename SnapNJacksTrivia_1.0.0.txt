@@ -1,0 +1,1802 @@
+Script("Name") 			= "SnapNJacks Trivia"
+Script("Abbreviation")	= "st"
+Script("Author") 		= "Snap - SnapWilliam@Gmail.com"
+Script("Category")		= "Entertainment"
+Script("Major")			= 1
+Script("Minor")			= 0
+Script("Revision")		= 0
+Script("Description")	= "Nondescript"
+'This script has been converted from the plugin version of 0.849 by Neco (fallingground@live.com)
+'All original coding credit goes to Snap.
+
+'At the moment, all the commands remain the same as the plugin counterpart.
+'	• trivia on/off
+'	• score
+'	• score <user>
+'	• skip
+'	• qadd
+'	• category <category string>
+'	• qformat
+'	• hformat
+'	• hints <amount>
+'	• useserver <on/off>
+'	• stver
+'	• high scores/hscores
+'	• gemote on/off
+'	• hintchar [char]
+'	• reportbadq [id] [why]
+'	• AFormat [newformat]
+'	• difficulty [difficulty]-[difficulty]
+
+'||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+'||                                CREDITS                                     ||
+'||   Assistant coders: Jack and Swent                                         ||
+'||   Extra ideas from:                                                        ||
+'||     Nellaf, MoV-Leader, The.Warchief, Three_Stooges, TcHa2-PulK, Hr.Frosty ||
+'||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+Public ST_VER : ST_VER = Script("Major") & "." & Script("Minor") & Script("Revision")
+
+Public Const ST_VER_DESCRIP = "Release"
+Public Const ST_COLOR = &HFFCC99
+
+Public ST_USER_LOC : ST_USER_LOC = BotPath() & "scripts\ST_users.ini"
+Public ST_USERDB_LOC : ST_USERDB_LOC = BotPath() & "scripts\ST_users.mdb"
+Public ST_CONFIG_LOC : ST_CONFIG_LOC = BotPath() & "scripts\ST_config.ini"
+
+Public stFSO : Set stFSO = CreateObject("Scripting.FileSystemObject")
+
+Public st_enabled     '// Global on/off
+Public st_q_array(41) '// Question DB pull 2deminsional array.
+Public st_q_set       '// Current Question Set
+Public st_q_total     '// Question Number - how many questions downloaded.
+Public st_q_num       '// Current Question Number
+Public st_q_answer    '// Question's Answer
+Public st_q_skiped	 '// The answer to a skipped question
+Public st_unanswerd	 '// The consecutive amount of questions unanswered.
+Public st_hint_num    '// Current Hint Number
+Public st_hint_string '// Current Hint
+Public st_q_asked     '// Contains GetGTC of the time the question was asked.
+
+Public st_flooduser   '// Used to prevent spam.
+Public st_floodtime   '// ^
+
+Public st_DBConnStr : ST_DBConnStr = "Provider=Microsoft.Jet.OLEDB.4.0; Data Source=" & ST_USERDB_LOC
+Public SNJ
+Public ST_Streak, ST_Streak_User, ST_Streak_Con
+Public ST_VQL
+Public ST_File_Config
+Public ST_File_Users
+
+Public Sub Event_Load()
+	Set SNJ = New SNJClass
+   
+   If stFSO.FileExists(ST_USER_LOC) AND NOT stFSO.FileExists(ST_USERDB_LOC) Then
+      Addchat vbYellow, "ST: SnapNJacks will now create the database, and copy the users over."
+      call SNJ.OpenDB()
+      call SNJ.MoveOldScores()
+   Else   
+      call SNJ.OpenDB()
+   End If
+   
+   If SNJ.Setting("configver") <> ST_VER And stFSO.FileExists(ST_CONFIG_LOC) Then
+      Addchat VBwhite, "Welcome to SnapNJacks Trivia, this script was brought to you free of charge by Snap"
+      Addchat VBwhite, "Be sure to visit the Guide: http://www.stealthbot.net/board/index.php?showtopic=12827"
+      If MsgBox("This appears to be a new update." & VBnewline & "Would you like to delete your ST_Config.ini? (This will reset the ST_Config to the new defaults. Which is recommended after a update.)", 4) = 6 Then
+         stFSO.DeleteFile ST_CONFIG_LOC
+         Addchat VByellow, "ST_Config File deleted"
+	  Else
+		ST_WriteSetting "configver", ST_VER
+      End If
+   End If
+
+   If Not stFSO.FileExists(ST_CONFIG_LOC) Then
+      stFSO.CreateTextFile(ST_CONFIG_LOC)
+      ST_CreateConfig
+   End If
+   If Not stFSO.FolderExists("question files") Then
+      stFSO.CreateFolder("question files")
+      AddChat vbYellow, "ST: New folder ""question files"" created. Put your question files in here to use them."
+   End If
+   
+   call CreateObj("LongTimer", "AskQuestion")
+   AskQuestion.Interval = 5
+   call CreateObj("LongTimer", "VirtualQ")
+   VirtualQ.Interval = 3
+   VirtualQ.Enabled = true
+   call CreateObj("LongTimer", "GiveHint")
+   GiveHint.Enabled = false
+  
+   Randomize()
+   
+   AddChat ST_COLOR, "SnapNJacks Trivia. Version " & ST_VER & " " & ST_VER_DESCRIP & " loaded with " & SNJ.GetUCount & " users in the DB"
+End Sub
+
+Public Sub Event_Close()
+	Set SNJ = Nothing
+End Sub
+
+Public Sub Event_UserTalk(Username, Flags, Message, Ping)
+   If Left(Message, 1) = BotVars.Trigger Then ST_Commands Username, Message, "Talk"
+
+   If st_enabled Then ST_CheckAnswer Username, Message
+End Sub
+
+Public Sub Event_PressedEnter(Text)
+   If Left(Text, 3) = "/a " AND st_enabled Then 
+      ST_CheckAnswer BotVars.Username, Mid(Text, 4)
+      VetoThisMessage
+      Exit Sub
+   End If
+   If Left(Text, 2) = "//" Then
+      ST_Commands BotVars.Username, Mid(Text, 2), "UEnter"
+      Exit Sub
+   End If
+   If Left(Text, 1) = "/" Then ST_Commands BotVars.Username, Text, "Enter"
+End Sub
+
+Public Sub Event_WhisperFromUser(Username, Flags, Message, Ping)
+   If Left(Message, 1) = BotVars.Trigger Then ST_Commands Username, Message, "Whisper"
+End Sub
+
+Private Sub ST_CheckAnswer(Username, Message)
+   If SNJ.GetBlocked(Username) Then Exit Sub
+   
+   GetDBEntry Username, UAccess, UFlags
+   If Not (Int(st_GetSetting("playaccess")) = 0) Then
+      If UAccess < st_GetSetting("playaccess") - 1 Then
+         Exit Sub
+      End If
+   End If
+   
+   Dim Answers, NewScore, AddScore
+   If Not st_enabled Then Exit Sub
+   If instr(st_q_answer, "/") = 0 Then
+      If lcase(Message) = lcase(st_q_answer) Then
+         SNJ.AcceptAnswer SNJ.PUser(Username), st_q_set(3), GetGTC - st_q_asked
+         st_q_answer = ""
+         st_unanswerd = 0
+      End If
+      Exit Sub
+   End If
+   Answers = Split(st_q_answer, "/")
+   For Each Item in Answers
+      If Lcase(Message) = Lcase(Item) Then
+         SNJ.AcceptAnswer SNJ.PUser(Username), st_q_set(3), GetGTC - st_q_asked
+         st_q_answer = ""
+         st_unanswerd = 0
+      End If
+   Next
+End Sub
+
+Sub ST_SQ(Text)
+   If Instr(Text, "%nl") > 0 Then
+      Dim TextAry
+      TextAry = Split(Text, "%nl")
+      For Each Item in TextAry
+         STAQ Item
+      Next
+      Exit Sub
+   Else
+      STAQ Text
+   End If
+End Sub
+
+Private Sub STAQ(Text)
+   If Not SSC.IsOnline() Then
+      Addchat ST_COLOR, "ST: Stealthbot isn't online. Trivia will now be disabled."
+      ST_Disable
+      Exit Sub
+   End If
+   '//GlobalEmote=False
+   If lcase(st_GetSetting("GlobalEmote")) = "true" Then
+      If lcase(left(Text, 4)) = "/me " Then Text = Mid(Text, 5)
+      Dsp 2, Text, 0, 0
+   Else 
+      Dsp 1, Text, 0, 0
+   End If
+   ST_VQL = ST_VQL + 1
+End Sub
+
+'For the Commands Sub
+Private Sub ST_R(Username, Message, Method)
+   Select Case Method
+      Case "Enter"
+         AddChat ST_COLOR, Message
+         VetoThisMessage
+      Case "UEnter"
+         STAQ Message
+         VetoThisMessage
+      Case "Talk"
+         STAQ Message
+      Case "Whisper"
+         STAQ "/w " & Username & " " & Message
+   End Select
+End Sub
+
+Private Sub ST_Commands(Username, Message, Source)
+   Dim Lmsg, Tmp
+   '//Request Command and String
+   Dim RCmd, RStr
+   Lmsg = Trim(Mid(Message, 2))
+   '//No command?
+   If Lmsg = "" Then Exit Sub
+      
+   '//Is there full-sentence alias for this command?
+   Tmp = ST_GetCommand(Lmsg)
+   If Tmp <> "" Then
+      RCmd = Lcase(Tmp)   
+   Else
+      '//How about first-word alias?
+      RCmd = Lcase(Split(Lmsg)(0))
+      Tmp = ST_GetCommand(RCmd)
+      If Tmp <> "" Then RCmd = Lcase(Tmp)
+      If Instr(Lmsg, " ") > 0 Then RStr = Mid(Lmsg, Instr(Lmsg, " ") + 1)
+   End If
+   
+   '//Command disabled?
+   If RCmd = "disabled" Then Exit Sub
+   
+   Dim InBot
+   InBot = False
+   
+   ST_Debug "Command used: " & RCmd
+   ST_Debug "String: " & RStr
+   
+   '//Check access
+   GetDBentry Username, hisAccess, hisFlags
+   If Source = "Enter" OR Source = "UEnter" Then
+      hisAccess = 1000
+      InBot = True
+   End If
+   
+   '//-1 Because script returns -1 if not in DB.
+   If hisAccess < st_getaccess(RCmd) - 1 Then Exit Sub   
+   Username = SNJ.PUser(Username) '//Rids us of the @lordaeron and #2 etc.
+   
+   '//Check For flooding!
+   If int(st_GetSetting("floodprotect")) > 0 AND Not InBot Then
+      If ST_VQL >= 2 Then
+         If int(st_GetSetting("floodprotect")) > 1 Then Addchat ST_COLOR, "ST: Flood protection has ignored due to a high virtual-q."
+         Exit Sub
+      End If
+      If st_flooduser = Username AND GetGTC - st_floodtime < 2300 Then
+         If int(st_GetSetting("floodprotect")) > 1 Then Addchat ST_COLOR, "ST: Flood protection has ignored a spammed command."
+         Exit Sub
+      End If
+      st_flooduser = Username
+      st_floodtime = GetGTC
+   End If
+   
+   '//All done! On to our commands!
+   
+   '//Score
+   If RCmd = "score" Then
+   If RStr = "" Then RStr = Username
+      Tmp = SNJ.GetUMoney(RStr)
+      If Tmp = "" Then
+         ST_R Username, "User not found: " & Rstr, Source
+      Else
+         ST_R Username, SNJ.ProcessVars(st_GetSetting("resscore"), RStr), Source
+         '// SNJ.GetRank
+      End If
+   End If
+   
+   If RCmd = "donate" Then
+      Tmp = Split(RStr)
+      If UBound(Tmp) <> 1 Then
+         ST_R Username, "Format: " & Botvars.trigger & "donate [username] [howmuch] ;Example: " & Botvars.trigger & "donate bob 20", Source
+      Else
+         '//Allow the bot console to donate username -5 to take money from users.
+         If InBot AND Left(Tmp(1), 1) = "-" Then
+            If SNJ.GiveMoney(Tmp(1), Username, Tmp(0), InBot) Then
+               ST_R Username, "Removed " & FormatCurrency(Tmp(1)) & " from " & Tmp(0), Source
+            Else
+               ST_R Username, "Failed to remove money"
+            End If
+         Else
+            Tmp(1) = Replace(Tmp(1), "-", "")
+            If SNJ.GiveMoney(Tmp(1), Username, Tmp(0), InBot) Then
+               ST_R Username, "Donated " & FormatCurrency(Tmp(1)) & " to " & Tmp(0), Source
+            Else
+               ST_R Username, "Unable to donate, make sure you have the funds, and that the other user is in the database.", Source
+            End If
+         End If
+      End If
+   End If
+   
+   If RCmd = "rank" AND RStr = "" Then
+      Tmp = SNJ.GetRank(Username)
+      If Tmp = 0 Then
+         ST_R Username, "I don't have you on record yet " & Username, Source
+      Else
+         ST_R Username, Username & ", you are ranked: " & SNJ.AddSuffix(Tmp), Source
+      End If
+   ElseIf RCmd = "rank" Then
+      Tmp = SNJ.GetRank(Rstr)
+      If Tmp = 0 Then
+         ST_R Username, "User not found: " & Rstr, Source
+      Else
+         ST_R Username, Split(Lmsg)(1) & " found: ranked: " & SNJ.AddSuffix(Tmp), Source
+      End If
+   End If
+   
+   '==Addslashes
+   If RCmd = "stblock" And RStr <> "" Then
+      If SNJ.GetBlocked(Rstr) Then
+         ST_R Username, "User: " & Rstr & " is already blocked", Source
+         Exit Sub
+      Else
+         SNJ.Block(RStr)
+         ST_R Username, "User has been blocked from playing trivia: " & Rstr, Source
+         Exit Sub
+      End If
+   End If
+   
+   If RCmd = "stunblock" And RStr <> "" Then
+      If Not SNJ.GetBlocked(Rstr) Then
+         ST_R Username, "User: " & Rstr & " isn't blocked.", Source
+         Exit Sub
+      Else
+         SNJ.UnBlock(RStr)
+         ST_R Username, "User has been unblocked from playing trivia: " & Rstr, Source
+         Exit Sub
+      End If
+   End If
+   If RCMd = "stblocklist" Then
+      ST_R Username, SNJ.BlockList, Source
+      Exit Sub
+   End If
+   
+   If RCmd = "skip" AND st_enabled Then
+      If Source <> "Talk" Then STAQ "Question Skipped"
+      If Source = "Enter" Then VetoThisMessage
+      st_q_skiped = st_q_answer
+      call AskQuestion_Timer()
+   End If
+   
+   If RCmd = "category off" Then
+      SNJ.Setting("category") = ""
+      ST_R Username, "Category reset to """"", Source
+      Exit Sub
+   End If
+   '//To update a category selection
+   If RCmd = "category" Then
+      If RCmd & RStr <> "category" Then
+         ST_WriteSetting "category", Split(Lmsg)(1)
+         ST_R Username, "New category string: """ & st_GetSetting("category") & """ Saved", Source
+         '//download a new set based on it :).
+         ST_GetQuestions
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "category " & ST_Def_Set("category") & _
+                        "'. Current setting: " & st_GetSetting("category"), Source
+      End If
+   End If
+   
+   If RCmd = "hints" AND RStr <> "" Then
+      ST_WriteSetting "Hints", RStr
+      ST_R Username, "ST: Change saved: Hints=" & RStr, Source
+   End If
+   
+   If Left(Lmsg, 9) = "hintchar " Then
+      ST_WriteSetting "hintchar", Mid(Message, 11, 1)
+      ST_R Username, "ST: Change saved: hintchar=" & Mid(Message, 11, 1), Source
+   End If
+   
+   If RCmd = "setfile" Then
+      If RStr = "" Then
+         ST_R Username, "ST: No input, - listing files:", Source
+         If Source = "Enter" Then ST_Scan False Else ST_Scan True
+         Exit Sub
+      End If
+      Tmp = RStr
+      If InStrRev(lcase(Tmp), ".txt") <> (Len(Tmp) - 3) OR Len(Tmp) < 4 Then
+         Tmp = Tmp & ".txt"
+      End If
+      If stFSO.FileExists(BotPath() & "question files\" & Tmp) Then
+         ST_WriteSetting "questionfile", Tmp
+         ST_R Username, "ST: Change saved: questionfile=" & Tmp, Source
+         ST_WriteSetting "UseServer", "False"
+         ST_GetQuestions
+         ST_Enable
+      ElseIf Source = "Enter" Then
+         ST_R Username, "ST: File not found:" & Tmp & " Scanning...", Source
+         ST_Scan False
+      Else
+         ST_R Username, "ST: File not found:" & Tmp & " Scanning...", Source
+         ST_Scan True
+      End If
+   End If
+   
+   If RCMd = "blurtstats on" Then
+      SNJ.Setting("blurtstats") = "true"
+      ST_R Username, "ST: Now blurtstats is now on.", Source
+   End If
+   If RCMd = "blurtstats off" Then
+      SNJ.Setting("blurtstats") = "false"
+      ST_R Username, "ST: Now blurtstats is now off.", Source
+   End If
+   
+   '//Console Only Commands
+   If InBot Then
+      If RCMd = "stconfig" Then
+         ST_R Username, "ST: Opening config...", Source
+         psWShell.Open ST_CONFIG_LOC
+      End If
+      
+      If RCMd = "stdebug on" Then
+         SNJ.Setting("debug") = "true"
+         ST_R Username, "ST: Now showing debug data", Source
+      End If
+      If RCMd = "stdebug off" Then
+         SNJ.Setting("debug") = "false"
+         ST_R Username, "ST: Now hiding debug data", Source
+      End If
+      
+      If RCMd = "stdelete" Then
+         If RStr <> "" Then
+            SNJ.DeleteUser(RStr)
+            ST_R Username, "User " & RStr & " has been deleted", Source
+         End If
+      End If
+      
+      If RCMd = "stuserlist" Then
+         ST_R Username, "Snap's Trivia Userlist (Top 500):", Source
+         Tmp = SNJ.TopMoney(500)
+         Tmp = Replace(Tmp, ": ", VBTab)
+         Tmp = Replace(Tmp, ", ", VBNewLine)
+         Addchat ST_COLOR, VBNewLine & Tmp
+      End If
+   End If
+   
+   '//UseServer On/Off
+   If Trim(RCmd & " " & Lcase(RStr)) = "useserver on" Then
+      ST_WriteSetting "UseServer", "True"
+      ST_R Username, "ST: Change saved", Source
+      ST_GetQuestions
+   ElseIf Trim(RCmd & " " & Lcase(RStr)) = "useserver off" Then
+      ST_WriteSetting "UseServer", "False"
+      ST_R Username, "ST: Change saved", Source
+      ST_GetQuestions
+   End If
+   
+   '//GEmote On/Off
+   If Trim(RCmd & " " & Lcase(RStr)) = "gemote on" Then
+      ST_WriteSetting "globalemote", "True"
+      ST_R Username, "ST: Change saved: globalemote=True" , Source
+   ElseIf Trim(RCmd & " " & Lcase(RStr)) = "gemote off" Then
+      ST_WriteSetting "globalemote", "False"
+      ST_R Username, "ST: Change saved: globalemote=False" , Source
+   End If
+   
+   '//Use Profile On/Off
+   If Trim(RCmd & " " & Lcase(RStr)) = "useprofile on" Then
+      ST_WriteSetting "useprofile", "True"
+      ST_R Username, "ST: Change saved: useprofile=True" , Source
+   ElseIf Trim(RCmd & " " & Lcase(RStr)) = "useprofile off" Then
+      ST_WriteSetting "useprofile", "False"
+      ST_R Username, "ST: Change saved: useprofile=False" , Source
+   End If
+   
+   If RCmd = "qformat" Then
+      If InStr(RStr, "%q") <> 0 AND RStr <> "" Then
+         ST_WriteSetting "qformat", RStr
+         ST_R Username, "New Qformat string: """ & st_GetSetting("qformat") & """ Saved", Source
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "qformat " & ST_Def_Set("qformat") & _
+                        "'. %q Required! Current setting: " & st_GetSetting("QFormat"), Source
+      End If
+   End If
+   If RCmd = "hformat" Then
+      If InStr(RStr, "%h") <> 0 AND RStr <> "" Then
+         ST_WriteSetting "hformat", RStr
+         ST_R Username, "New Hformat string: """ & st_GetSetting("hformat") & """ Saved", Source
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "hformat " & ST_Def_Set("hformat") & _
+                        "'. %h Required! Current setting: " & st_GetSetting("HFormat"), Source
+      End If
+   End If
+   If RCmd = "aformat" Then
+      If RStr <> "" Then
+         ST_WriteSetting "aformat", RStr
+         ST_R Username, "New Aformat string: """ & st_GetSetting("Aformat") & """ Saved", Source
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "aformat " & ST_Def_Set("aformat") & _
+                        "'. Current setting: " & st_GetSetting("AFormat"), Source
+      End If
+   End If
+   If RCmd = "pformat" Then
+      If RStr <> "" Then
+         ST_WriteSetting "pformat", RStr
+         ST_R Username, "New Pformat string: """ & st_GetSetting("Pformat") & """ Saved", Source
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "Pformat " & ST_Def_Set("pformat") & _
+                        "'. Current setting: " & st_GetSetting("PFormat"), Source
+      End If
+   End If
+   If RCmd = "difficulty" Then
+      If RStr <> "" Then
+         ST_WriteSetting "difficulty", RStr
+         ST_R Username, "New difficulty setting: """ & st_GetSetting("difficulty") & """ Saved", Source
+      Else
+         ST_R Username, "Usage: '" & BotVars.Trigger & "difficulty " & ST_Def_Set("difficulty") & _
+                        "'. Current setting: " & st_GetSetting("difficulty"), Source
+      End If
+   End If
+ 
+   If RCmd = "stver" Then
+      ST_R Username, "ST Version " & ST_VER & " " & ST_VER_DESCRIP & " loaded.", Source
+   End If
+
+   If Trim(RCmd & " " & Lcase(RStr)) = "trivia off" Then
+      If st_enabled = True Then
+         ST_Disable
+         ST_R Username, "ST: Disabled '" & BotVars.Trigger & "trivia on' to start", Source
+         If st_q_answer <> "" Then
+            STAQ "Answer(s) to previous question: " & st_q_answer
+            st_q_answer = ""
+         End If
+      Else
+         ST_R Username, "ST: Trivia is already off", Source
+      End If
+      Exit Sub
+   End If
+   If Trim(RCmd & " " & Lcase(RStr)) = "trivia on" Then
+      If st_enabled = False Then
+         ST_Enable
+         ST_R Username, "ST: Enabled '" & BotVars.Trigger & "trivia off' to stop", Source
+         call AskQuestion_Timer()
+      Else
+         ST_R Username, "ST: Trivia is already on", Source
+      End If
+      Exit Sub
+   End If
+   If RCmd = "trivia" Then
+      If ST_Enabled Then
+         ST_R Username, "ST: Version " & ST_VER & " " & ST_VER_DESCRIP & " - Trivia is On.", Source
+      Else
+         ST_R Username, "ST: Version " & ST_VER & " " & ST_VER_DESCRIP & " - Trivia is off.", Source
+      End If
+      Exit Sub
+   End If
+ 
+   '//Top 10 High Scores
+   If RCmd = "hscores" Then
+      ST_R Username, "ST: Top 10: " & SNJ.TopMoney(10), Source
+   End If
+   
+   If RCmd = "fanswers" Then
+      ST_R Username, "ST: Top 10: " & SNJ.TopFAnswers(10), Source
+   End If
+   
+   If RCmd = "manswered" Then
+      ST_R Username, "ST: Top 10: " & SNJ.TopMAnswers(10), Source
+   End If
+   
+   If RCmd = "lstreak" Then
+      ST_R Username, "ST: Top 10: " & SNJ.TopLStreaks(10), Source
+   End If
+   
+   '//We need this for the next 2
+   Dim PreURL
+   
+   '//reportbadq
+   If RCmd = "reportbadq" Then
+      Dim Rstring, R_ID, Response
+      Rstring = "<" & Username & "> " & Message
+      R_ID = Split(Rstring & " ")(2)
+      If IsNumeric(R_ID) Then
+         '//Run replacements for HTTP transmission
+         Rstring = SNJ.CleanURL(RString)
+         PreURL = "http://snapnjacks.com/repq.php?pass=" & st_GetSetting("reportpass") 
+         PreURL = PreURL & "&R_ID=" & R_ID & "&R=" & Rstring
+         PreURL = PreURL & "&bot=" & botvars.username
+            Response = scInet.OpenURL(CStr(PreURL))
+         If Response <> "" AND Len(Response) < 230 Then 
+            ST_R Username, "ST: " & Response, Source
+         Else 
+            ST_Debug "Server Response: " & Response
+            ST_R Username, "ST: Could not send report!", Source
+         End If
+      Else
+         ST_R Username, "Format: " & BotVars.Trigger & "reportbadq 60323 The answer is wrong, it should be Rob Thomas", source
+      End If
+   End If
+   
+   '//Question Add System
+   '//Message = ".qadd What's 12*9?|108/one hunderd and eight|3|1.99|0|Math"
+   If RCmd = "qadd " Then
+      Dim Qstring, Qary
+      Qstring = RStr
+      '//Run replacements for HTTP transmission
+      Qstring = SNJ.CleanURL(Qstring)
+      If Match(Qstring, "*|*|*|*|*|*", True) Then
+         Qary = Split(Qstring, "|")
+         PreURL = "http://snapnjacks.com/qadd.php?Q=" & Qary(0) & "&A=" & Qary(1) & _
+                  "&Difficulty=" & Qary(2) & "&Value=" & Qary(3) & "&Type=" & Qary(4) & "&Category=" & Qary(5)
+         If scInet.OpenURL(CStr(PreURL)) = "Question Submited" Then 
+            AddQ "Your question has been added to the Review Database, Thank you." 
+         Else 
+            AddQ "Error in sending Question. Sorry."
+         End If
+      Else
+         AddQ "Format: " & BotVars.Trigger & "qadd What's 12*9?|108/one hundred and eight|20|5.99|0|Math"
+         AddQ "Question|Answers Seperated by ""/""|Difficulty 0-5|Value|Type 0 (Used for special Q's)|Categorys seperated by "","""
+      End If
+   End If
+End Sub
+'||     END COMMANDS SUB     ||
+'||||||||||||||||||||||||||||||
+
+Public Sub Event_ServerInfo(Message)
+   If Message = "No one hears you." AND st_enabled Then
+      If st_GetSetting("StopOnEmpty") <> "False" Then ST_Disable
+   End If
+End Sub
+
+Public Sub Event_ServerError(Message)
+   If Message = "All connections closed." AND st_enabled Then ST_Disable
+End Sub
+
+Public Sub AskQuestion_Timer()
+   If Not st_enabled Then
+      Exit Sub
+   End If
+   ST_AskQuestion
+   If st_GetSetting("Askrate") + 0 < 5 Then st_WriteSetting "Askrate", 5
+   AskQuestion.Interval = Int(st_GetSetting("Askrate") * (st_GetSetting("hints") + 1) + 1)
+   AskQuestion.Enabled = True
+End Sub
+
+Public Sub VirtualQ_Timer()
+   If ST_VQL > 0 Then ST_VQL = ST_VQL - 1
+End Sub
+
+Public Sub GiveHint_Timer()
+   If st_q_answer = "" Or Not st_enabled Then Exit Sub
+   st_hint_num = st_hint_num + 1
+   If Instr(st_q_answer, "/") Then
+      hintAnswer = Split(st_q_answer & "/", "/")(0)
+   Else
+      hintAnswer = st_q_answer
+   End If
+   
+   '// Last hint already given?
+   If st_hint_num > Int(st_GetSetting("hints")) Then
+      GiveHint.Enabled = false
+      STAQ "The answer(s): " & st_q_answer
+      '==ST_Streak
+      st_q_answer = ""
+      st_hint_num = 0
+      st_hint_string = ""
+      Exit Sub
+   End If
+   
+   Dim HintOdds
+   HintOdds = Cint(st_GetSetting("HintOdds"))
+   
+   Dim i, hintchar, curHint
+   '//Set the hint char
+   hintchar = left(st_GetSetting("hintchar"), 1)
+   For x = 0 to 10
+      curHint = ""
+      '// Loop char-by-char through string
+      For i = 1 to Len(hintAnswer)
+         '// Skip spaces
+         If Mid(hintAnswer, i, 1) = " " Then 
+            curHint = curHint & " "
+         '// Keep letters we already have
+         ElseIf st_hint_string <> "" And Mid(st_hint_string, i, 1) <> hintchar Then
+            curHint = curHint & Mid(st_hint_string, i, 1)
+         '// If it passes probability test uncover current character
+         ElseIf HintOdds / 100 > Rnd Then 
+            curHint = curHint & Mid(hintAnswer, i, 1) 
+         Else
+            curHint = curHint & hintchar
+         End If
+      Next
+      If curHint <> st_hint_string Then Exit For
+   Next'//The outer loop decreases the chances of getting an empty hint, or an unchanged hint.
+   '// Make sure the hint doesn't give the complete answer
+   If curHint = hintAnswer Then curHint = st_hint_string
+   '// Output the hint in the custom format
+   Dim HFormat
+   HFormat = st_GetSetting("HFormat")
+   '//If no %h then go with the defaults
+   If InStr(HFormat, "%h") = 0 Then HFormat = ST_Def_Set("HFormat")
+   HFormat = Replace(HFormat, "%h", curHint)
+   STAQ HFormat
+   '//Save for next round
+   st_hint_string = curHint
+   
+End Sub
+
+'//Ask Question
+Public Sub ST_AskQuestion()
+   '//Enable Disable based on the amount of users in the channel
+   If st_GetSetting("AutoDisableP") <> 0 AND st_GetSetting("AutoDisableP") < GetInternalUserCount() Then
+      STAQ "ST: Not enough users in channel."
+      ST_Disable
+      Exit Sub
+   End If
+   If st_GetSetting("AutoEnableP") <> 0 AND st_GetSetting("AutoEnableP") > GetInternalUserCount() Then
+      STAQ "ST: Trivia started because there are now " & GetInternalUserCount() & " users in the channel"
+      ST_Enable
+      Exit Sub
+   End If
+   
+   If Not st_enabled Then Exit Sub
+   If st_q_num >= st_q_total Then st_q_num = -1
+   '//Clear olddata
+   st_hint_num = 0
+   st_hint_string = ""
+   
+   '// move to the next question
+   st_q_num = st_q_num + 1
+   
+   '//Make sure there's a question to be asked
+   If IsArray(st_q_array(st_q_num)) = False Then
+      Addchat VByellow, "ST: Loading questions..."
+      ST_GetQuestions
+      Exit Sub
+   End If
+   
+   '// Current Question Set
+   st_q_set = st_q_array(st_q_num)
+   '//If Ubound(st_q_array(st_q_num))
+   
+   
+   QFormat = st_GetSetting("QFormat")
+   If InStr(QFormat, "%q") = 0 Then QFormat = ST_Def_Set("QFormat")
+   QFormat = Replace(QFormat, "%df", st_q_set(2))
+   QFormat = Replace(QFormat, "%vl", FormatCurrency(st_q_set(3)))
+   If st_q_set(5) = "" Then QFormat = Replace(QFormat, "%id", st_q_set(5))
+   QFormat = Replace(QFormat, "%id", "[" & st_q_set(5) & "] ")
+   QFormat = Replace(QFormat, "%ct", st_q_set(6))
+   QFormat = Replace(QFormat, "%q", st_q_set(0))
+   If len(st_q_skiped) <> 0 Then 
+      QFormat = Replace(QFormat, "%sk", "(Previous Answer: " & st_q_skiped & ") ")
+      st_q_skiped = ""
+   Else
+      QFormat = Replace(QFormat, "%sk", "")
+   End If
+   '// Ask the question
+   STAQ QFormat
+   '//Set the time used for speed checking.
+   st_q_asked = GetGTC
+ 
+   '//variables:
+   ' %sk = Previous skipped answer - if existing.
+   ' %df = Difficulty
+   ' %vl = Value
+   ' %id = ID number on snapnjacks.com
+   ' %q = Question
+   ' %ct = Category
+   'Possible ST_QFormat = "%skQ# %id (%ct) Difficulty: %df, for $%pt!: %q"
+   'Possible outcome: "Q# 2341 (Family Guy/Cartoons) Difficulty: 20, for $2.50!: Who's the fattest guy in Family Guy?"
+
+   '//This would be a good time to update the profile.
+   If Lcase(st_GetSetting("useprofile")) = "true" Then SNJ.UpdateProfile
+
+   '//Set the question answer '// Additionaly, because we will be cutting this when question is answered
+   st_q_answer = Trim(st_q_set(1))
+   
+   If st_GetSetting("hints") <> 0 Then
+      GiveHint.Interval = st_GetSetting("Askrate")
+      GiveHint.Enabled = True
+   End If
+
+   '//Check if we need to get more questions
+   If st_q_num >= st_q_total Then
+      ST_GetQuestions
+      Exit Sub
+   End If
+End Sub
+
+'//Scan Question Files folder for question files.
+Sub ST_Scan(Output)
+
+   Dim QFolder, QFile, I, FileList, DspType
+   If OutPut = True Then
+      DspType = 1
+      If lcase(st_GetSetting("GlobalEmote")) = "true" Then DspType = 2
+   Else
+      DspType = 4
+   End If
+   If Not stFSO.FolderExists("question files") Then
+      stFSO.CreateFolder("question files")
+      AddChat vbYellow, "ST: New folder ""question files"" created in your StealthBot Folder. Place your question files in there to use them."
+      Exit Sub
+   End If
+   Set QFolder = stFSO.GetFolder("question files")
+
+   '== This will eventualy just output a list of good question files.
+   st_WriteSetting "QuestionFile", ""
+   For Each QFile In QFolder.Files
+      If InStrRev(lcase(QFile.Name), ".txt") = Len(QFile.Name) - 3 Then
+         If ST_CheckFile(QFile.Name) Then
+            If OutPut = True Then
+               FileList = FileList & ", " & QFile.Name
+            Else
+               AddChat vbYellow, "Question file found: " & VBtab & "ÿc0ÿcb" & QFile.Name
+            End If
+            st_WriteSetting "QuestionFile", QFile.Name
+         End If
+      End If
+   Next
+   
+   If st_GetSetting("QuestionFile") = "" Then
+      Dsp DspType, "ST: No question files found in Question Files", "noone", VByellow
+      Dsp DspType, "Simply place a question file in the ""question files"" folder located in your StealthBot Folder to use", "noone", VByellow
+   Else
+      If OutPut = True Then
+         Dsp DspType, "ST: Question file(s) found: " & FileList, "noone", VByellow
+      End If
+      Dsp DspType, "ST: File set to: " & st_GetSetting("QuestionFile") & ". To use another file type " & botvars.trigger & "setfile filename", "noone", VByellow
+   End If
+End Sub
+
+'//Check file for questions. - Checks for 3 proper-syntaxed questions in a row.
+Function ST_CheckFile(FileName)
+   ST_CheckFile = False
+   Dim File, I, Line
+   Set File = stFSO.OpenTextFile(BotPath() & "question files\" & FileName, 1, True)
+   Do Until File.AtEndOfStream
+      If I > 3 Then
+         ST_CheckFile = True
+         Exit Do
+      End If
+      Line = File.Readline
+      If Line <> "" OR Mid(Line, 1, 2) <> "//" Then
+         If Len(Line) > InStr(Line, "*") AND InStr(Line, "*") > 2 Then
+            ST_CheckFile = True
+            I = I + 1
+         Else
+            I = 0
+         End If
+      End If
+   Loop
+   File.Close
+End Function
+
+'//Get the questions
+Sub ST_GetQuestions()
+   If lcase(st_GetSetting("UseServer")) = "false" Then
+      If st_GetSetting("QuestionFile") = "" Then
+         AddChat vbYellow, "Questions file not set - scanning bot directory"
+         ST_Scan False
+         If st_GetSetting("QuestionFile") = "" Then
+            AddChat vbYellow, "No files found, reverting to server"
+            st_WriteSetting "UseServer", "True"
+            ST_GetQuestions
+            Exit Sub
+         End If
+      End If
+      ST_ReadQuestionFiles
+      Exit Sub
+   End If
+
+   '//Downloads Questions, Parses them.
+   If st_q_num = 0 Then
+      st_q_num = -1
+   End If
+   
+   Dim Received, LineAry, PreURL
+   PreURL = "http://snapnjacks.com/getq.php"
+   PreURL = PreURL & "?dif=" & st_GetSetting("difficulty")
+   If st_GetSetting("category") <> "" Then PreURL = PreURL & "&ctg=" & st_GetSetting("category")
+   '//Run replacements for HTTP transmission
+   PreURL = SNJ.CleanURL(PreURL)
+   If scInet.StillExecuting Then
+      ST_Debug "scInet is still executing last request, unable to get questions"
+      Exit Sub
+   End If
+   Received = scInet.OpenURL(CStr(PreURL))
+   If InStr(Received, "|") < 1 Then
+      AddChat vbRed, "ÿcbST: Question download failed."
+      If Received = "" Then 
+         Addchat vbRed, "ST: The connection to the server failed, if this continues it could mean the server is down"
+      ElseIf Lcase(Left(Received, 7)) = "message" Then
+         Addchat VByellow, "ST: Message on server"
+         Addchat VByellow, Received
+      End If
+      If st_enabled Then
+         STAQ "ST: No questions were found with selected category. - try changing the category. ST Disabled"
+         ST_Disable
+      End If
+      If st_GetSetting("ErrorHandle") = "True" Then Addchat VByellow, Received
+      Exit Sub
+   End If
+   
+   LineAry = Split(Received, "**")
+   If Ubound(LineAry) > 40 Then
+      AddChat vbRed, "ÿcbST: Server overload?: T=" & Ubound(LineAry)
+      Exit Sub
+   End If
+   For I = 0 To Ubound(LineAry)
+      st_q_array(I) = Split(LineAry(I), "|")
+   Next
+   
+   
+   '//Last question = st_q_array(st_q_total)(0)
+   st_q_total = I - 2
+   AddChat vbYellow, "ST: New set of questions Received " & st_q_total + 1
+   
+   '//Ask our question
+   If ST_Enabled Then ST_AskQuestion
+   '//AddChat vbPink, "ÿcb" & I - 2 & " Questions Downloaded!"
+   '//The last question will be st_q_array(st_q_total)(0)
+   
+   '//st_q_array now contains an array of questions.
+   '+---------------------------------------+
+   '|     st_q_array(Question Number)(Part) |
+   '|     Parts:                            |
+   '|     0 = Question                      |
+   '|     1 = answer                        |
+   '|     2 = difficulty                    |
+   '|     3 = point/money value             |
+   '|     4 = 1/0 Hotspot question?         |
+   '|     5 = Question ID number            |
+   '|     6 = Category.                     |
+   '+---------------------------------------+
+End Sub
+
+'//Read Question file -- this may evolve into a multi-file reader - Thus fileS
+Sub ST_ReadQuestionFiles()
+   If st_q_num = 0 Then
+      st_q_num = -1
+   End If
+   
+   Dim File, I, X, Line, FileName, LineArray, FullFile, LineCount
+   FileName = st_GetSetting("QuestionFile")
+   If Not stFSO.FileExists(BotPath() & "question files\" & FileName) Then
+      st_WriteSetting "QuestionFile", ""
+      AddChat vbYellow, "File Not Found: " & FileName
+      Exit Sub
+   End If
+   
+   Set File = stFSO.OpenTextFile(BotPath() & "question files\" & FileName, 1, True)
+   FullFile = File.Readall
+   File.Close
+   FullFile = Split(FullFile, vbNewLine)
+   I = 0
+   X = 0
+   
+   '//Filter out comments and etc
+   For Each Line in FullFile
+   X = X + 1
+      If Line <> "" OR Mid(Line, 1, 2) <> "//" Then
+         If Len(Line) > InStr(Line, "*") AND InStr(Line, "*") > 2 Then
+            FullFile(I) = Line
+            I = I + 1
+         Else
+            ST_Debug "QFile Error:" & FileName & " Line: " & X
+         End If
+      End If
+   Next
+   Redim Preserve FullFile(I - 1)
+ 
+   '//Randomize 40 questions
+   Randomize
+   Dim Eran, Tmp
+   For I = 0 to Ubound(FullFile)
+      Eran = int(rnd * Ubound(FullFile) - I) + I
+      Tmp = FullFile(I)
+      FullFile(I) = FullFile(Eran)
+      FullFile(Eran) = Tmp
+      '//We only need 40 random questions
+      If I > 40 Then 
+         Redim Preserve FullFile(40)
+         Exit For
+      End If
+   Next
+   I = 0
+   Dim QValue
+   For Each Line in FullFile
+      LineArray = Split(Line, "*")
+      QValue = st_GetSetting("qtxtvalue")
+      '//Use the custom value if it exists.
+      If UBound(LineArray) > 1 Then
+         If IsNumeric(LineArray(2)) Then
+            QValue = Round(LineArray(2), 2)
+         End If
+      End If
+      st_q_array(I) = Array(LineArray(0), LineArray(1), "3", QValue, "0", "", FileName)
+      I = I + 1
+   Next
+   st_q_total = I - 1
+   '//AddChat vbYellow, "ST: Pulled " & I & " questions from: " & FileName
+End Sub
+
+'//Disable trivia
+Sub ST_Disable()
+   st_enabled = False 
+   AddChat vbRed, "ÿcbST: Stopping..."
+   AskQuestion.Enabled = false
+End Sub
+
+'//Enable trivia
+Public Sub ST_Enable()
+   st_enabled = True
+   AddChat vbYellow, "ÿcbST: Starting..."
+   AskQuestion.Interval = 4
+   AskQuestion.Enabled = true
+End Sub
+
+'//Used to output debug-data.
+Public Sub ST_Debug(Text)
+   If st_GetSetting("Debug") = "true" Then
+      AddChat ST_COLOR, "ST Debug: " & Text
+   End If
+End Sub
+
+
+
+'|||||||||||||||||||||||||||
+'|| CONFIG FUNCTIONS/SUBS ||
+'//Depreciated with Class Properties.
+Function st_GetSetting(Setting)
+   st_GetSetting=GetConfigEntry("main", Setting, ST_CONFIG_LOC)
+   If st_GetSetting = "" AND ST_Def_Set(Setting) <> "NoDefault" Then
+      st_GetSetting = ST_Def_Set(Setting)
+      st_WriteSetting Setting, ST_Def_Set(Setting)
+   End If
+End Function
+
+Sub st_WriteSetting(Setting, NewSetting)
+   WriteConfigEntry "main", Setting, NewSetting, ST_CONFIG_LOC
+End Sub
+'//Dep
+
+Function st_GetAccess(Command)
+   st_getaccess = GetConfigEntry("access", Command, ST_CONFIG_LOC)
+   If IsNumeric(st_GetAccess) = False Then st_getaccess = st_GetSetting("Access")
+   st_getaccess = int(st_getaccess)
+End Function
+
+Function ST_GetCommand(Command)
+   ST_GetCommand = Lcase(GetConfigEntry("commands", Command, ST_CONFIG_LOC))
+   '//Is it a two worded off/on command?
+   If ST_GetCommand = "" Then
+      If Right(Command, 4) = " off" OR Right(Command, 3) = " on" Then ST_GetCommand = Command
+   End If
+End Function
+
+'//Default Settings
+Function ST_Def_Set(Setting)
+   Setting = Lcase(Setting)
+   Select Case Setting
+      Case "access" ST_Def_Set = "40"
+      Case "playaccess" ST_Def_Set = "0"
+      Case "floodprotect" ST_Def_Set = "0"
+      Case "useserver" ST_Def_Set = "True"
+      Case "blurtstats" ST_Def_Set = "True"
+      Case "hints" ST_Def_Set = "3"
+      Case "hintodds" ST_Def_Set = "20"
+      Case "streak" ST_Def_Set = "4"
+      Case "streakbonus" ST_Def_Set = "1"
+      Case "streakincrease" ST_Def_Set = "0"
+      
+      Case "askrate" ST_Def_Set = "9"
+      Case "answerdelay" ST_Def_Set = "9"
+      Case "autodisableq" ST_Def_Set = "15"
+      Case "autodisablep" ST_Def_Set = "0"
+      Case "autoenablep" ST_Def_Set = "0"
+      Case "category" ST_Def_Set = "NoDefault" '//Because this can be blank
+      Case "difficuly" ST_Def_Set = "0-5"
+      Case "qtxtvalue" ST_Def_Set = "1"
+      '//Formats
+      Case "qformat" ST_Def_Set = "%sk%id (%ct) %vl: %q"
+      Case "hformat" ST_Def_Set = "Hint: %h"
+      Case "aformat" ST_Def_Set = "(%a)Well done. %u Received %vl for a total of %nv (%spm ms Ranked %rank) [%st]"
+      Case "pformat" ST_Def_Set = "Top 5 high scores: %hs(5)%nlFastest answer by %fa%nlLongest streak by %ls(1)"
+      Case "useprofile" ST_Def_Set = "False"
+      '//Anouncments
+      Case "ancstreakbreak" ST_Def_Set = "Sweet! %u, you broke %su Streak of %st!"
+      Case "ancstreakrecord" ST_Def_Set = "Congrats %u! You have beaten the record for longest streak![%st]%nlPreviously held by %su. With a streak of: [%sa]"
+      Case "ancstreakpersonal" ST_Def_Set = "Nice %u! You beat your record for longest streak![%st]"
+      Case "ancspeedrecord" ST_Def_Set = "Congrats %u! You have beaten the record for fastest answer![%sp ms]%nlPreviously held by %fu. With a speed of: [%fa ms]"
+      Case "ancspeedpersonal" ST_Def_Set = "Great job %u! you beat your fastest time![%sp ms]"
+      '//Responses
+      Case "resscore" ST_Def_Set = "%u has %vl, he has answered %qa questions, his fastest answer was %fams, and his longest streak was %st - he last played on %la"
+      
+      Case "hintchar" ST_Def_Set = "-"
+      Case "globalemote" ST_Def_Set = "False"
+      '==
+      Case "questions" ST_Def_Set = ""
+      Case "scores" ST_Def_Set = "ST_users.txt"
+      Case "debug" ST_Def_Set = "false"
+      Case "reportpass" ST_Def_Set = "WeHelpSnap"
+      Case Else ST_Def_Set = "NoDefault"
+   End Select
+End Function
+
+
+
+'//Create the config file - with all the comments :)
+Public Sub ST_CreateConfig()
+   Dim File
+   Set File = stFSO.OpenTextFile(ST_CONFIG_LOC, 2, True)
+   '//This saves some space
+   With File 
+      .Writeline "[main]"
+      .Writeline ";   Default access required for commands?"
+      .Writeline "Access=40"
+      .Writeline ";   Access required to play trivia (0 for anyone to play)"
+      .Writeline "PlayAccess=0"
+      .Writeline ";   Flood protection for SnapNJacks"
+      .Writeline ";   Levels go from 0 to 2, 1 is on with alerts, 2 for no alerts."
+      .Writeline "floodprotect=0"
+      .Writeline ";   Download questions from SnapNJacks.com a constantly growing database of questions."
+      .Writeline ";   If false, A question file will be used"
+      .Writeline "UseServer=True"
+      .Writeline ";   Update profile using PFormat?"
+      .Writeline "UseProfile=False"
+      .Writeline ";   Randomly blurt a random stastic after a question is answered (odds are one in 5 if no other anouncment is made.)"      
+      .Writeline "BlurtStats=True"
+      .Writeline ";   Amount of hints the bot will give"
+      .Writeline "Hints=3"
+      .Writeline ";   Chances per-char of it being revealed. 20 will give you an average of 20% revealed."
+      .Writeline "hintodds=20"
+      .Writeline ";   What counts as a streak, from this point on they will get bonus."
+      .Writeline "streak=4"
+      .Writeline ";   Bonus recieved for being in a streak."
+      .Writeline "streakbonus=1"
+      .Writeline ";   Bonus is increased by this per round."
+      .Writeline "streakincrease=0"
+      
+      .Writeline ";   Amount of seconds between hints (must be above 5)"
+      .Writeline "Askrate=9"
+      .Writeline ";   Delay after a question has been answered, to ask again."
+      .Writeline "AnswerDelay=10"
+      .Writeline ";   Consecutive unanswered questions before shutdown. 0 to disable."
+      .Writeline "AutoDisableQ=15"
+      .Writeline ";   Less than amount of people in channel for shutdown. 0 to disable."
+      .Writeline "AutoDisableP=0"
+      .Writeline ";   Greater than amount of people in channel for startup. 0 to disable."
+      .Writeline "AutoEnableP=0"
+      .Writeline ";   Categorical Selection String:"
+      .Writeline ";   Leave blank to not confine results. Normaly set via .category command"
+      .Writeline "Category="
+      .Writeline ";   Difficulty limit, 0-5 downloads all questions."
+      .Writeline ";   3 downloads only questions with a difficulty level of 3"
+      .Writeline ";   4-6 downloads only questions with a difficulty of 4, 5 or 6"
+      .Writeline "Difficulty=0-5"
+      .Writeline ";   The default value for question.txt questions"
+      .Writeline "qtxtvalue=1"
+      
+      .Writeline ";   <FORMATS>:"
+      .Writeline ";   Question Format:"
+      .Writeline ";   How a normal question is displayed. Note: You MUST have %q"
+      .Writeline "QFormat=%sk%id (%ct) %vl: %q"
+      .Writeline ";   Hint Format:"
+      .Writeline ";   How a hint is displayed. Note: You MUST have %h"
+      .Writeline "HFormat=Hint: %h"
+      .Writeline ";   Answer Format:"
+      .Writeline ";   How a correct answer is responded to"
+      .Writeline ";   %vl = Value gained, %u = username, %nv = New Value - What the user now has"
+      .Writeline ";   and %a = Answer (all answers seperated by /)"
+      .Writeline "AFormat=(%a)Well done. %u Received %vl for a total of %nv (%spm ms Ranked %rank) [%st]"
+      .Writeline ";   Check the FAQ/Guide http://www.stealthbot.net/board/index.php?showtopic=12827"
+      .Writeline "PFormat=Top 5 high scores: %hs(5)%nlFastest answer by %fa%nlLongest streak by %ls(1)"
+      
+      .Writeline ";   <MISC ANOUNCMENTS>:"
+      .Writeline ";   Streak Anouncments:"
+      .Writeline ";   Break anothers streak:"
+      .Writeline "AncStreakBreak=Sweet! %u, you broke %su Streak of %st!"
+      .Writeline ";   Beat streak all-time record:"
+      .Writeline "AncStreakRecord=Congrats %u! You have beaten the record for longest streak![%st]%nlPreviously held by %su. With a streak of: [%sa]"
+      .Writeline ";   Beat personal streak record:"
+      .Writeline "AncStreakPersonal=Nice %u! You beat your record for longest streak![%st]"
+      .Writeline ";   Fastest-Answer Anouncments:"
+      .Writeline ";   Beat speed all-time record:"
+      .Writeline "AncSpeedRecord=Congrats %u! You have beaten the record for fastest answer![%sp ms]%nlPreviously held by %fu. With a speed of: [%fa ms]"
+      .Writeline ";   Beat personal speed record:"
+      .Writeline "AncSpeedPersonal=Great job %u! you beat your fastest time![%sp ms]"
+      .Writeline ";   End MISC ANOUNCMENTS:"
+      .Writeline ";   <COMMAND RESPONSES>:"
+      .Writeline "resscore=%u has %vl, he has answered %qa questions, his fastest answer was %fams, and his longest streak was %st - he last played on %la"
+      .Writeline ";   End COMMAND RESPONSES"
+      '==
+      '.Writeline ";   Use a rewards file? - UNSUPPORTED"
+      '.Writeline "UseRewards=False"
+      
+      .Writeline ";   The char for hints"
+      .Writeline "hintchar=-"
+      .Writeline ";   Emote everything"
+      .Writeline "GlobalEmote=False"
+      .Writeline ";   Password for the ReportBadQ command (Server password)"
+      .Writeline "reportpass=WeHelpSnap"
+      .Writeline ";   Config version:"
+      .Writeline ";   Stop when bnet says no one hears you -(channel empty)"
+      .Writeline "StopOnEmpty=True"
+      .Writeline "configver=" & ST_VER
+      .Writeline "[access]"
+      .Writeline ";   Here you can set certain commands to specific access - instead of the default access"
+      .Writeline ";   Like Hscores=20  This will override the default set at the top of this file, access=40."
+      .Writeline ";   Commands set to 0 will allow anyone to use them."
+      .Writeline "trivia=0"
+      .Writeline "score=5"
+      .Writeline "[commands]"
+      .Writeline ";   Here you can set an alias for any command"
+      .Writeline ";   You can disable a command too, by setting command=disabled"
+      .Writeline ";   Alias=Command"
+      .Writeline "high scores=hscores"
+      .Writeline "fastest answers=fanswers"
+      .Writeline "most answered=manswered"
+      .Writeline "longest streaks=lstreaks"
+      .Writeline "start trivia=trivia on"
+      .Writeline "stop trivia=trivia off"
+      .Close
+   End With
+   AddChat vbYellow, "ST: Config Created! (" & ST_CONFIG_LOC & ")"
+End Sub
+
+'//It's good to note that I learned the most VBs from SoCxFiftyToo.
+'//So if it looks like I'm copying him. I probably am. Thanks 52.
+'//This is a class. Their neat.
+Class SNJClass
+   '//The varriables Dim'd under the class are public to the entire class and will hold their data.
+   Dim DBConn
+   '//Holds the last profile update.
+   Dim OldProfile
+   Private StreakBonus
+   
+   
+   Public Property Get Setting (Name)
+   Setting=GetConfigEntry("main", Name, ST_CONFIG_LOC)
+      If Setting = "" Then
+         If ST_Def_Set(Name) <> "NoDefault" Then
+            Setting = ST_Def_Set(Name)
+            Me.Setting(Name) = ST_Def_Set(Name)
+         End If
+      End If
+   End Property
+   
+   Public Property Let Setting (Name, Input)
+      If Lcase(Cstr(Input)) = "false" Then Input = "false"
+      If Lcase(Cstr(Input)) = "true" Then Input = "true"
+     WriteConfigEntry "main", Name, Input, ST_CONFIG_LOC
+   End Property
+   
+   
+   Public Sub OpenDB
+      If NOT stFSO.FileExists(ST_USERDB_LOC) Then
+         Addchat VByellow, "Database not found! - - Creating database..."
+         '//Me means within this class, - like SNJ.CreateDB
+         Me.CreateDB
+         Exit Sub
+      End If
+      On Error Resume Next
+      Set me.DBConn = CreateObject("ADODB.Connection")
+      '== Fix this, I shouldn't be using addchat in here...
+      If Err.Number <> 0 Then
+         Addchat VBred, "ST Error: Unable to connect to database, you must not have the proper drivers."
+         Exit Sub
+      End If
+      Me.DBConn.ConnectionString = ST_DBConnStr
+      Me.DBConn.CursorLocation = 3 '//adUseClient
+      Me.DBConn.Open
+   End Sub
+
+
+   Public Sub CreateDB
+      If stFSO.FileExists(ST_USERDB_LOC) Then
+         Addchat VByellow, "Database already exists!"
+         Exit Sub
+      End If
+      '//Make the file/database.
+      Dim ADOXdb
+      Set ADOXdb = CreateObject("ADOX.Catalog")
+      ADOXdb.Create "Provider=Microsoft.Jet.OLEDB.4.0;Jet OLEDB:Engine Type=5;Data Source=" & ST_USERDB_LOC
+
+      '//Ok we made the file/db - now open it.
+      Me.OpenDB
+
+      Dim SQL
+      '//Create the table! - And resist the urge to use $SQL.= !! lol.. (PHP habbit)
+      SQL = "CREATE TABLE `users` ("
+      SQL = SQL & "`ID` COUNTER ,"
+      SQL = SQL & "`Username` VARCHAR(32) NOT NULL, "
+      SQL = SQL & "`Money` DOUBLE NULL, "
+      SQL = SQL & "`Answered` INT NOT NULL, "
+      SQL = SQL & "`Streak` INT NULL, "
+      SQL = SQL & "`Flags` VARCHAR(32) NULL, "
+      SQL = SQL & "`FastestAnswer` INT NOT NULL, "
+      SQL = SQL & "`LongestStreak` INT NOT NULL, "
+      SQL = SQL & "`LastAnswer` TIMESTAMP NOT NULL DEFAULT NOW())"
+      Me.DBConn.Execute SQL
+      Addchat VByellow, "Database created"
+   End Sub
+   
+   '|||||||||||||||||||||||||||||||||||||||
+   '||        ACCEPT ANSWER SUB          ||
+   '|| This sub is called whenever a     ||
+   '|| Question is answered.             ||
+   '|||||||||||||||||||||||||||||||||||||||
+   Public Sub AcceptAnswer(Username, Money, Speed)
+      Dim SQL, RS
+      'Temp-Format
+      Dim TFormat
+      TFormat = st_GetSetting("AFormat")
+      
+      If StreakBonus = 0 Then StreakBonus = Me.Setting("streakbonus")
+      '//Check Streak
+      If Int(st_getsetting("streak")) > 0 AND Int(st_getsetting("streakbonus")) > 0 Then
+         If ST_Streak_User = Username AND ST_Streak + 1 >= Int(st_getsetting("streak")) Then
+            If Instr(TFormat, "%streakbonus") = 0 Then
+               TFormat = TFormat & "[Streak Bonus + " & StreakBonus & "!]"
+            Else
+               TFormat = Replace(TFormat, "%streakbonus", "[Streak Bonus + " & StreakBonus & "!]")
+            End If
+            Money = Money + 0 + StreakBonus
+            StreakBonus = StreakBonus + 0 + Me.Setting("streakincrease")
+         Else
+            '//Reset StreakBonus
+            StreakBonus = Me.Setting("streakbonus")
+         End If
+      End If
+      TFormat = Replace(TFormat, "%streakbonus", "")
+      
+      
+      '//Virtual Queue Load - Used to add to the time to ask next question
+      '//Not in the database?
+      If Me.GetUMoney(Username) = "" Then
+         SQL = "INSERT INTO `users` (`Username`, `Money`, `FastestAnswer`, `Answered`, `LongestStreak`) VALUES ('"
+         SQL = SQL & Username & "', " & Money & ", '" & Speed & "', 1, 1)"
+         Me.DBConn.Execute(SQL)
+         '//STAQ "Welcome to the database " & Username & "."
+      Else
+         SQL = "UPDATE `users` SET `LastAnswer` = NOW(), `Money` = `Money` + " & Money & ", `Answered` = `Answered` + 1 " & _
+         "WHERE `Username` = '" & Username & "'"
+         Me.DBConn.Execute(SQL)
+      End If
+      '//Build response:
+      TFormat = Replace(TFormat, "%a", st_q_set(1))
+      TFormat = Replace(TFormat, "%vl", FormatCurrency(Money + 0))
+      TFormat = Replace(TFormat, "%nv", FormatCurrency(Me.GetUMoney(Username)))
+      
+      If ST_Streak_User = Username Then
+         TFormat = Replace(TFormat, "%st", ST_Streak + 1)
+      Else
+         TFormat = Replace(TFormat, "%st", "1")
+      End If
+      
+      TFormat = Me.ProcessSpeed(TFormat, Speed)
+      TFormat = Me.ProcessVars(TFormat, Username)
+      '//Respond:
+      ST_SQ TFormat
+      
+      If ST_Streak_User = Username Then
+         ST_Streak = ST_Streak + 1
+         SQL = "SELECT `LongestStreak` FROM `users` WHERE `Username` = '" & Username & "'"
+         SET RS = Me.DBConn.Execute(SQL)
+         '//Beat Personal Record?
+         If Int(RS.Fields(0)) < Int(ST_Streak) Then
+            If ST_Streak > 2 Then
+               SQL = "SELECT `Username`, `LongestStreak` FROM `users` ORDER BY `LongestStreak` DESC, `LastAnswer` ASC"
+               SET RS = Me.DBConn.Execute(SQL)
+               '//Beat the all-time record?
+               If Int(RS.Fields(1)) < Int(ST_Streak) AND Lcase(RS.Fields(0)) <> Lcase(Username) AND ST_Streak_Con <> 2 Then
+                  ST_Streak_Con = 2
+                  TFormat = st_GetSetting("AncStreakRecord")
+                  TFormat = Replace(TFormat, "%su", RS.Fields(0))
+                  TFormat = Replace(TFormat, "%sa", RS.Fields(1))
+                  TFormat = Replace(TFormat, "%st", ST_Streak)
+                  TFormat = Me.ProcessVars(TFormat, Username)
+                  ST_SQ TFormat
+               ElseIf ST_Streak_Con < 1 Then '//Just beat your own score
+                  ST_Streak_Con = 1
+                  TFormat = st_GetSetting("AncStreakPersonal")
+                  TFormat = Replace(TFormat, "%st", ST_Streak)
+                  TFormat = Me.ProcessVars(TFormat, Username)
+                  ST_SQ TFormat
+               End If
+            End If
+            SQL = "UPDATE `users` SET `LongestStreak` = '" & ST_Streak & "' WHERE `Username` = '" & Username & "'"
+            Me.DBConn.Execute(SQL)
+         Else
+            '//Used to prevent record-breaking anouncments after EVERY record broken.
+            ST_Streak_Con = 0
+         End If
+      Else
+         If ST_Streak > 2 Then
+            TFormat = st_GetSetting("AncStreakBreak")
+            TFormat = Replace(TFormat, "%su", ST_Streak_User)
+            TFormat = Replace(TFormat, "%st", ST_Streak)
+            TFormat = Me.ProcessVars(TFormat, Username)
+            ST_SQ TFormat
+         End If
+         ST_Streak_User = Username
+         ST_Streak = 1
+      End If
+      SQL = "SELECT `FastestAnswer` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If Int(RS.Fields(0)) > Int(Speed) Then
+         SQL = "SELECT `Username`, `FastestAnswer` FROM `users` ORDER BY `FastestAnswer` ASC"
+         SET RS = Me.DBConn.Execute(SQL)
+         If Int(RS.Fields(1)) > Int(Speed) AND Lcase(RS.Fields(0)) <> Lcase(Username) Then
+            TFormat = st_GetSetting("AncSpeedRecord")
+            TFormat = Replace(TFormat, "%fu", RS.Fields(0))
+            TFormat = Replace(TFormat, "%fa", RS.Fields(1))
+            TFormat = Me.ProcessSpeed(TFormat, Speed)
+            TFormat = Me.ProcessVars(TFormat, Username)
+            ST_SQ TFormat
+         Else
+            TFormat = st_GetSetting("AncSpeedPersonal")
+            TFormat = Replace(TFormat, "%u", Username)
+            TFormat = Me.ProcessSpeed(TFormat, Speed)
+            TFormat = Me.ProcessVars(TFormat, Username)
+            ST_SQ TFormat
+         End If
+         '//Update record
+         SQL = "UPDATE `users` SET `FastestAnswer` = '" & Speed & "' WHERE `Username` = '" & Username & "'"
+         Me.DBConn.Execute(SQL)
+      End If
+      If st_GetSetting("blurtstats") = "True" AND ST_VQL < 2 AND Speed > 4100 Then
+         Select Case Int(Rnd * 20) '//one in 5
+         Case 1
+            STAQ "ST: Top 5 scores: " & Me.TopMoney(5)
+         Case 2
+            STAQ "ST: Top 5 fastest answers: " & Me.TopFAnswers(5)
+         Case 3
+            STAQ "ST: Top 5 longest streaks: " & Me.TopLStreaks(5)
+         Case 4
+            STAQ "ST: Top 5 most answered: " & Me.TopMAnswers(5)
+         End Select
+      End If
+      AskQuestion.Interval = st_GetSetting("AnswerDelay") + Int(ST_VQL * 2.8)
+      AskQuestion.Enabled = True
+      
+   End Sub
+   
+   Public Sub DeleteUser(Username)
+      Dim SQL
+      SQL = "DELETE FROM `users` WHERE `Username` = '" & Username & "'"
+      Me.DBConn.Execute(SQL)      
+   End Sub
+   
+   '//Non-Database related Subs:
+   
+   Public Sub UpdateProfile
+      Dim NewProfile
+      NewProfile = st_GetSetting("pformat")
+      For I = 1 to 15
+         NewProfile = Replace(NewProfile, "%hs(" & I & ")", Me.TopMoney(I))
+         NewProfile = Replace(NewProfile, "%fa(" & I & ")", Me.TopFAnswers(I))
+         NewProfile = Replace(NewProfile, "%ls(" & I & ")", Me.TopLStreaks(I))
+         NewProfile = Replace(NewProfile, "%ma(" & I & ")", Me.TopMAnswers(I))
+      Next
+      NewProfile = Replace(NewProfile, "%hs", Me.TopMoney(1))
+      NewProfile = Replace(NewProfile, "%fa", Me.TopFAnswers(1))
+      NewProfile = Replace(NewProfile, "%ls", Me.TopLStreaks(1))
+      NewProfile = Replace(NewProfile, "%ma", Me.TopMAnswers(1))
+      NewProfile = Replace(NewProfile, "%su", ST_Streak_User)
+      NewProfile = Replace(NewProfile, "%sc", ST_Streak)
+      NewProfile = Replace(NewProfile, "%ch", MyChannel)
+      '//We don't want to update the profile - unless we have new information
+      If Me.OldProfile = NewProfile Then Exit Sub
+      Me.OldProfile = NewProfile
+      '//Time and vbnewline.
+      NewProfile = Replace(NewProfile, "%lu", Time)
+      NewProfile = Replace(NewProfile, "%nl", VBNewLine)
+      SetBotProfile "", "", NewProfile
+   End Sub
+   
+      '// FUNCTIONS
+      
+   Public Function GiveMoney(HowMuch, FromUser, ToUser, InBot)
+      GiveMoney = False
+      HowMuch = Round(HowMuch, 2)
+      If InBot Then
+         SQL = "UPDATE `users` SET `Money` = `Money` + " & HowMuch & " WHERE `Username` = '" & ToUser & "'"
+         Me.DBConn.Execute(SQL)
+         GiveMoney = True
+      ElseIf HowMuch <= Me.GetUMoney(FromUser) Then
+         If Me.GetUMoney(ToUser) <> "" Then
+            SQL = "UPDATE `users` SET `Money` = `Money` - " & HowMuch & " WHERE `Username` = '" & FromUser & "'"
+            Me.DBConn.Execute(SQL)
+            SQL = "UPDATE `users` SET `Money` = `Money` + " & HowMuch & " WHERE `Username` = '" & ToUser & "'"
+            Me.DBConn.Execute(SQL)
+            GiveMoney = True
+         End If
+      End If
+   End Function
+   
+   Public Function ProcessVars(Text, User)
+      Dim S
+      S = Text
+      S = Replace(S, "%vl", FormatCurrency(Me.GetUMoney(User)))
+      S = Replace(S, "%intmoney", Me.GetUMoney(User))
+      S = Replace(S, "%st", Me.GetStreak(User))
+      S = Replace(S, "%qa", Me.GetAnswered(User))
+      S = Replace(S, "%fa", Me.GetFastest(User))
+      S = Replace(S, "%la", Me.GetLastAnswer(User))
+      S = Replace(S, "%intrank", Me.GetRank(User))
+      S = Replace(S, "%rank", Me.AddSuffix(Me.GetRank(User)))
+      S = Replace(S, "%u", User)
+      ProcessVars = S
+   End Function
+   
+   Public Function ProcessSpeed(Text, Speed)
+      Dim S
+      S = Text
+      S = Replace(S, "%sps(3)", Round(Speed / 1000, 3))
+      S = Replace(S, "%sps(2)", Round(Speed / 1000, 2))
+      S = Replace(S, "%sps(1)", Round(Speed / 1000, 1))
+      S = Replace(S, "%sps(0)", Round(Speed / 1000, 0))
+      S = Replace(S, "%sps", Speed / 1000)
+      S = Replace(S, "%spm", Speed)
+      S = Replace(S, "%sp", Speed) '==Depreciated
+      ProcessSpeed = S
+   End Function
+   
+   '//Top Stats
+   Public Function TopMoney(TopX)
+      Dim SQL, RS, I
+      SQL = "SELECT `Username`, `Money` FROM `users` ORDER BY `Money` DESC"
+      SET RS = Me.DBConn.Execute(SQL)
+      Do While TopX > I AND RS.EOF <> True
+         I = I + 1
+         If TopMoney <> "" Then TopMoney = TopMoney & ", "
+         TopMoney = TopMoney & RS.Fields(0) & ": " & FormatCurrency(RS.Fields(1))
+         RS.MoveNext
+      Loop
+   End Function
+   
+   Public Function TopFAnswers(TopX)
+      Dim SQL, RS, I
+      SQL = "SELECT `Username`, `FastestAnswer` FROM `users` ORDER BY `FastestAnswer` ASC"
+      SET RS = Me.DBConn.Execute(SQL)
+      Do While TopX > I AND RS.EOF <> True
+         I = I + 1
+         If TopFAnswers <> "" Then TopFAnswers = TopFAnswers & ", "
+         TopFAnswers = TopFAnswers & RS.Fields(0) & ": " & RS.Fields(1) & "ms"
+         RS.MoveNext
+      Loop
+   End Function
+   
+   Public Function TopMAnswers(TopX)
+      Dim SQL, RS, I
+      SQL = "SELECT `Username`, `Answered` FROM `users` ORDER BY `Answered` DESC"
+      SET RS = Me.DBConn.Execute(SQL)
+      Do While TopX > I AND RS.EOF <> True
+         I = I + 1
+         If TopMAnswers <> "" Then TopMAnswers = TopMAnswers & ", "
+         TopMAnswers = TopMAnswers & RS.Fields(0) & ": " & RS.Fields(1)
+         RS.MoveNext
+      Loop
+   End Function
+   
+   Public Function TopLStreaks(TopX)
+      Dim SQL, RS, I
+      SQL = "SELECT `Username`, `LongestStreak` FROM `users` ORDER BY `LongestStreak` DESC, `LastAnswer` ASC"
+      SET RS = Me.DBConn.Execute(SQL)
+      Do While TopX > I AND RS.EOF <> True
+         I = I + 1
+         If TopLStreaks <> "" Then TopLStreaks = TopLStreaks & ", "
+         TopLStreaks = TopLStreaks & RS.Fields(0) & ": " & RS.Fields(1)
+         RS.MoveNext
+      Loop
+   End Function
+   
+   '//END STATS
+   
+   Public Function GetUCount
+      Dim SQL, RS
+      SQL = "SELECT Count(*) FROM `users`"
+      SET RS = Me.DBConn.Execute(SQL)
+      GetUCount = RS.Fields(0)
+   End Function
+   
+   '//Block list
+   Public Function BlockList()
+      Dim SQL, RS, I
+      SQL = "SELECT `Username` FROM `users` WHERE `Flags` LIKE '%B%'"
+      SET RS = Me.DBConn.Execute(SQL)
+      Do While 100 > I AND RS.EOF <> True
+         I = I + 1
+         If BlockList <> "" Then BlockList = BlockList & ", "
+         BlockList = BlockList & RS.Fields(0)
+         RS.MoveNext
+      Loop
+   End Function
+   
+   '//Blocks a user from playing Trivia
+   Public Sub Block(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL
+      If Not Me.GetBlocked(Username) Then
+         SQL = "UPDATE `users` SET `Flags` = `Flags` & 'B' WHERE `Username` = '" & Username & "'"
+         Me.DBConn.Execute(SQL)
+      End If
+   End Sub
+   
+   '//Unblocks a user from playing Trivia
+   Public Sub UnBlock(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, FlagList
+      SQL = "SELECT `Flags` FROM `users` WHERE `Flags` LIKE '%B%' AND `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         Exit Sub
+      Else
+         FlagList = RS.Fields(0)
+         Addchat VBwhite, "F: " & FlagList
+         FlagList = Replace(FlagList, "B", "")
+         Addchat VBwhite, "F2: " & FlagList
+         SQL = "UPDATE `users` SET `Flags` = '" & FlagList & "' WHERE `Username` = '" & Username & "'"
+         Me.DBConn.Execute(SQL)
+      End If
+   End Sub
+   
+   '//Mimics PHP's
+   Public Function AddSlashes(Text)
+      Text = Replace(Text, "\", "\\")
+      AddSlashes = Replace(Text, "'", "\'")
+   End Function
+   '//USER SPECIFIC FUNCTIONS
+   
+   '//True/False - is the user blocked?
+   Public Function GetBlocked(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS
+      SQL = "SELECT `Flags` FROM `users` WHERE `Flags` LIKE '%B%' AND `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetBlocked = False
+      Else
+         GetBlocked = True
+      End If
+   End Function
+   
+   '//Returns "" if user isn't found.
+   Public Function GetUMoney(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS
+      SQL = "SELECT `Money` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetUMoney = ""
+      Else
+         GetUMoney = RS.Fields(0)
+      End If
+   End Function
+   
+   '//Returns 0 if user isn't found.
+   Public Function GetRank(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, I
+      SQL = "SELECT COUNT(*) FROM `users` WHERE `Money` >= (SELECT `Money` FROM `users` WHERE `Username` = '" & Username & "')"
+      SET RS = Me.DBConn.Execute(SQL)
+      GetRank = 0
+      If RS.Fields(0) <> 0 Then GetRank = RS.Fields(0)
+   End Function
+   
+
+   Public Function GetFastest(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, I
+      SQL = "SELECT `FastestAnswer` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetFastest = 0
+      Else
+         GetFastest = RS.Fields(0)
+      End If
+   End Function
+   
+   '//Returns 0 if user isn't found.
+   Public Function GetStreak(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, I
+      SQL = "SELECT `LongestStreak` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetStreak = 0
+      Else
+         GetStreak = RS.Fields(0)
+      End If
+   End Function
+   
+   '//Returns 0 if user isn't found.
+   Public Function GetAnswered(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, I
+      SQL = "SELECT `Answered` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetAnswered = 0
+      Else
+         GetAnswered = RS.Fields(0)
+      End If
+   End Function
+   
+   Public Function GetLastAnswer(Username)
+      Username = Me.AddSlashes(Username)
+      Dim SQL, RS, I
+      SQL = "SELECT `LastAnswer` FROM `users` WHERE `Username` = '" & Username & "'"
+      SET RS = Me.DBConn.Execute(SQL)
+      If RS.BOF = True AND RS.EOF = True Then
+         GetLastAnswer = 0
+      Else
+         GetLastAnswer = RS.Fields(0)
+      End If
+   End Function
+   
+   
+   '//Kills the @ and # names. '//Parse User
+   Public Function PUser(Username)
+      PUser = Username
+      If Left(PUser, 1) = "*" Then PUser = Mid(PUser, 2)
+      If InStr(PUser, "#") Then PUser = Mid(PUser, 1, InStr(PUser & "#", "#")-1)
+      If InStr(PUser, "@") Then PUser = Mid(PUser, 1, InStr(PUser & "@", "@")-1)
+   End Function
+   
+   '//Formats a String to a URL-Accepted string.
+   Public Function CleanURL(URL)
+      URL = Replace(URL, "%", "%25")
+      URL = Replace(URL, "+", "%2B")
+      URL = Replace(URL, "#", "%23")
+      URL = Replace(URL, "&", "%26")
+      URL = Replace(URL, "", "%0C")
+      CleanURL = URL
+   End Function
+   
+   Public Function AddSuffix(Number)
+      Dim Suffix
+      Select Case Right(Number, 1)
+         Case 1
+            Suffix = "st"
+         Case 2
+            Suffix = "nd"
+         Case 3
+            Suffix = "rd"
+         Case Else
+            Suffix = "th"
+      End Select
+      If Number > 10 AND Number < 14 Then Suffix = "th"
+      AddSuffix = Number & Suffix
+   End Function
+   
+   '//Old Subs:
+   Public Sub MoveOldScores
+      Dim File, LinesArray
+      Dim SQL
+      If NOT stFSO.FileExists(ST_USER_LOC) Then
+         Addchat VBred, "Score file not found!"
+         Exit Sub
+      End If
+      
+      Addchat VByellow, "Copying Scores..."
+      '//Open file
+      Set File = stFSO.OpenTextFile(ST_USER_LOC, 1, True)
+      LinesArray = Split(File.ReadAll & vbNewLine, vbNewLine)
+      Dim I
+      I = 0
+      For Each Line in LinesArray
+         If Instr(Line, "=") > 1 Then
+            Line = Split(Line, "=")
+            If Me.GetUMoney(Line(0)) = "" Then
+               SQL = "INSERT INTO `users` (`Username`, `Money`, `FastestAnswer`, `Answered`, `LongestStreak`) VALUES ('"
+               SQL = SQL & Line(0) & "', '" & Line(1) & "', '15000', 1, 1)"
+               Me.DBConn.Execute(SQL)
+               I = I + 1
+            Else
+               Addchat VByellow, "User: " & Line(0) & ". Already in Database!"
+            End If
+         End If
+      Next
+      Addchat VByellow, I & " users have been copyed"
+      '//Close the file, or we wont be able to delete it!
+      File.Close
+      If MsgBox("Delete Old File?" & VBnewline & "ST_Users.ini has been successfully copyed to the database. Do you wish to delete the file?" & VBnewLine & "(We Recommend YES)", 4) = 6 Then
+      stFSO.DeleteFile ST_USER_LOC
+         Addchat VByellow, "File deleted"
+      Else
+         Addchat VByellow, "File not deleted"
+      End If
+   End Sub
+End Class
+
+

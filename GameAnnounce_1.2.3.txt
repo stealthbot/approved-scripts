@@ -1,0 +1,612 @@
+Script("Name") = "GameAnnounce"
+Script("Author") = "7thAce"
+Script("Major") = 1
+Script("Minor") = 2
+Script("Revision") = 3
+Script("Description") = "Keeps track of games made by users on all products."
+         
+'///////\\\\\\'
+'||Changelog||'
+'\\\\\\\//////'
+
+'1.2.3 (9/2/10):
+'Public build 17
+'Only 1 thing happened:
+'I FIXED THAT STUPID NULLSTRING ERROR!!! :D
+
+'1.2.2 (7/12/10):
+'Public build 16
+'Fixed a bug with signin/permsignin (Thanks DaveTheBat).
+'Fixed a bug where Warcraft 3 users would not have their games announced (Thanks Silent).
+'Fixed a typo, lol (Thanks Foxter-)
+'Removed the debug addchats from permsignin
+'Still can't track down that stupid Null string error.
+
+'1.2.1 Full (5/20/10):
+'Public build 15
+'Sorry about not getting this out in any good time.
+'Fixed an issue dealing with categories.
+'Commands added since beta:
+'gmtop - Lists top 3 runners
+'catdata - Returns the number of runs by a user in a specified category
+'Modified the runsdata command
+
+'1.2.0B (4/14/10):
+'Yet another large update with lots of changes
+'Major public release 3, Public build 13
+'Logging changed to on by default
+'Tutorial on first start
+'All below (and in 1.2.1) - Thanks to Eldrich/Roanapur
+'Users can now sign in with the optional argument [Category].
+'-This allows specific game tracking and logging, most helpful for Diablo bots.
+
+'1.1.0 (2/7/10):
+'Big update, hope ya like it.
+'Major Public release 2, Public builds 9/10:
+'Added 2 menu options (Thanks Ribose and 52)
+'Added Logging of games (Off by default)
+'Logging command - Toggles logging status (/gmlogging)
+'Added a few more stats and a command for them (/runsdata)
+'Stats added: Runs, Signins, Days while in the script - all used for Activity Rating
+'Build 10: Fixed minor problems.
+
+'1.0.5 (2/1/10):
+'Public build 8
+'Added cleanup on shutdown, (signs out users, won't remove them from friends due to flooding).
+'Fixed intenting.
+
+'1.0.4 (1/31/10):
+'Public build 7
+'Fixed my own stupidity
+'-Error 501 with games command
+'-Changed cgame back to cgames to avoid confusion
+'-Error 9 when more than one user signed in
+'-Error that would occur with cgames if the user never joined a game
+'-1 typo
+
+'1.0.3 (1/29/10):
+'Public build 5
+'Created const for game announce text styling.
+'-Change it below the changelog.
+'Changed some commands so they will respond to whispers.
+'If anyone wants me to add Ghost++ support or D2NT (or others), please contact me
+'-I will need info on how the bot works, what commands it uses, etc.
+
+'1.0.3 (1/28/10):
+'Private build 4
+'Lets see if this works.
+'Changed some special characters.
+
+'1.0.2 (1/27/10):
+'Public build 3
+'Fixed an error with Permsignin not working unless they had signed in at least once before.
+'Minor command response changes.
+
+'1.0.1 (1/26/10):
+'Public build 2
+'Fixed a bug where Starcraft Broodwar games would not announce.
+
+'1.0.0 (1/11/10):
+'Public release 1, public build 1.
+'Fixed an error before anyone knew I made one.
+
+'Acknowledgements:
+'Ninja - helping with some of the new features of the command sub.
+'Xeda - testing and other misc. stuff.
+'Ribose - the wiki pages on all the objects.
+'lildrunkinkid56 - helping me with ] usernames
+'52 - helping with menu stuff
+'Ribose - Lots of menu help
+'Tz)Aguy (West) - lots and lots of testing.  Main tester when I was too lazy to get on BW myself :P
+'Roanapur - Main suggestions for 1.2.0 and 1.2.1
+
+Const LeftStyling = "«[" '//Change these for what wraps the username, product, and game name in chat.
+Const RightStyling = "]»" '//Right side.  You can probably come up with something creative.
+Const gamesresponseX = "Please specify a product with the command %tpgames <product>." 
+Const DefPGames = "SEXP" '//This is the default category if none is specified for the pgames command.  Make sure it's the 4 char product code.
+'Use %t for the bot's trigger
+
+Sub event_load()
+Version = Script("Major") & "." & Script("Minor") & "." & Script("Revision")
+If GetConfigEntry("Settings", "Firstrun", "GameAnnounce.ini") <> "True" Then
+ WriteConfigEntry "Settings", "Firstrun", "True", "GameAnnounce.ini"
+ Addchat vbred, "-------------------------------------------------------------------------------------"
+ Addchat vbgreen, "This appears to be your first run of 7thAce's Game announcer script (v" & Version & ")."
+ Addchat vbyellow, "See the commands in the command manager for help with the script."
+ Addchat vbyellow, "Please post in this script's topic (TID 2552) if you have further questions, issues, or comments."
+ Addchat vbgreen, "Enjoy!"
+ Addchat vbgreen, "          -7thAce"
+ Addchat vbred, "-------------------------------------------------------------------------------------"
+ Tut = Msgbox("Would you like to view the tutorial?  This is recommended if you are a new user.", vbyesno, "Game announcer/manager by 7thAce")
+ If Tut = 6 Then
+  Msgbox "We'll start at the basics.  First you will want to sign a user in." & vbnewline & "Have the user type " & botvars.trigger & "signin to do that."
+  Msgbox "After that, the bot will record and announce that user's games.  This is one of the main features of the script."
+  Msgbox "To have other users see games that are hosted, have them type " & botvars.trigger & "games" & vbnewline & "This takes users through a series of commands to let them find specific games/users."
+  Msgbox "That's about it for the basic features, see this script's topic.  If you ever want to see this tutorial again, move GameAnnounce.ini out of your bot folder and reload scripts."
+ End If
+ Set FSO = CreateObject("Scripting.FileSystemObject")
+ Set File = FSO.OpenTextFile(Botpath & "Logs\GameAnnounceLog.txt", 1, True)
+ File.Close
+ Addchat vbmagenta, "Created logs file."
+ Set File = FSO.OpenTextFile(Botpath & "GameAnnounce.ini", 1, True)
+ File.Close
+ Addchat vbmagenta, "Created GameAnnounce.ini file."
+End If
+If GetConfigEntry("Settings", "Logging", "GameAnnounce.ini") = vbnullstring Then Writeconfigentry "Settings", "Logging", True, "Gameannounce.ini"
+If GetConfigEntry("Settings", "Version", "GameAnnounce.ini") <> Version Then
+ Addchat vbgreen, "You have updated to version " & Version & ".  Thanks for using my Game Manager/Announcer script!"
+ Msgbox "Only 1 thing happened:" & vbnewline & "I FIXED THAT STUPID NULLSTRING ERROR!!! :D", vbokonly, "What's new in version " & Version & " - Game announcer/manager by 7thAce"
+ Writeconfigentry "Settings", "Version", version, "Gameannounce.ini"
+End If
+  
+Set cmd = OpenCommand("cgames")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("cgames")
+ With cmd
+  .Description = "Shows the current games for a user."
+  .RequiredRank = 1
+  Set Parameter = .NewParameter("Username", False, "Word")
+  .Parameters.Add Parameter
+  .Save
+ End With
+ Addchat vbmagenta, "Created cgames command!"
+End If
+
+Set cmd = OpenCommand("games")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("games")
+ With cmd
+	.Description = "Requests for a listing of games.  Defaults to a message of ""Please specify a product with the command " & botvars.trigger & "pgames <product>."
+	.RequiredRank = 1
+	.Save
+ End With
+ Addchat vbmagenta, "Created games command!"
+End If
+ 
+Set cmd = OpenCommand("pgames")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("pgames")
+ With cmd
+	.Description = "Requests for a listing of games by product.  Returns the usernames of online and current hosts on that product.  Only accepts the 4 char product code." 
+	.RequiredRank = 1
+	Set Parameter = .NewParameter("D2XP/WAR3/STAR/SEXP/D2DV/W2BN", False, "Word")
+	.Parameters.Add Parameter
+	.Save
+ End With
+ Addchat vbmagenta, "Created pgames command!"
+End If
+ 
+Set cmd = OpenCommand("signin")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("signin")
+ With cmd
+	.Description = "Signs in to the script for the games to be tracked." 
+	.RequiredRank = 15
+	.Save
+ End With
+ Addchat vbmagenta, "Created signin command!"
+End If
+ 
+Set cmd = OpenCommand("signout")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("signout")
+ With cmd
+  .Description = "Signs out of the script.  Force signs out when you exit battle.net." 
+	.RequiredRank = 15
+	.Save
+ End With
+ Addchat vbmagenta, "Created signout command!"
+End If
+ 
+Set cmd = OpenCommand("permsignin")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("permsignin")
+ With cmd
+	.Description = "Permanently signs in to the script for the games to be tracked.  For bots/regular users."
+	.RequiredRank = 150
+	.Save
+ End With
+ Addchat vbmagenta, "Created permsignin command!"
+End If
+
+Set cmd = OpenCommand("runsdata")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("runsdata")
+ With cmd
+  .Description = "Displays runs statistics for a user."        
+  .RequiredRank = 1
+  Set Parameter = .NewParameter("Username", False, "Word")
+  .Parameters.Add Parameter
+  .Save
+ End With
+ Addchat vbmagenta, "Created runsdata command!"
+End If
+
+Set cmd = OpenCommand("gmlogging")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("gmlogging")
+ With cmd
+  .Description = "Toggles logging status."        
+  .RequiredRank = 150
+  .Save
+ End With
+ Addchat vbmagenta, "Created gmlogging command!"
+End If
+
+Set cmd = OpenCommand("changecat")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("changecat")
+ With cmd
+	.Description = "Changes the signed in category." 
+	.RequiredRank = 15
+	 Set Parameter = .NewParameter("Category", False, "Category")
+	.Parameters.Add Parameter
+	.Save
+ End With
+ Addchat vbmagenta, "Created changecat command!"
+End If
+
+Set cmd = OpenCommand("gmtop")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("gmtop")
+ With cmd
+	.Description = "Lists the top 3 runners." 
+	.RequiredRank = 1
+	.Save
+ End With
+ Addchat vbmagenta, "Created gmtop command!"
+End If
+
+Set cmd = OpenCommand("catdata")
+If cmd Is Nothing Then
+ Set cmd = CreateCommand("catdata")
+ With cmd
+	.Description = "Checks the number of runs done in a certain category by a username." 
+	.RequiredRank = 1
+	 Set Parameter = .NewParameter("Category", False, "Mandatory")
+	.Parameters.Add Parameter
+	 Set Parameter = .NewParameter("Username", False, "Optional")
+	.Parameters.Add Parameter
+	.Save
+ End With
+ Addchat vbmagenta, "Created catdata command!"
+End If
+Set cmd = Nothing
+  
+'// Scripting menus, thanks Ribose and 52
+CreateObj "Menu", "mnuGameAnnounce"
+mnuGameAnnounce.Caption = "Open GameAnnounce.ini"
+CreateObj "Menu", "mnuGMLogsFile"
+mnuGMLogsFile.Caption = "Open Game Manager Logs"
+End Sub
+
+Sub mnuGameAnnounce_Click()
+Set wshShell = CreateObject("WScript.Shell")
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set File = FSO.OpenTextFile(Bothpath & "GameAnnounce.ini", 1, True)
+File.Close
+Call wshShell.run(Bothpath & "GameAnnounce.ini")
+End Sub
+
+Sub mnuGMLogsFile_Click()
+Set wshShell = CreateObject("WScript.Shell")
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set File = FSO.OpenTextFile("Logs\GameAnnounceLog.txt", 1, True)
+File.Close
+Call wshShell.run(Bothpath & "Logs\GameAnnounceLog.txt")
+End Sub
+
+Sub Event_Command(Command)
+Cmd = Command.Args
+Username = Command.Username
+ Select Case LCase(Command.Name)
+  Case "games"      : Call Gamesresponse(Command, Username)
+  Case "pgames"     : Call pgames(Command, Username, cmd)
+  Case "cgames"     : Call cgames(Command, Username, cmd)
+  Case "signin"     : Call signin(Command, Username, cmd)
+  Case "permsignin" : Call permlogin(Command, Username, cmd)
+  Case "signout"    : Call signout(Command, Username)
+  Case "runsdata"   : Call runsdata(Command, Username, cmd)
+  Case "gmlogging"  : Call gmlogging(Command, Username)
+  Case "changecat"  : Call changecat(command, username, cmd)
+  Case "gmtop"      : Call gmtop(Command, Username)
+  Case "catdata"    : Call catdata(Command, Username, Cmd)
+ End Select
+End Sub
+
+Private Sub Gamesresponse(Command, Username)
+ Command.Respond Replace(GamesresponseX, "%t", Botvars.trigger)
+End Sub
+
+Private Sub catdata(Command, Username, Cmd)
+ If ubound(split(cmd)) = 1 Then
+  Username = Split(cmd)(1)
+ End If
+ Category = Split(cmd)(0)
+ cdata = GetConfigEntry(Username, "Cat:" & category, "GameAnnounce.ini")
+ If cdata = vbnullstring Then
+  Command.Respond "No games have been run for that category."
+  Exit Sub
+ End If
+ Command.Respond Username & " has run " & cdata & " runs in the category """ & category & """."
+End Sub
+
+Private Sub gmtop(Command, Username)
+If Command.HasAccess Then
+ Rank3 = 0
+ Rank2 = 0
+ Rank1 = 0
+ UR3 = "None"
+ UR2 = "None"
+ UR1 = "None"
+ Set FSO = CreateObject("Scripting.Filesystemobject")
+ Set File = FSO.opentextfile(Botpath & "Gameannounce.ini", 1, True)
+ Lines = split(file.readall, vbnewline)
+ For i = 0 to ubound(lines)
+  lines(i) = line
+   If left(line, 1) = "[" and right(line, 1) = "]" Then
+    Username = mid(line, 2, len(line) - 2)
+   End If
+  If left(lcase(line), 5) = "runs=" Then
+   runcount = int(right(len(line) - 5))
+   If runcount > rank3 Then
+    UR3 = Username
+    Rank3 = runcount
+    If runcount > rank2 Then
+     UR3 = UR2
+     Rank3 = rank2
+     UR2 = Username
+     rank2 = runcount
+     If runcount > rank1 Then
+      UR2 = UR1
+      Rank2 = Rank1
+      UR1 = Username
+      rank1 = runcount
+     End If
+    End If
+   End If 
+  End If
+ Next
+ UR1 = replace(ur1, ",", "]")
+ UR2 = replace(ur2, ",", "]")
+ UR3 = replace(ur3, ",", "]")
+ AddQ "Top 3 runners: " & UR1 & " - " & Rank1 & ", " & UR2 & " - " & Rank2 & ", " & UR3 & " - " & Rank3 & "."
+End If
+End Sub
+
+Private Sub changecat(Command, Username, Cmd)
+Username = Replace(Username, "]", ",") 
+ Online = GetConfigEntry(Username, "Online", "GameAnnounce.ini")
+ If Online = "False" Then
+  Command.Respond "You are not signed in."
+  Exit Sub
+ End If
+ WriteConfigEntry Username, "Category", "Cat:" & Cmd, "GameAnnounce.ini"
+ Command.Respond "Changed category of games to " & cmd & "."
+End Sub
+
+Private Sub runsdata(Command, Username, cmd)
+ If cmd = vbnullstring Then cmd = Username
+ Cmd = Replace(Cmd, "]", ",")
+ If GetConfigEntry(Cmd, "FirstSignin", "Gameannounce.ini") = vbnullstring Then
+  Command.Respond "That user has had no games logged."
+  Exit Sub
+ End If
+ Runs = int(GetConfigEntry(cmd, "Runs", "Gameannounce.ini"))
+ Days = int(Datediff("d", GetConfigEntry(cmd, "FirstSignin", "Gameannounce.ini"), Now)) + 1
+ Logins = int(GetConfigEntry(cmd, "Signins", "Gameannounce.ini"))
+ AR = int((Runs / Days) * 100) / 100 + int((Runs / Logins) * 100) / 100
+ cmd = Replace(cmd, ",", "]")
+ mruns = 0
+ Set FSO = CreateObject("Scripting.Filesystemobject")
+ Set File = FSO.opentextfile(Botpath & "Gameannounce.ini", 1, True)
+ Lines = split(file.readall, vbnewline)
+ For i = 0 to ubound(lines)
+ line = lines(i)
+ If lcase(line) = "[" & lcase(cmd) & "]" Then
+  Unamecheck = 1
+ End If
+ If unamecheck = 1 Then
+  If left(line, 4) = "Cat:" Then
+   Run = int(split(line, "=")(1))
+   If run > mruns Then
+    Cat = right(split(line, "=")(0), len(split(line, "=")(0)) - 4)
+    mruns = run
+   End If
+  End If
+ End If
+ Next
+Command.Respond Username & " has done " & runs & " runs, has an activity rating of " & AR & " and has run the category """ & cat & """ the most."
+End Sub
+
+Private Sub gmlogging(Command, Username)
+If GetConfigEntry("Settings", "Logging", "GameAnnounce.ini") = "True" Then
+ WriteConfigEntry "Settings", "Logging", False, "GameAnnounce.ini"
+ Addchat vbyellow, "Disabled Game Manager logging."
+Else
+ WriteConfigEntry "Settings", "Logging", True, "GameAnnounce.ini"
+ Addchat vbgreen, "Enabled Game Manager logging."
+End If
+End Sub
+
+Private Sub pgames(Command, Username, cmd)
+ If Command.IsValid Then
+  If Command.HasAccess Then
+   Product = Cmd
+   If Product = vbnullstring Then Product = DefPGames
+   If GetConfigEntry(Product, "Users", "GameAnnounce.ini") = vbnullstring Then
+    Command.Respond "No users are currently online on this product."
+    Exit Sub
+   End If
+   Usersbyproduct = right(GetConfigEntry(Product, "Users", "GameAnnounce.ini"), len(GetConfigEntry(Product, "Users", "GameAnnounce.ini")) - 3)
+   UsersByProduct = Replace(UsersByProduct, ",", "]")
+   UsersByProduct = Replace(Usersbyproduct, ":::", ", ")
+   If UsersByProduct = vbnullstring Then
+    Command.Respond "No users are currently online on this product."
+    Exit Sub
+   End If
+   Command.Respond "Current users who are hosting on " & Product & ": " & UsersByProduct & " - Use " & botvars.trigger & "cgames <username> to select a host and retrieve the game name and info."
+  End If
+ End If
+End Sub
+
+Private Sub cgames(Command, Username, cmd)
+ If Command.IsValid Then
+  If Command.HasAccess Then
+  Username = Cmd
+   If GetConfigEntry(Replace(Username, "]", ","), "Online", "Gameannounce.ini") = "True" Then
+    Cgame = GetConfigEntry(Replace(Username, "]", ","), "Game", "Gameannounce.ini")
+    Product = GetConfigEntry(Replace(Username, "]", ","), "Product", "Gameannounce.ini")
+    sec = Datediff("s", GetConfigEntry(Replace(Username, "]", ","), "StartTime", "Gameannounce.ini"), Now)
+    Min = int(Sec / 60)
+    Sec = Sec Mod 60
+    If cgame <> vbnullstring Then
+     If cgame = "Idle" Then
+      Command.Respond "That user has been idle for " & Min & ":" & Sec & "."
+     Else
+      Command.Respond Replace(Username, ",", "]") & " has been in the " & Product & " game " & cgame &  " for " & Min & ":" & Sec & "."
+     End If
+    Else
+      Command.Respond "That user is not in a game or is offline."
+    End If
+   End If
+  End If
+ End If
+End Sub
+
+Private Sub signin(Command, Username, cmd)
+ If Command.Isvalid Then
+  If Command.HasAccess Then
+   Product = Channel.GetUser(Username).Game
+   Username = Replace(Username, "]", ",")
+  If getconfigentry(Username, "Online", "Gameannounce.ini") = "True" Then
+   Command.Respond "You are already signed in!"
+   Exit Sub
+  End If
+  If cmd = vbnullstring Then cmd = "None"
+  Already = Getconfigentry(Product, "Users", "Gameannounce.ini")
+  WriteConfigEntry Product, "Users", Already & ":::" & Replace(Username, ",", "]"), "Gameannounce.ini"
+  WriteConfigEntry Username, "Online", "True", "GameAnnounce.ini"
+  WriteConfigEntry Username, "Game", "Idle", "GameAnnounce.ini"
+  WriteConfigEntry Username, "Product", Product, "GameAnnounce.ini"
+  WriteConfigEntry Username, "StartTime", Now, "GameAnnounce.ini"
+  WriteConfigEntry Username, "Category", cmd, "GameAnnounce.ini"
+  If GetConfigEntry(Username, "Cat:" & cmd, "GameAnnounce.ini") = vbnullstring Then WriteConfigEntry Username, "Cat:" & cmd, 0, "GameAnnounce.ini"
+  If GetConfigEntry(Username, "FirstSignin", "GameAnnounce.ini") = vbnullstring Then
+   WriteConfigEntry Username, "Signins", 1, "Gameannounce.ini"
+   WriteConfigEntry Username, "Runs", 0, "Gameannounce.ini"
+   WriteConfigEntry Username, "FirstSignin", Now, "Gameannounce.ini"
+   Command.Respond "Welcome to the Game Announce script " & Replace(Username, ",", "]") & "."
+  Else
+   WriteConfigEntry Username, "Signins", int(GetConfigEntry(Username, "Signins", "Gameannounce.ini")) + 1, "Gameannounce.ini"
+  End If  
+   Username = Replace(Username, ",", "]")
+   Command.Respond "Signed in " & Username & ".  Make sure that I am on your friends list (/f a " & Botvars.username & ")."
+   AddQ "/f a " & Username
+  End If
+ End If
+End Sub
+
+Private Sub signout(Command, Username)
+ If Command.Isvalid Then
+  If Command.HasAccess Then
+  Username = Replace(Username, "]", ",")
+   If GetconfigEntry(Username, "Online", "GameAnnounce.ini") = "True" Then
+    WriteConfigEntry Username, "Online", "False", "GameAnnounce.ini"
+     Product = GetConfigEntry(Username, "Product", "GameAnnounce.ini")
+     Temp = GetConfigEntry(Product, "Users", "GameAnnounce.ini")
+     Username = Replace(Username, ",", "]")
+     WriteConfigEntry Product, "Users", Split(Temp, ":::" & Username)(0) & Split(Temp, ":::" & Username)(1), "GameAnnounce.ini"
+     WriteConfigEntry Replace(Username, "]", ","), "Game", vbnullstring, "Gameannounce.ini"
+     WriteConfigEntry Replace(Username, "]", ","), "Category", vbnullstring, "Gameannounce.ini"
+    AddQ "Signed out " & Username & "."
+    AddQ "/f r " & Username
+   End If
+  End If
+ End If
+End Sub
+
+Private Sub permlogin(Command, Username, cmd)
+ If Command.Isvalid Then
+  If Command.HasAccess Then
+   If GetConfigEntry(Replace(Username, "]", ","), "PSI", "Gameannounce.ini") = "True" Then
+    Command.Respond "Already registered to automatically sign in."
+    Exit Sub
+   End If
+    WriteConfigEntry Replace(Username, "]", ","), "PSICat", Cmd, "Gameannounce.ini"
+    WriteConfigEntry Replace(Username, "]", ","), "PSI", "True", "Gameannounce.ini"
+    Command.Respond "Registered to automatically sign in."
+   End If
+  End If
+End Sub
+
+Sub event_whisperfromuser(Username, Flags, Message, Ping)
+ If instr(message, "Your friend") > 0 and instr(message, "has exited Battle.net.") > 0 Then
+  Command Username, BotVars.Trigger & "signout", False
+ End If
+ If instr(message, "Your friend") > 0 and instr(message, "entered a") > 0 and instr(message, "game called") > 0 Then
+  GN = Split(message, "called ")(1)
+  GameName = left(GN, len(GN) - 1)
+  WriteConfigEntry Replace(Username, "]", ","), "Game", GameName, "GameAnnounce.ini"
+  WriteConfigEntry Replace(Username, "]", ","), "StartTime", Now(), "GameAnnounce.ini"
+  Temp = Split(message, "entered a ")(1)
+  FullProduct = Split(Temp, " game", 2)(0)
+  TempArray = Split("Starcraft Broodwar, Starcraft, Diablo II, Diablo II Lord of Destruction, Warcraft III, Warcraft III The Frozen Throne", ", ")
+  For i = 0 to 5
+   If lcase(fullproduct) = lcase(temparray(i)) Then
+    ShortProduct = mid("   SEXPSTARD2DVD2XPWAR3W3XP", 4 * (i + 1), 4)
+    AddQ "Game created by " & LeftStyling & Username & RightStyling & " - " & LeftStyling & Fullproduct & " (" & ShortProduct  & ")" & RightStyling & " - " & LeftStyling & Gamename & RightStyling
+    WriteConfigEntry Replace(Username, "]", ","), "Runs", int(GetConfigEntry(Replace(Username, "]", ","), "Runs", "Gameannounce.ini")) + 1, "Gameannounce.ini"
+    Cat = GetConfigEntry(Replace(Username, "]", ","), "category", "GameAnnounce.ini")
+    WriteConfigEntry Replace(Username, "]", ","), "Cat:" & cat, int(GetConfigEntry(Replace(Username, "]", ","), "Cat:" & cat, "Gameannounce.ini")) + 1, "Gameannounce.ini"
+    If GetConfigEntry("Settings", "Logging", "GameAnnounce.ini") = "True" Then
+     Set FSO = createobject("Scripting.FileSystemObject")
+     Set File = FSO.OpenTextFile(Botpath & "Logs\GameAnnounceLog.txt", 8, True)
+     File.Writeline "{" & Now & "} - {" & ShortProduct & "} - {" & Username & "} - " & Gamename
+     File.Close
+     Set FSO = Nothing
+    End If
+   End If
+  Next
+ End If
+End Sub
+
+Sub event_userjoins(Username, Flags, Message, Ping, Product, Level, OSS, Banned)
+Username = Replace(Username, "]", ",")
+If GetConfigEntry(Username, "PSI", "Gameannounce.ini") = "True" Then
+ If GetConfigEntry(Username, "Online", "Gameannounce.ini") <> "True" Then
+  Username = Replace(Username, "]", ",")
+  Command Username, BotVars.Trigger & "signin", False
+ End If
+End If
+If GetConfigEntry(Username, "Online", "Gameannounce.ini") = "True" Then
+ WriteConfigEntry Username, "Game", "Idle", "Gameannounce.ini"
+ WriteConfigEntry Username, "StartTime", Now, "Gameannounce.ini"
+End If
+End Sub
+
+Sub event_shutdown()
+Addchat vbmagenta, "Shutting down game manager script.  Signing out users and removing user data from games."
+ Set FSO = createobject("scripting.filesystemobject")
+ Set File = fso.OpenTextFile(Botpath & "TEMPbounceGM.txt", 8, True)
+ Set IniFile = fso.OpenTextFile(Botpath & "Gameannounce.ini", 1, True)
+ Lines = Split(inifile.readall, vbnewline)
+ For i = 0 to ubound(lines)
+  File.Writeline lines(i)
+ Next
+ Inifile.close
+ File.Close
+ Set File = fso.OpenTextFile(Botpath & "TEMPbounceGM.txt", 1, True)
+ Lines = Split(File.ReadAll, vbnewline)
+ Set IniFile = fso.opentextfile (Botpath & "Gameannounce.ini", 2, True)
+ IniFile.Close
+ Set IniFile = fso.opentextfile (Botpath & "Gameannounce.ini", 8, True)
+ For i = 0 to ubound(lines) - 2
+  If left(lcase(lines(i)), 7) = "online=" Then Lines(i) = "Online=False"
+  If left(lcase(lines(i)), 6) = "users=" Then Lines(i) = "users="
+  Inifile.writeline lines(i)
+ Next
+ IniFile.Close
+ File.Close
+ FSO.deletefile(Botpath & "TEMPbounceGM.txt")
+End Sub
