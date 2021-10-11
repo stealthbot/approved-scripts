@@ -1,0 +1,91 @@
+'Settings:  Name        Default         Description
+'   PacketVisibility    3               Shows packets for debugging purposes.
+'                                           0 = None
+'                                           1 = Unhandled packets only
+'                                           2 = Packet notifications
+'                                           3 = Packet notifications and data
+'                                           Unlike my other scripts, this
+'                                           defaults to 3 since this is the
+'                                           only purpose of this script.
+
+Option Explicit
+
+Script("Name") = "ShowPackets"
+Script("Author") = "Ribose"
+Script("Major") = 1
+Script("Minor") = 0
+Script("Revision") = 0
+
+Sub Event_PacketReceived(Protocol, ID, Length, ByVal Data)
+    DisplayPacket "RECV", Protocol, ID, Data, False
+End Sub
+
+Sub Event_PacketSent(Protocol, ID, Length, ByVal Data)
+    DisplayPacket "SENT", Protocol, ID, Data, False
+End Sub
+
+' gets a setting as a number or the default number if the set value is not a number or empty
+Function GetNumericSettingsEntry(SettingName, DefaultValue)
+    Dim Value
+    Value = GetSettingsEntry(SettingName)
+    If IsNumeric(Value) Then
+        GetNumericSettingsEntry = CInt(Value)
+    Else
+        GetNumericSettingsEntry = CInt(DefaultValue)
+    End If
+End Function
+
+' displayes a formatted packet depending on the settings
+Sub DisplayPacket(Direction, Protocol, ID, Data, Unhandled)
+    Dim HexID, FirstLine, PacketVerb
+    HexID = Hex(ID)
+    HexID = "0x" & Right("00", 2 - Len(HexID)) & HexID
+    PacketVerb = GetNumericSettingsEntry("PacketVisibility", 3)
+    FirstLine = Protocol & " " & Direction & " PACKET " & HexID & " (" & Len(Data) & " BYTES)"
+    If PacketVerb >= 1 And PacketVerb <= 3 And Unhandled Then
+        AddChat "Courier New", vbRed, FormatPacket("UNHANDLED " & FirstLine & ":", Data)
+    ElseIf PacketVerb = 2 Then
+        AddChat "Courier New", 13408512, FirstLine
+    ElseIf PacketVerb = 3 Then
+        AddChat "Courier New", 13408512, FormatPacket(FirstLine & ":", Data)
+    End If
+End Sub
+
+' formats a packet for display for debugging
+Function FormatPacket(FirstLine, ByVal Data)
+    Dim Lines, DataLen, HexPart, TextPart, Line, C, HexChar, HexLine, Dump
+    DataLen = Len(Data)
+    If DataLen = 0 Then
+        FormatPacket = FirstLine & vbCrLf & "(no data)"
+        Exit Function
+    End If
+    Lines = Fix(DataLen / &H10)
+    If DataLen Mod &H10 Then Lines = Lines + 1
+    Dump = FirstLine
+    For Line = 1 To Lines
+        HexPart = vbNullString
+        TextPart = vbNullString
+        For C = ((Line - 1) * &H10) + 1 To Line * &H10
+            If C <= DataLen Then
+                HexChar = Hex(Asc(Mid(Data, C, 1)))
+                HexChar = Right("00", 2 - Len(HexChar)) & HexChar
+                HexPart = HexPart & HexChar & " "
+                If Asc(Mid(Data, C, 1)) < &H20 Then
+                    TextPart = TextPart & "."
+                Else
+                    TextPart = TextPart & Mid(Data, C, 1)
+                End If
+            Else
+                HexPart = HexPart & "   "
+            End If
+            If (C Mod &H08) = 0 Then
+                HexPart = HexPart & " "
+                TextPart = TextPart & " "
+            End If
+        Next
+        HexLine = Hex(Line - 1)
+        HexLine = Right("0000000", 7 - Len(HexLine)) & HexLine & "0"
+        Dump = Dump & vbCrLf & HexLine & ":   " & HexPart & " " & TextPart
+    Next
+    FormatPacket = Dump
+End Function
